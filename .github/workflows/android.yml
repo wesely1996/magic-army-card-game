@@ -6,6 +6,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to build and publish, e.g. 0.1.0 (creates tag v<version>). Leave empty for a normal CI run."
+        required: false
+        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -65,7 +70,8 @@ jobs:
 
   release:
     name: Release APK
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Runs for a pushed v* tag, or from the Actions tab ("Run workflow" with a version).
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.version != '')
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -73,6 +79,7 @@ jobs:
       contents: write
     env:
       KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -91,11 +98,15 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          ./gradlew :app:assembleRelease -PversionCode=${{ github.run_number }} -PversionName="$VERSION"
-          cp app/build/outputs/apk/release/app-release.apk "king-of-the-beasts-$VERSION.apk"
+          RELEASE_VERSION="${VERSION#v}"
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
+          ./gradlew :app:assembleRelease -PversionCode=${{ github.run_number }} -PversionName="$RELEASE_VERSION"
+          cp app/build/outputs/apk/release/app-release.apk "king-of-the-beasts-$RELEASE_VERSION.apk"
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v3
         with:
+          # For a manual run the action creates the tag on the commit being built.
+          tag_name: v${{ env.RELEASE_VERSION }}
+          target_commitish: ${{ github.sha }}
           files: king-of-the-beasts-*.apk
           generate_release_notes: true
