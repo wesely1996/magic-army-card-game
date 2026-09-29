@@ -28,6 +28,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Rules engine unit tests
         run: ./gradlew :core:test --stacktrace
+      - name: App UI tests (Robolectric)
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
       - name: Android lint
         run: ./gradlew :app:lintDebug --stacktrace
       - name: Upload reports
@@ -37,6 +39,7 @@ jobs:
           name: reports
           path: |
             core/build/reports/tests/
+            app/build/reports/tests/
             app/build/reports/lint-results-debug.html
 
   build:

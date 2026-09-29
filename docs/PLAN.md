@@ -22,6 +22,7 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
   Cards have no cost.
 - Movement: king-steps in 8 directions, blocked by units unless Flying. Range uses Chebyshev distance.
 - Battle-phase units: empty border square, ≥2 squares from every enemy (Ambush strategy relaxes this).
+- At most 10 units per side on the board. Unit cards, summons (Call the Pack) and Enthrall all respect the cap.
 - Interrupts: every action goes on a stack. Magic cards and ⚡ quick abilities can respond, alternating.
   A pass resolves the whole chain last-in-first-out, and illegal actions fizzle. Counter cards cancel the action they answer.
 - Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.

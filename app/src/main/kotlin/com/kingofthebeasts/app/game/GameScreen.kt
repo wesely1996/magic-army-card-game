@@ -67,12 +67,17 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
     BackHandler { confirmExit = true }
 
     // Big announcements (coin flip, battle start) fade in over the board.
-    var announcement by remember { mutableStateOf<String?>(null) }
+    var announcement by remember { mutableStateOf<GameEvent.Announce?>(null) }
     var announcedSeq by remember { mutableIntStateOf(0) }
     LaunchedEffect(vm.version) {
         val next = s.events.filterIsInstance<GameEvent.Announce>().lastOrNull { it.seq > announcedSeq } ?: return@LaunchedEffect
         announcedSeq = next.seq
-        announcement = next.text
+        announcement = next
+    }
+    // The hide timer is keyed on the announcement itself, not on the game version: the AI
+    // keeps changing the game while the banner is up, and that must not cancel the timer.
+    LaunchedEffect(announcement) {
+        if (announcement == null) return@LaunchedEffect
         delay(1800)
         announcement = null
     }
@@ -85,8 +90,11 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
                 androidx.compose.animation.AnimatedVisibility(
                     announcement != null, Modifier.align(Alignment.Center), enter = fadeIn(), exit = fadeOut(),
                 ) {
+                    // Keep showing the last text while the banner fades out.
+                    val text = remember { mutableStateOf("") }
+                    announcement?.let { text.value = it.text }
                     Text(
-                        announcement ?: "",
+                        text.value,
                         style = MaterialTheme.typography.headlineMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -134,11 +142,11 @@ private fun TopBar(vm: GameViewModel, onMenu: () -> Unit, onLog: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                "Opponent (${vm.difficulty.displayName})  ✋${opp.hand.size}  🂠${opp.deck.size}",
+                "Opponent (${vm.difficulty.displayName})  ⚔${s.unitsOf(1 - vm.human).size}/${GameEngine.MAX_UNITS_ON_FIELD}  ✋${opp.hand.size}  🂠${opp.deck.size}",
                 style = MaterialTheme.typography.labelMedium, color = Ink.Enemy,
             )
             Text(
-                "You  🂠${me.deck.size}  ·  " + when (s.phase) {
+                "You  ⚔${s.unitsOf(vm.human).size}/${GameEngine.MAX_UNITS_ON_FIELD}  🂠${me.deck.size}  ·  " + when (s.phase) {
                     Phase.DEPLOY -> "Deployment"
                     Phase.BATTLE -> "Turn ${s.turnNumber}"
                     Phase.GAME_OVER -> "Battle over"

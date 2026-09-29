@@ -20,6 +20,8 @@ import kotlin.math.min
  */
 object GameEngine {
     const val MAX_DEPLOY = 5
+    /** Most units one side may have on the board at once (reinforcements, summons, enthralled units). */
+    const val MAX_UNITS_ON_FIELD = 10
     const val OPENING_HAND = 5
     const val HAND_LIMIT = 8
     const val TURN_LIMIT = 200
@@ -189,7 +191,10 @@ object GameEngine {
         CardType.MAGIC, CardType.EQUIPMENT -> ruleTargets(s, p, def.target, null)
     }
 
+    fun hasRoomForUnit(s: GameState, p: Int): Boolean = s.unitsOf(p).size < MAX_UNITS_ON_FIELD
+
     fun battleDeployTiles(s: GameState, p: Int): List<Pos> {
+        if (!hasRoomForUnit(s, p)) return emptyList()
         val ambush = s.fieldActive(p, FieldRule.AMBUSH)
         val enemies = s.unitsOf(1 - p)
         return Board.allTiles.filter { t ->
@@ -217,9 +222,9 @@ object GameEngine {
     private fun effectApplicable(s: GameState, source: UnitState, effects: List<EffectOp>, target: Target): Boolean {
         val t = (target as? Target.Unit)?.let { s.unit(it.unitId) }
         for (op in effects) when (op) {
-            is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth) return false
+            is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, source.owner)) return false
             is EffectOp.Pounce -> if (t == null || pounceSquare(s, source, t) == null) return false
-            is EffectOp.Summon -> if (source.pos.neighbors().none { s.unitAt(it) == null }) return false
+            is EffectOp.Summon -> if (!hasRoomForUnit(s, source.owner) || source.pos.neighbors().none { s.unitAt(it) == null }) return false
             else -> {}
         }
         return true
@@ -404,7 +409,7 @@ object GameEngine {
                 when (def.type) {
                     CardType.UNIT -> {
                         val pos = (a.target as Target.Tile).pos
-                        if (s.unitAt(pos) != null) {
+                        if (s.unitAt(pos) != null || !hasRoomForUnit(s, p)) {
                             fizzle(s, item)
                             s.players[p].discard += card
                         } else {
@@ -504,6 +509,7 @@ object GameEngine {
                 s.log("${s.players[p].name}: ${op.rule.displayName} is now active")
             }
             is EffectOp.Summon -> source?.let { src ->
+                if (!hasRoomForUnit(s, p)) return
                 val spot = src.pos.neighbors().firstOrNull { s.unitAt(it) == null } ?: return
                 val u = summon(s, p, CardInstance(s.newId(), op.cardId), spot, token = true)
                 s.event { GameEvent.Status(it, spot, "Summoned") }
@@ -517,7 +523,7 @@ object GameEngine {
                 s.event { GameEvent.Moved(it, t.id, source.pos, t.pos) }
             }
             is EffectOp.Enthrall -> t?.let { u ->
-                if (!u.isKing && u.hp <= op.maxHealth) {
+                if (!u.isKing && u.hp <= op.maxHealth && hasRoomForUnit(s, p)) {
                     u.owner = p
                     u.stun = 0
                     s.log("${u.name} is enthralled and now fights for ${s.players[p].name}")

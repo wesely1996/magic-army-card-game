@@ -163,7 +163,8 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             Section("Playing it")
             Text(
                 if (def.isKing) "Your King is deployed first. If it falls, you lose the battle."
-                else "Deploy it in your first 3 rows before the battle, or during the battle on an empty edge square at least 2 squares from every enemy.",
+                else "Deploy it in your first 3 rows before the battle, or during the battle on an empty edge square at least 2 squares from every enemy. " +
+                    "You can have at most 10 units on the board.",
                 style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
             )
         }

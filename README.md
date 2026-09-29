@@ -28,7 +28,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Card types** | **Unit** (a piece on the board), **Magic** (buff, heal, damage, stun, counter — usable as interrupts), **Strategy** (field-wide rule changes for a few turns), **Equipment** (permanent unit upgrades). |
 | **Deployment** | Coin flip picks who starts. Players alternate placing one unit in their **first 3 rows**, up to 5 each. The King is always placed first. Units are chosen from all unit cards in the deck. Then everyone shuffles and draws 5. |
 | **Battle** | Draw a card, then take **one** action: move, attack, use a unit ability, or play a card. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. |
-| **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. |
+| **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. Each side can have at most **10 units** on the board, including summoned and enthralled units. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |

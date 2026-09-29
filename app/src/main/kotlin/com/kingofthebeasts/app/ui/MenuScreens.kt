@@ -247,7 +247,8 @@ fun RulesScreen(onBack: () -> Unit) {
             "or play a card. Units move up to their MOV in any direction (8 ways), and can't pass through other units unless they fly. " +
             "They attack enemies within RNG squares (diagonals count).",
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
-            "that is at least 2 squares away from every enemy.",
+            "that is at least 2 squares away from every enemy. Each side can have at most 10 units on the board " +
+            "(summoned and enthralled units count too).",
         "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ quick ability — " +
             "and they may respond to that, and so on. Then everything resolves from the last response back to the first. " +
             "An action that no longer makes sense (a stunned unit's attack, a target that died) fizzles.",
