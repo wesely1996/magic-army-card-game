@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.magicarmy.app"
+    namespace = "com.kingofthebeasts.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.magicarmy.app"
+        applicationId = "com.kingofthebeasts.app"
         minSdk = 24
         targetSdk = 35
         // CI passes the build number so every pipeline run produces an installable upgrade.

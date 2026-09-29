@@ -1,4 +1,4 @@
-# Magic Army — MVP plan and decisions
+# King of the Beasts — MVP plan and decisions
 
 Status: **MVP implemented.** This file records the agreed rules and the design decisions behind them.
 
@@ -10,6 +10,9 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Every race has **2 Kings** with a signature gimmick.
 - No hot-seat two-player mode. Online play with friends comes next.
 - CI/CD runs on GitHub Actions.
+- The game is called **King of the Beasts** (app id `com.kingofthebeasts.app`).
+- Press-and-hold opens any card (or a unit on the board) large, with every rule written out.
+- Two AI levels: **Easy** (greedy, one step ahead) and **Medium** (3-ply alpha-beta search).
 
 ## Rules as implemented
 - 8×8 board. Coin-flip winner deploys first and acts first in battle.

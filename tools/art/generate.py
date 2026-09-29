@@ -33,7 +33,7 @@ TYPE_TINT = {"magic": "#B89AD8", "strategy": "#D8C08A", "equipment": "#A9B4BE"}
 
 def card_types():
     """Reads each card's type straight from the Kotlin card database."""
-    src = open(os.path.join(ROOT, "core/src/main/kotlin/com/magicarmy/core/data/CardDatabase.kt")).read()
+    src = open(os.path.join(ROOT, "core/src/main/kotlin/com/kingofthebeasts/core/data/CardDatabase.kt")).read()
     found = re.findall(r'add\((unit|king|magic|strategy|equipment)\("(\w+)"', src)
     return {cid: ("unit" if kind in ("unit", "king") else kind) for kind, cid in found}
 

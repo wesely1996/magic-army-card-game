@@ -1,16 +1,21 @@
-# Magic Army
+# King of the Beasts
 
 A 2.5D card–chess hybrid for Android. Build a 40-card deck from up to three animal
 races, deploy your army on a chessboard, and battle to bring down the enemy King.
 The art is hand-drawn ink over watercolor washes.
 
-> Status: **playable MVP**. You play against the computer. Online battles with friends are planned next.
+> Status: **playable MVP**. You play against the computer (Easy or Medium). Online battles with friends are planned next.
 
 <p>
 <img src="docs/screenshots/menu.webp" width="200" alt="Main menu">
 <img src="docs/screenshots/battle.webp" width="200" alt="Battle">
 <img src="docs/screenshots/deploy.webp" width="200" alt="Deployment">
 <img src="docs/screenshots/builder.webp" width="200" alt="Deck builder">
+</p>
+<p>
+<img src="docs/screenshots/setup.webp" width="200" alt="Battle setup with difficulty">
+<img src="docs/screenshots/inspect_king.webp" width="200" alt="Inspecting a King card">
+<img src="docs/screenshots/inspect_unit.webp" width="200" alt="Inspecting a unit on the board">
 </p>
 <img src="docs/screenshots/cards.webp" width="420" alt="Cards">
 
@@ -25,6 +30,8 @@ The art is hand-drawn ink over watercolor washes.
 | **Battle** | Draw a card, then take **one** action: move, attack, use a unit ability, or play a card. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. |
 | **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
+| **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
+| **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
 
 ### Races and their Kings
 
@@ -47,8 +54,11 @@ docs/        Design notes and plan.
 
 * **Engine** (`core/.../game/GameEngine.kt`): deterministic and action-based. The same seed and the same
   actions always produce the same game, which is what online play and replays will build on.
-* **AI** (`core/.../ai`): simulates every legal action one step ahead and scores the result: material,
-  King safety, next-turn threats, and board advance. It interrupts only when that clearly pays off.
+* **AI** (`core/.../ai`): positions are scored on material, King safety, next-turn threats and board advance.
+  *Easy* picks the best-looking action one step ahead, with some noise. *Medium* runs a 3-ply alpha-beta
+  search (its action → your reply → its action) over the most promising candidates at each level. It
+  doesn't peek at your hand: when predicting your reply it only considers board actions. Both interrupt
+  only when it clearly pays off. A test checks that Medium beats Easy.
 * **2.5D board** (`app/.../game/BoardView.kt`): a perspective projection of the board plane. The watercolor
   board texture is mapped with a homography, units are upright card standees sorted by depth, and taps
   are mapped back through the inverse projection.

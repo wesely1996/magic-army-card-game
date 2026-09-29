@@ -1,0 +1,187 @@
+package com.kingofthebeasts.app.game
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.kingofthebeasts.core.ai.AiPlayer
+import com.kingofthebeasts.core.ai.Difficulty
+import com.kingofthebeasts.core.deck.Deck
+import com.kingofthebeasts.core.game.Action
+import com.kingofthebeasts.core.game.CardInstance
+import com.kingofthebeasts.core.game.Decision
+import com.kingofthebeasts.core.game.DecisionKind
+import com.kingofthebeasts.core.game.GameEngine
+import com.kingofthebeasts.core.game.GameState
+import com.kingofthebeasts.core.game.Phase
+import com.kingofthebeasts.core.game.Pos
+import com.kingofthebeasts.core.game.Target
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+sealed interface Selection {
+    data object None : Selection
+    data class Unit(val unitId: Int) : Selection
+    data class Card(val cardUid: Int) : Selection
+    data class Ability(val unitId: Int, val index: Int) : Selection
+}
+
+data class Highlights(
+    val move: Set<Pos> = emptySet(),
+    val attack: Set<Pos> = emptySet(),
+    val target: Set<Pos> = emptySet(),
+    val selected: Pos? = null,
+)
+
+/**
+ * Owns one battle: the human is always player 0 (near side of the board),
+ * the AI is player 1. The AI thinks off the main thread; the game state is
+ * only ever mutated on the main thread.
+ */
+class GameViewModel(val playerDeck: Deck, val aiDeck: Deck, val difficulty: Difficulty, seed: Long) : ViewModel() {
+    val human = 0
+    val state: GameState = GameEngine.newGame(playerDeck, aiDeck, listOf("You", "Opponent"), seed)
+    private val ai = AiPlayer(difficulty, seed * 31 + 7)
+    private var aiJob: Job? = null
+
+    /** Bumped after every state change so Compose re-reads the (mutable) game state. */
+    var version by mutableIntStateOf(0)
+        private set
+    var selection by mutableStateOf<Selection>(Selection.None)
+    var aiThinking by mutableStateOf(false)
+        private set
+
+    init {
+        runAi()
+    }
+
+    val decision: Decision get() = GameEngine.decision(state)
+    val humanToAct: Boolean get() = decision.player == human && decision.kind != DecisionKind.NONE && !aiThinking
+
+    fun legalActions(): List<Action> = if (humanToAct) GameEngine.legalActions(state) else emptyList()
+
+    fun perform(action: Action) {
+        if (!humanToAct || !GameEngine.isLegal(state, action)) return
+        GameEngine.apply(state, action)
+        selection = Selection.None
+        version++
+        runAi()
+    }
+
+    private fun runAi() {
+        if (aiJob?.isActive == true) return
+        aiJob = viewModelScope.launch {
+            while (true) {
+                val d = GameEngine.decision(state)
+                if (d.kind == DecisionKind.NONE || d.player == human) break
+                aiThinking = true
+                val started = System.currentTimeMillis()
+                val action = withContext(Dispatchers.Default) { ai.choose(state) }
+                // Keep a readable pace even when the AI decides instantly.
+                val minPause = if (d.kind == DecisionKind.DEPLOY) 450L else 850L
+                delay((minPause - (System.currentTimeMillis() - started)).coerceAtLeast(0L))
+                GameEngine.apply(state, action)
+                version++
+            }
+            aiThinking = false
+        }
+    }
+
+    // ------------------------------------------------------------ selection
+
+    /** Cards shown in the hand row: the deploy pool during deployment, the hand in battle. */
+    fun handCards(): List<Pair<CardInstance, Int>> =
+        if (state.phase == Phase.DEPLOY) {
+            GameEngine.deployableCards(state, human).groupBy { it.cardId }.map { (_, l) -> l.first() to l.size }
+        } else {
+            state.players[human].hand.map { it to 1 }
+        }
+
+    fun cardActions(uid: Int, actions: List<Action>) = actions.filter {
+        (it is Action.PlayCard && it.cardUid == uid) || (it is Action.Deploy && it.cardUid == uid)
+    }
+
+    fun abilityActions(unitId: Int, index: Int, actions: List<Action>) =
+        actions.filterIsInstance<Action.UseAbility>().filter { it.unitId == unitId && it.abilityIndex == index }
+
+    fun selectCard(uid: Int) {
+        selection = if (selection == Selection.Card(uid)) Selection.None else Selection.Card(uid)
+    }
+
+    fun selectAbility(unitId: Int, index: Int) {
+        val options = abilityActions(unitId, index, legalActions())
+        val direct = options.singleOrNull()?.takeIf { it.target.isSelfOrNone(unitId) }
+        if (direct != null) perform(direct) else selection = Selection.Ability(unitId, index)
+    }
+
+    private fun Target.isSelfOrNone(unitId: Int) = this !is Target.Unit || this.unitId == unitId
+
+    /** Actions that need no board target (strategies, counters, self abilities). */
+    fun confirmableActions(actions: List<Action>): List<Action> = when (val sel = selection) {
+        is Selection.Card -> cardActions(sel.cardUid, actions).filterIsInstance<Action.PlayCard>()
+            .filter { it.target is Target.None || it.target is Target.StackEntry }
+        is Selection.Ability -> abilityActions(sel.unitId, sel.index, actions).filter { it.target.isSelfOrNone(sel.unitId) }
+        else -> emptyList()
+    }
+
+    fun onTileTapped(pos: Pos) {
+        val actions = legalActions()
+        actionForTile(pos, actions)?.let {
+            perform(it)
+            return
+        }
+        val u = state.unitAt(pos)
+        selection = if (u != null && selection != Selection.Unit(u.id)) Selection.Unit(u.id) else Selection.None
+    }
+
+    private fun Target.at(pos: Pos): Boolean = when (this) {
+        is Target.Tile -> this.pos == pos
+        is Target.Unit -> state.unit(unitId)?.pos == pos
+        else -> false
+    }
+
+    private fun actionForTile(pos: Pos, actions: List<Action>): Action? = when (val sel = selection) {
+        is Selection.Unit -> actions.firstOrNull {
+            (it is Action.Move && it.unitId == sel.unitId && it.to == pos) ||
+                (it is Action.Attack && it.unitId == sel.unitId && state.unit(it.targetId)?.pos == pos)
+        }
+        is Selection.Card -> cardActions(sel.cardUid, actions).firstOrNull {
+            (it is Action.Deploy && it.pos == pos) || (it is Action.PlayCard && it.target.at(pos))
+        }
+        is Selection.Ability -> abilityActions(sel.unitId, sel.index, actions).firstOrNull { it.target.at(pos) }
+        Selection.None -> null
+    }
+
+    fun highlights(actions: List<Action>): Highlights = when (val sel = selection) {
+        is Selection.Unit -> Highlights(
+            move = actions.filterIsInstance<Action.Move>().filter { it.unitId == sel.unitId }.map { it.to }.toSet(),
+            attack = actions.filterIsInstance<Action.Attack>().filter { it.unitId == sel.unitId }
+                .mapNotNull { state.unit(it.targetId)?.pos }.toSet(),
+            selected = state.unit(sel.unitId)?.pos,
+        )
+        is Selection.Card -> Highlights(
+            target = cardActions(sel.cardUid, actions).mapNotNull {
+                when (it) {
+                    is Action.Deploy -> it.pos
+                    is Action.PlayCard -> when (val t = it.target) {
+                        is Target.Tile -> t.pos
+                        is Target.Unit -> state.unit(t.unitId)?.pos
+                        else -> null
+                    }
+                    else -> null
+                }
+            }.toSet(),
+        )
+        is Selection.Ability -> Highlights(
+            target = abilityActions(sel.unitId, sel.index, actions)
+                .mapNotNull { (it.target as? Target.Unit)?.let { t -> state.unit(t.unitId)?.pos } }.toSet(),
+            selected = state.unit(sel.unitId)?.pos,
+        )
+        Selection.None -> Highlights()
+    }
+}

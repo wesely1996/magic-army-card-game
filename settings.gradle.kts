@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MagicArmy"
+rootProject.name = "KingOfTheBeasts"
 include(":core", ":app")

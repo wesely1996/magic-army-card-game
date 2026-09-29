@@ -56,7 +56,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: magic-army-debug-${{ github.run_number }}
+          name: king-of-the-beasts-debug-${{ github.run_number }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
@@ -90,9 +90,9 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           ./gradlew :app:assembleRelease -PversionCode=${{ github.run_number }} -PversionName="$VERSION"
-          cp app/build/outputs/apk/release/app-release.apk "magic-army-$VERSION.apk"
+          cp app/build/outputs/apk/release/app-release.apk "king-of-the-beasts-$VERSION.apk"
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: magic-army-*.apk
+          files: king-of-the-beasts-*.apk
           generate_release_notes: true
