@@ -94,7 +94,7 @@ class EngineTest {
         // Player 1 has nothing left, so the stack resolves on its own.
         assertNull(s.priority)
         assertTrue(s.stack.isEmpty())
-        assertEquals(0, u[1].hp.coerceAtLeast(0), "Hiss was cancelled, so the attack went through")
+        assertFalse(u[1].alive, "Hiss was cancelled, so the attack went through")
         assertEquals(1, s.activePlayer)
     }
 
@@ -107,7 +107,7 @@ class EngineTest {
         val hug = s.giveCard(1, "b_hug")
         GameEngine.apply(s, Action.Attack(u[0].id, u[1].id))
         GameEngine.apply(s, Action.PlayCard(hug.uid, Target.Unit(u[0].id)))
-        assertEquals(4, u[1].hp)
+        assertEquals(u[1].maxHp, u[1].hp, "the stunned attacker never hit")
         assertEquals(1, s.activePlayer)
         assertEquals(0, u[0].stun, "the stun only interrupted the action on its owner's own turn")
     }
@@ -122,7 +122,7 @@ class EngineTest {
         GameEngine.apply(s, Action.Attack(u[0].id, u[1].id))
         assertEquals(DecisionKind.RESPOND, GameEngine.decision(s).kind)
         GameEngine.apply(s, Action.Pass)
-        assertEquals(0, u[1].hp)
+        assertFalse(u[1].alive)
     }
 
     @Test
@@ -133,8 +133,8 @@ class EngineTest {
         )
         GameEngine.apply(s, Action.Attack(u[0].id, u[1].id))
         assertFalse(u[0].alive, "3 retaliation damage kills the 3-health Viper")
-        // 6 - 2 from the bite, then 1 poison at the start of its owner's turn.
-        assertEquals(3, u[1].hp)
+        // Full health minus the Viper's bite, then 1 poison at the start of its owner's turn.
+        assertEquals(u[1].maxHp - u[0].attack - 1, u[1].hp)
         assertEquals(1, u[1].poisonTurns)
     }
 

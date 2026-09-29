@@ -45,14 +45,14 @@ object CardDatabase {
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
-        add(unit("w_pup", "Wolf Pup", WOLF, 2, 3, 3, 1, setOf(PACK_HUNTER)))
-        add(unit("w_scout", "Wolf Scout", WOLF, 2, 4, 3, 1, setOf(PACK_HUNTER)))
-        add(unit("w_hunter", "Grey Hunter", WOLF, 3, 5, 2, 1, setOf(PACK_HUNTER)))
-        add(unit("w_stalker", "Shadow Stalker", WOLF, 3, 4, 3, 1, emptySet(),
+        add(unit("w_pup", "Wolf Pup", WOLF, 3, 3, 3, 1, setOf(PACK_HUNTER)))
+        add(unit("w_scout", "Wolf Scout", WOLF, 3, 4, 3, 1, setOf(PACK_HUNTER)))
+        add(unit("w_hunter", "Grey Hunter", WOLF, 4, 5, 2, 1, setOf(PACK_HUNTER)))
+        add(unit("w_stalker", "Shadow Stalker", WOLF, 4, 4, 3, 1, emptySet(),
             ability("Ambush Bite", "Deal 1 damage to an adjacent enemy.", TargetRule(TargetKind.ENEMY_UNIT, 1), 2,
                 quick = true, effects = listOf(Damage(1)))))
-        add(unit("w_direwolf", "Dire Wolf", WOLF, 4, 7, 2, 1, setOf(RETALIATE)))
-        add(unit("w_shaman", "Wolf Shaman", WOLF, 1, 4, 2, 2, emptySet(),
+        add(unit("w_direwolf", "Dire Wolf", WOLF, 5, 7, 2, 1, setOf(RETALIATE)))
+        add(unit("w_shaman", "Wolf Shaman", WOLF, 2, 4, 2, 2, emptySet(),
             ability("Mend", "Heal an ally within 2 by 3.", TargetRule(TargetKind.FRIENDLY_UNIT, 2), 2,
                 effects = listOf(Heal(3)))))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
@@ -73,13 +73,13 @@ object CardDatabase {
             flavor = "The mountain does not move for you."))
         add(king("b_king_warden", "Cave Warden", BEAR, 3, 8, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
-        add(unit("b_cub", "Bear Cub", BEAR, 2, 4, 2, 1, setOf(REGENERATE)))
-        add(unit("b_brawler", "Brown Brawler", BEAR, 3, 6, 1, 1, setOf(RETALIATE)))
-        add(unit("b_grizzly", "Grizzly", BEAR, 4, 7, 1, 1, setOf(ARMORED)))
-        add(unit("b_polar", "Polar Bear", BEAR, 3, 6, 2, 1, setOf(ARMORED)))
-        add(unit("b_panda", "Panda Monk", BEAR, 2, 5, 2, 1, emptySet(),
+        add(unit("b_cub", "Bear Cub", BEAR, 2, 3, 2, 1, setOf(REGENERATE)))
+        add(unit("b_brawler", "Brown Brawler", BEAR, 3, 5, 1, 1, setOf(RETALIATE)))
+        add(unit("b_grizzly", "Grizzly", BEAR, 4, 6, 1, 1, setOf(ARMORED)))
+        add(unit("b_polar", "Polar Bear", BEAR, 3, 5, 2, 1, setOf(ARMORED)))
+        add(unit("b_panda", "Panda Monk", BEAR, 2, 4, 2, 1, emptySet(),
             ability("Meditate", "Heal this unit by 3.", TargetRule.SELF, 2, effects = listOf(Heal(3)))))
-        add(unit("b_honey", "Honey Gatherer", BEAR, 1, 4, 2, 2, emptySet(),
+        add(unit("b_honey", "Honey Gatherer", BEAR, 1, 3, 2, 2, emptySet(),
             ability("Sticky Honey", "Stun an enemy within 2 for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 2), 4,
                 quick = true, effects = listOf(Stun(1)))))
         add(magic("b_hide", "Thick Hide", BEAR, "Give an allied unit a 3-point shield.", TargetRule.FRIENDLY, Shield(3)))
@@ -102,13 +102,13 @@ object CardDatabase {
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 4, quick = true, effects = listOf(Damage(1), Stun(1))),
             flavor = "Thunder is just her wings."))
         add(unit("h_sparrow", "Sparrow Scout", HAWK, 1, 2, 4, 1, setOf(FLYING)))
-        add(unit("h_falcon", "Falcon", HAWK, 2, 3, 2, 2, setOf(FLYING)))
-        add(unit("h_owl", "Night Owl", HAWK, 1, 3, 2, 3, setOf(FLYING)))
-        add(unit("h_eagle", "War Eagle", HAWK, 3, 4, 3, 1, setOf(FLYING)))
-        add(unit("h_crow", "Crow Trickster", HAWK, 1, 3, 3, 2, setOf(FLYING),
+        add(unit("h_falcon", "Falcon", HAWK, 1, 2, 2, 2, setOf(FLYING)))
+        add(unit("h_owl", "Night Owl", HAWK, 1, 2, 2, 3, setOf(FLYING)))
+        add(unit("h_eagle", "War Eagle", HAWK, 2, 3, 3, 1, setOf(FLYING)))
+        add(unit("h_crow", "Crow Trickster", HAWK, 1, 2, 3, 2, setOf(FLYING),
             ability("Mimic Caw", "Cancel the action you are responding to.", TargetRule.STACK, 5,
                 quick = true, effects = listOf(EffectOp.Counter))))
-        add(unit("h_condor", "Condor", HAWK, 3, 5, 2, 1, setOf(FLYING, RETALIATE)))
+        add(unit("h_condor", "Condor", HAWK, 2, 3, 2, 1, setOf(FLYING, RETALIATE)))
         add(magic("h_gust", "Gust", HAWK, "Interrupt only. Cancel the action you are responding to.",
             TargetRule.STACK, EffectOp.Counter))
         add(magic("h_tailwind", "Tailwind", HAWK, "An allied unit gets +2 movement and Flying for 1 turn.",
@@ -155,12 +155,12 @@ object CardDatabase {
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 4), 2, effects = listOf(EffectOp.Pounce)),
             flavor = "You never see the first strike."))
-        add(unit("l_cub", "Lion Cub", LION, 2, 4, 2, 1, setOf(PACK_HUNTER)))
-        add(unit("l_lioness", "Lioness Hunter", LION, 3, 5, 2, 1, setOf(PACK_HUNTER)))
-        add(unit("l_guard", "Royal Guard", LION, 2, 6, 1, 1, setOf(ARMORED, RETALIATE)))
-        add(unit("l_warlord", "Maned Warlord", LION, 4, 7, 2, 1, setOf(RETALIATE)))
-        add(unit("l_runner", "Pride Runner", LION, 3, 3, 4, 1))
-        add(unit("l_sage", "Pride Sage", LION, 1, 4, 2, 2, emptySet(),
+        add(unit("l_cub", "Lion Cub", LION, 2, 5, 2, 1, setOf(PACK_HUNTER)))
+        add(unit("l_lioness", "Lioness Hunter", LION, 3, 6, 2, 1, setOf(PACK_HUNTER)))
+        add(unit("l_guard", "Royal Guard", LION, 2, 7, 1, 1, setOf(ARMORED, RETALIATE)))
+        add(unit("l_warlord", "Maned Warlord", LION, 4, 8, 2, 1, setOf(RETALIATE)))
+        add(unit("l_runner", "Pride Runner", LION, 3, 4, 4, 1))
+        add(unit("l_sage", "Pride Sage", LION, 1, 5, 2, 2, emptySet(),
             ability("Blessing", "Give an ally within 2 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 2), 2,
                 quick = true, effects = listOf(Shield(2)))))
         add(magic("l_charge", "Glorious Charge", LION, "An allied unit gets +2 attack and +1 movement for 1 turn.",
