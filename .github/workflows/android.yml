@@ -92,7 +92,7 @@ jobs:
           ./gradlew :app:assembleRelease -PversionCode=${{ github.run_number }} -PversionName="$VERSION"
           cp app/build/outputs/apk/release/app-release.apk "king-of-the-beasts-$VERSION.apk"
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: king-of-the-beasts-*.apk
           generate_release_notes: true
