@@ -57,3 +57,19 @@ tasks.register<JavaExec>("balanceSolve") {
         (project.findProperty("step") as String?) ?: "3",
     )
 }
+
+// Multi-lever solve: measures several candidate card changes and solves a ridge
+// least-squares problem for the combination that equalises races (BalanceExperiments.kt).
+tasks.register<JavaExec>("balanceExperiments") {
+    group = "verification"
+    description = "Measures candidate card changes and solves for a balanced combination"
+    classpath = balance.runtimeClasspath
+    mainClass.set("com.kingofthebeasts.core.balance.BalanceExperimentsKt")
+    workingDir = rootProject.projectDir
+    args(
+        (project.findProperty("games") as String?) ?: "2500",
+        (project.findProperty("ai") as String?) ?: "greedy",
+        (project.findProperty("out") as String?) ?: "docs/BALANCE_EXPERIMENTS.md",
+        *listOfNotNull(project.findProperty("cache") as String?).toTypedArray(),
+    )
+}
