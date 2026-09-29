@@ -32,10 +32,22 @@ fun main(args: Array<String>) {
     val step = args.getOrNull(3)?.toInt() ?: 3
     val races = Race.entries
 
+    // Each run is cached (keyed by the current card definitions) so an interrupted solve can resume.
+    val cache = File(out.path + ".cache").apply { parentFile?.mkdirs() }
     fun strengths(label: String): Map<Race, Double> {
+        // toString() is stable across runs (enum hashCodes are not).
+        val key = "$games|$ai|${CardDatabase.all.toString().hashCode()}"
+        cache.takeIf { it.exists() }?.readLines()?.firstOrNull { it.startsWith("$key|") }?.let { line ->
+            System.err.println("Cached: $label")
+            val values = line.removePrefix("$key|").split(",").map { it.toDouble() }
+            return races.zip(values).toMap()
+        }
         System.err.println("Simulating: $label")
         val fit = StrengthModel.fit(simulate(games, ai), StrengthModel::raceKingFeatures)
-        return races.associateWith { StrengthModel.elo(fit.weights.getValue("race:${it.name}")) }
+        val result = races.associateWith { StrengthModel.elo(fit.weights.getValue("race:${it.name}")) }
+        cache.appendText("$key|" + races.joinToString(",") { result.getValue(it).toString() } + "\n")
+        System.err.println("  $label: " + races.joinToString { "${it.displayName} %+.0f".format(result.getValue(it)) })
+        return result
     }
 
     CardDatabase.resetTuning()
