@@ -54,5 +54,6 @@ tasks.register<JavaExec>("balanceSolve") {
         (project.findProperty("games") as String?) ?: "2000",
         (project.findProperty("ai") as String?) ?: "greedy",
         (project.findProperty("out") as String?) ?: "docs/BALANCE_SOLVE.md",
+        (project.findProperty("step") as String?) ?: "3",
     )
 }

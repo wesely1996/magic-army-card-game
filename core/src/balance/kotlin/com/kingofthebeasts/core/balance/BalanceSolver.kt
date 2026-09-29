@@ -19,12 +19,17 @@ import java.io.File
  *    every race changes nothing). We pick the k that minimises Σ h_r² (the smallest total
  *    change): k = Σ(s_r/δ_r²) / Σ(1/δ_r²).
  *
- * Args: <games per run> <ai> <output file>
+ * Sensitivities measured per race are noisy, so each is shrunk halfway towards the mean
+ * over all races before solving (a simple James–Stein-style estimate), and the probe uses a
+ * step of several HP so the signal clears the simulation noise.
+ *
+ * Args: <games per run> <ai> <output file> [HP step, default 3]
  */
 fun main(args: Array<String>) {
     val games = args.getOrNull(0)?.toInt() ?: 2000
     val ai = args.getOrNull(1) ?: "greedy"
     val out = File(args.getOrNull(2) ?: "docs/BALANCE_SOLVE.md")
+    val step = args.getOrNull(3)?.toInt() ?: 3
     val races = Race.entries
 
     fun strengths(label: String): Map<Race, Double> {
@@ -35,15 +40,18 @@ fun main(args: Array<String>) {
 
     CardDatabase.resetTuning()
     val s = strengths("baseline")
-    val delta = races.associateWith { race ->
+    val measured = races.associateWith { race ->
         CardDatabase.applyTuning { c ->
             val u = c.unit
-            if (c.race == race && u != null && !c.isKing) c.copy(unit = u.copy(health = u.health + 1)) else c
+            if (c.race == race && u != null && !c.isKing) c.copy(unit = u.copy(health = u.health + step)) else c
         }
-        val sr = strengths("+1 HP for every ${race.displayName} unit")
+        val sr = strengths("+$step HP for every ${race.displayName} unit")
         CardDatabase.resetTuning()
-        (sr.getValue(race) - s.getValue(race)) * races.size / (races.size - 1)
+        (sr.getValue(race) - s.getValue(race)) * races.size / (races.size - 1) / step
     }
+    val raw = measured
+    val pooled = raw.values.average()
+    val delta = races.associateWith { (raw.getValue(it) + pooled) / 2 }
     val k = races.sumOf { s.getValue(it) / (delta.getValue(it) * delta.getValue(it)) } /
         races.sumOf { 1.0 / (delta.getValue(it) * delta.getValue(it)) }
     val h = races.associateWith { (k - s.getValue(it)) / delta.getValue(it) }
@@ -54,13 +62,15 @@ fun main(args: Array<String>) {
         appendLine("$games paired games per run (`$ai` AI). s = race strength (Elo, centred), δ = Elo gained per +1 HP on every")
         appendLine("unit of the race, h = HP change per unit that equalises all races (smallest total change).")
         appendLine()
-        appendLine("| Race | s (Elo) | δ (Elo per +1 HP) | h (HP per unit) | Units | Total HP to change |")
-        appendLine("|---|---|---|---|---|---|")
+        appendLine("Probe step: +$step HP per unit. Pooled δ over all races: %.1f Elo per +1 HP per unit.".format(pooled))
+        appendLine()
+        appendLine("| Race | s (Elo) | δ measured | δ used (shrunk) | h (HP per unit) | Units | Total HP to change |")
+        appendLine("|---|---|---|---|---|---|---|")
         for (r in races) {
             val units = CardDatabase.all.count { it.race == r && it.unit != null && !it.isKing }
             appendLine(
-                "| ${r.displayName} | %+.0f | %.1f | %+.2f | %d | %+.1f |".format(
-                    s.getValue(r), delta.getValue(r), h.getValue(r), units, h.getValue(r) * units,
+                "| ${r.displayName} | %+.0f | %.1f | %.1f | %+.2f | %d | %+.1f |".format(
+                    s.getValue(r), raw.getValue(r), delta.getValue(r), h.getValue(r), units, h.getValue(r) * units,
                 ),
             )
         }
