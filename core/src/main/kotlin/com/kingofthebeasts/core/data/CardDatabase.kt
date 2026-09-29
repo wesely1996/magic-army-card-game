@@ -41,7 +41,7 @@ object CardDatabase {
         // ------------------------------------------------------------------ WOLF
         add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 10, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
-        add(king("w_king_moon", "Moon Howler", WOLF, 2, 8, 2, 1, setOf(Keyword.BLOODTHIRST),
+        add(king("w_king_moon", "Moon Howler", WOLF, 2, 5, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
@@ -71,7 +71,7 @@ object CardDatabase {
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
-        add(king("b_king_warden", "Cave Warden", BEAR, 3, 8, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
+        add(king("b_king_warden", "Cave Warden", BEAR, 3, 9, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
         add(unit("b_cub", "Bear Cub", BEAR, 2, 3, 2, 1, setOf(REGENERATE)))
         add(unit("b_brawler", "Brown Brawler", BEAR, 3, 5, 1, 1, setOf(RETALIATE)))
@@ -121,7 +121,7 @@ object CardDatabase {
         add(equipment("h_amulet", "Eagle Eye Amulet", HAWK, "+1 health and +1 range.", Buff(health = 1, range = 1)))
 
         // --------------------------------------------------------------- SERPENT
-        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 8, 2, 2, setOf(POISONOUS),
+        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 9, 2, 2, setOf(POISONOUS),
             ability("Enthrall", "Take control of a non-King enemy within 2 that has 3 or less health.",
                 TargetRule(TargetKind.ENEMY_UNIT, 2), 3, effects = listOf(EffectOp.Enthrall(3))),
             flavor = "Look into her eyes. Now fight for her."))
@@ -151,7 +151,7 @@ object CardDatabase {
         // ------------------------------------------------------------------ LION
         add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
-        add(king("l_king_queen", "Lioness Queen", LION, 4, 10, 2, 1, setOf(PACK_HUNTER, ARMORED),
+        add(king("l_king_queen", "Lioness Queen", LION, 4, 9, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 4), 2, effects = listOf(EffectOp.Pounce)),
             flavor = "You never see the first strike."))
