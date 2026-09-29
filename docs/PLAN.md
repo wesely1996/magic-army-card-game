@@ -26,20 +26,22 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Interrupts: every action goes on a stack. Magic cards and ⚡ quick abilities can respond, alternating.
   A pass resolves the whole chain last-in-first-out, and illegal actions fizzle. Counter cards cancel the action they answer.
 - Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.
-- King death loses. Both at once is a draw. 200-turn limit is a draw.
+- "+X for 1 turn" effects applied during the unit owner's own turn last through their next turn.
+- Exhaustion: from turn 120 each King loses 1 health (+1 every 20 turns) at the start of its owner's turn and can't be healed.
+- King death loses. Both at once is a draw. 200-turn limit is a draw (practically unreachable with Exhaustion).
 
 ## Kings
 | Race | King | Gimmick |
 |---|---|---|
-| Wolf | Alpha Wolf | Call the Pack: summons Wolf Pup tokens |
+| Wolf | Alpha Wolf | Call the Pack (passive): a Wolf Pup token each turn, at most 2 |
 | Wolf | Moon Howler | Bloodthirst: heals and grows on every enemy death |
 | Bear | Elder Bear | Unstoppable (no stun, max 3 damage per hit); Earthshaker Roar |
 | Bear | Cave Warden | Guardian aura; Regenerate |
 | Hawk | Sky Sovereign | Change of Winds: quick swap with any ally |
-| Hawk | Storm Eagle | Tempest: random 1 damage each turn; Lightning Strike (quick stun) |
+| Hawk | Storm Eagle | Tempest: 1 damage to a random enemy within 3 each turn; Lightning Strike (quick stun) |
 | Serpent | Naga Queen | Enthrall: take control of a weakened enemy |
 | Serpent | Basilisk | Petrifying Gaze: its attacks stun |
-| Lion | Pride King | Commander aura: +1 attack to nearby allies |
+| Lion | Pride King | Commander aura: +1 attack to allies within 3 |
 | Lion | Lioness Queen | Pounce: leap next to a distant enemy and attack |
 
 ## Next steps

@@ -167,7 +167,7 @@ class EngineTest {
         )
         GameEngine.apply(s, Action.UseAbility(u[0].id, 0, Target.Unit(u[1].id)))
         assertEquals(1, u[0].pos.distanceTo(u[1].pos))
-        assertEquals(7 - 3, u[1].hp, "4 attack, -1 Armored")
+        assertEquals(u[1].maxHp - (u[0].attack - 1), u[1].hp, "the Grizzly's Armored blocks 1")
     }
 
     @Test

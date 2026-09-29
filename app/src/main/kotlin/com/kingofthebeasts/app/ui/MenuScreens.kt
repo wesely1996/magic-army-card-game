@@ -245,7 +245,10 @@ fun RulesScreen(onBack: () -> Unit) {
             "Afterwards everyone shuffles and draws 5 cards.",
         "Battle" to "On your turn draw a card, then take ONE action: move a unit, attack with a unit, use a unit's ability, " +
             "or play a card. Units move up to their MOV in any direction (8 ways), and can't pass through other units unless they fly. " +
-            "They attack enemies within RNG squares (diagonals count).",
+            "They attack enemies within RNG squares (diagonals count). Boosts \"for 1 turn\" played on your own turn last " +
+            "through your next turn, so the unit gets to use them.",
+        "Exhaustion" to "From turn 120 on, each King loses health at the start of its owner's turn (1, rising by 1 every 20 turns) " +
+            "and can no longer be healed, so every battle reaches an ending.",
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
             "that is at least 2 squares away from every enemy. Each side can have at most 10 units on the board " +
             "(summoned and enthralled units count too).",
@@ -255,9 +258,10 @@ fun RulesScreen(onBack: () -> Unit) {
         "Inspecting" to "Press and hold any card — in your hand, in the deck builder or a unit on the board — to open it large " +
             "with every rule, trait and ability explained. Units on the board also show their current stats and effects.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",
-        "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls pups, the Moon Howler feeds on every kill, " +
+        "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
+            "(up to 2), the Moon Howler feeds on every kill, " +
             "the Elder Bear can't be stunned or hit for more than 3, the Cave Warden guards nearby allies, the Sky Sovereign swaps " +
-            "places with allies, the Storm Eagle strikes with lightning, the Naga Queen enthralls weak enemies, the Basilisk petrifies " +
+            "places with allies, the Storm Eagle strikes nearby enemies with lightning, the Naga Queen enthralls weak enemies, the Basilisk petrifies " +
             "what it bites, the Pride King inspires allies around him and the Lioness Queen pounces across the board.",
     )
     PaperBackground {

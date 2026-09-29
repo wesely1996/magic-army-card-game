@@ -29,6 +29,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Deployment** | Coin flip picks who starts. Players alternate placing one unit in their **first 3 rows**, up to 5 each. The King is always placed first. Units are chosen from all unit cards in the deck. Then everyone shuffles and draws 5. |
 | **Battle** | Draw a card, then take **one** action: move, attack, use a unit ability, or play a card. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. |
 | **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. Each side can have at most **10 units** on the board, including summoned and enthralled units. |
+| **Exhaustion** | From turn 120 each King loses health at the start of its owner's turn (1, +1 every 20 turns) and can't be healed, so every battle ends. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
@@ -37,11 +38,11 @@ The art is hand-drawn ink over watercolor washes.
 
 | Race | Style | King 1 | King 2 |
 |---|---|---|---|
-| 🐺 Wolf Pack | speed, pack attacks | **Alpha Wolf** – *Call the Pack*: summons Wolf Pups | **Moon Howler** – *Bloodthirst*: every enemy death heals it and adds +1 attack |
+| 🐺 Wolf Pack | speed, pack attacks | **Alpha Wolf** – *Call the Pack*: a Wolf Pup joins at the start of each of your turns (up to 2) | **Moon Howler** – *Bloodthirst*: every enemy death heals it and adds +1 attack |
 | 🐻 Bear Clan | toughness, regeneration | **Elder Bear** – *Unstoppable*: can't be stunned, takes ≤3 per hit; *Earthshaker Roar* | **Cave Warden** – *Guardian*: adjacent allies take 1 less damage; regenerates |
-| 🦅 Hawk Aerie | flying, range | **Sky Sovereign** – *Change of Winds*: instantly swap places with any ally (interrupt!) | **Storm Eagle** – *Tempest* zaps a random enemy every turn; *Lightning Strike* stun |
+| 🦅 Hawk Aerie | flying, range | **Sky Sovereign** – *Change of Winds*: instantly swap places with any ally (interrupt!) | **Storm Eagle** – *Tempest* zaps a random enemy within 3 squares every turn; *Lightning Strike* stun |
 | 🐍 Serpent Coil | poison, denial | **Naga Queen** – *Enthrall*: steal a weakened enemy unit | **Basilisk** – *Petrifying Gaze*: everything it bites is stunned |
-| 🦁 Lion Pride | leadership, buffs | **Pride King** – *Commander*: allies within 2 get +1 attack | **Lioness Queen** – *Pounce*: leap across the board and strike |
+| 🦁 Lion Pride | leadership, buffs | **Pride King** – *Commander*: allies within 3 get +1 attack | **Lioness Queen** – *Pounce*: leap across the board and strike |
 
 ## Project layout
 
@@ -64,6 +65,19 @@ docs/        Design notes and plan.
   are mapped back through the inverse projection.
 * **Cards** (`core/.../data/CardDatabase.kt`): all 75 cards are data. New cards are usually one line,
   built from the effect primitives in `model/Cards.kt`.
+
+## Balance
+
+The cards are balanced with simulations and statistics. The AI plays itself thousands of times with
+generated decks for every race combination. A Bradley–Terry regression turns the results into Elo
+strengths, and paired "what if" experiments measure what each stat is worth. A ridge least-squares
+solve then sizes the changes. Every race now wins 51–55% of its games and every King 46–53%.
+See [docs/BALANCING.md](docs/BALANCING.md) for the method and changelog, and
+[docs/BALANCE.md](docs/BALANCE.md) for the full numbers.
+
+```bash
+./gradlew :core:balanceReport -Pgames=4000   # regenerate docs/BALANCE.md
+```
 
 ## Building
 

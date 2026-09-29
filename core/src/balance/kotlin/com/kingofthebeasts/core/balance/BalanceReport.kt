@@ -29,6 +29,14 @@ fun main(args: Array<String>) {
     val ai = args.getOrNull(1) ?: "greedy"
     val out = File(args.getOrNull(2) ?: "docs/BALANCE.md")
     // Optional 4th argument: a King id that side A always plays (for focused experiments).
+    if (games <= 0) {
+        // Starter decks only: ./gradlew :core:balanceReport -Pgames=0
+        val report = starterReport(133, ai)
+        out.parentFile?.mkdirs()
+        out.writeText(report)
+        println(report)
+        return
+    }
     val results = simulate(games, ai, forcedKing = args.getOrNull(3))
     val report = report(results, ai) + modelReport(results) + starterReport(maxOf(40, games / 30), ai)
     out.parentFile?.mkdirs()
