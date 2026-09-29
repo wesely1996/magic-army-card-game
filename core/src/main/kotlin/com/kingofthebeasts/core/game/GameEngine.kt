@@ -22,6 +22,16 @@ object GameEngine {
     const val MAX_DEPLOY = 5
     /** Most units one side may have on the board at once (reinforcements, summons, enthralled units). */
     const val MAX_UNITS_ON_FIELD = 10
+    /** Tempest only reaches enemies this close to the unit that has it. */
+    const val TEMPEST_RANGE = 3
+    /** Most tokens of one kind a single side can have summoned at once. */
+    const val MAX_SUMMONED = 2
+    /** From this turn on, each King loses health at the start of its owner's turn (anti-stalemate). */
+    const val EXHAUSTION_TURN = 120
+    const val COMMANDER_RANGE = 3
+
+    /** Once Exhaustion sets in, Kings can no longer be healed. */
+    fun exhausted(s: GameState): Boolean = s.turnNumber >= EXHAUSTION_TURN
     const val OPENING_HAND = 5
     const val HAND_LIMIT = 8
     const val TURN_LIMIT = 200
@@ -125,7 +135,7 @@ object GameEngine {
     fun attackOf(s: GameState, u: UnitState): Int {
         var a = u.attack + u.mods.sumOf { it.attack }
         if (s.fieldActive(u.owner, FieldRule.WAR_DRUMS)) a += 1
-        if (s.unitsOf(u.owner).any { it.id != u.id && it.has(Keyword.COMMANDER) && it.pos.distanceTo(u.pos) <= 2 }) a += 1
+        if (s.unitsOf(u.owner).any { it.id != u.id && it.has(Keyword.COMMANDER) && it.pos.distanceTo(u.pos) <= COMMANDER_RANGE }) a += 1
         return max(0, a)
     }
 
@@ -224,7 +234,10 @@ object GameEngine {
         for (op in effects) when (op) {
             is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, source.owner)) return false
             is EffectOp.Pounce -> if (t == null || pounceSquare(s, source, t) == null) return false
-            is EffectOp.Summon -> if (!hasRoomForUnit(s, source.owner) || source.pos.neighbors().none { s.unitAt(it) == null }) return false
+            is EffectOp.Summon -> if (!hasRoomForUnit(s, source.owner) ||
+                s.unitsOf(source.owner).count { it.isToken && it.def.id == op.cardId } >= MAX_SUMMONED ||
+                source.pos.neighbors().none { s.unitAt(it) == null }
+            ) return false
             else -> {}
         }
         return true
@@ -479,7 +492,7 @@ object GameEngine {
                 s.event { GameEvent.Status(it, u.pos, "+${op.amount} shield") }
             }
             is EffectOp.GrantKeyword -> t?.let { u ->
-                if (op.turns == PERMANENT) u.keywords += op.keyword else u.timedKeywords += TimedKeyword(op.keyword, op.turns)
+                if (op.turns == PERMANENT) u.keywords += op.keyword else u.timedKeywords += TimedKeyword(op.keyword, timedTurns(s, u, op.turns))
                 s.event { GameEvent.Status(it, u.pos, op.keyword.displayName) }
             }
             EffectOp.Cleanse -> t?.let { u ->
@@ -508,13 +521,7 @@ object GameEngine {
                 s.fields += FieldEffect(p, op.rule, op.turns, cardId ?: "")
                 s.log("${s.players[p].name}: ${op.rule.displayName} is now active")
             }
-            is EffectOp.Summon -> source?.let { src ->
-                if (!hasRoomForUnit(s, p)) return
-                val spot = src.pos.neighbors().firstOrNull { s.unitAt(it) == null } ?: return
-                val u = summon(s, p, CardInstance(s.newId(), op.cardId), spot, token = true)
-                s.event { GameEvent.Status(it, spot, "Summoned") }
-                s.log("${u.name} joins the battle at $spot")
-            }
+            is EffectOp.Summon -> source?.let { summonToken(s, it, op.cardId) }
             EffectOp.Swap -> if (source != null && t != null) {
                 val a = source.pos
                 source.pos = t.pos
@@ -540,6 +547,17 @@ object GameEngine {
                 }
             }
         }
+    }
+
+    /** Summons a token of [cardId] next to [source], respecting the board and summon limits. */
+    private fun summonToken(s: GameState, source: UnitState, cardId: String) {
+        val p = source.owner
+        if (!hasRoomForUnit(s, p)) return
+        if (s.unitsOf(p).count { it.isToken && it.def.id == cardId } >= MAX_SUMMONED) return
+        val spot = source.pos.neighbors().firstOrNull { s.unitAt(it) == null } ?: return
+        val u = summon(s, p, CardInstance(s.newId(), cardId), spot, token = true)
+        s.event { GameEvent.Status(it, spot, "Summoned") }
+        s.log("${u.name} joins the battle at $spot")
     }
 
     internal fun summon(s: GameState, p: Int, card: CardInstance, pos: Pos, token: Boolean): UnitState {
@@ -596,11 +614,20 @@ object GameEngine {
     }
 
     private fun heal(s: GameState, t: UnitState, amount: Int) {
+        if (t.isKing && exhausted(s)) return
         val h = min(amount, t.maxHp - t.hp)
         if (h <= 0) return
         t.hp += h
         s.event { GameEvent.Healed(it, t.id, t.pos, h) }
     }
+
+    /**
+     * Timed effects count down at the end of their unit's owner's turns. One applied during the
+     * owner's own turn would otherwise expire before the unit could use it (playing the card was
+     * the turn's action), so it gets one extra turn: "for 1 turn" means "through your next turn".
+     */
+    private fun timedTurns(s: GameState, u: UnitState, turns: Int): Int =
+        if (s.phase == Phase.BATTLE && s.activePlayer == u.owner) turns + 1 else turns
 
     private fun buff(s: GameState, t: UnitState, b: EffectOp.Buff) {
         if (b.turns == PERMANENT) {
@@ -610,7 +637,7 @@ object GameEngine {
             t.move += b.move
             t.range += b.range
         } else {
-            t.mods += TimedMod(b.attack, b.move, b.range, b.turns)
+            t.mods += TimedMod(b.attack, b.move, b.range, timedTurns(s, t, b.turns))
         }
         val parts = buildList {
             if (b.attack != 0) add("%+d ATK".format(b.attack))
@@ -713,11 +740,20 @@ object GameEngine {
             }
         }
         for (u in s.unitsOf(p).filter { it.has(Keyword.TEMPEST) }) {
-            val enemies = s.unitsOf(1 - p)
-            if (enemies.isEmpty()) break
+            val enemies = s.unitsOf(1 - p).filter { it.pos.distanceTo(u.pos) <= TEMPEST_RANGE }
+            if (enemies.isEmpty()) continue
             val t = enemies[s.rng.nextInt(enemies.size)]
             s.log("Tempest strikes ${t.name}")
             dealDamage(s, t, 1)
+        }
+        for (u in s.unitsOf(p).filter { it.has(Keyword.PACK_CALLER) }) summonToken(s, u, "w_pup")
+        // Exhaustion: very long battles wear the Kings down so that games reach an ending.
+        if (exhausted(s)) {
+            s.king(p)?.let { k ->
+                val dmg = 1 + (s.turnNumber - EXHAUSTION_TURN) / 20
+                s.log("Exhaustion: ${k.name} loses $dmg health")
+                dealDamage(s, k, dmg, ignoreReductions = true)
+            }
         }
         cleanupDeaths(s)
         if (s.phase == Phase.GAME_OVER) return

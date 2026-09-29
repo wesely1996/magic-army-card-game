@@ -139,11 +139,15 @@ class EngineTest {
     }
 
     @Test
-    fun alphaWolfSummonsAPup() {
-        val (s, u) = battle(Triple("w_king_alpha", 0, p(3, 0)), Triple("l_king_pride", 1, p(3, 7)))
-        GameEngine.apply(s, Action.UseAbility(u[0].id, 0, Target.Unit(u[0].id)))
-        assertEquals(2, s.unitsOf(0).size)
-        assertTrue(s.unitsOf(0).any { it.def.id == "w_pup" && it.isToken })
+    fun alphaWolfCallsUpToTwoPupsAtTheStartOfItsTurns() {
+        val (s, _) = battle(Triple("w_king_alpha", 0, p(3, 0)), Triple("l_king_pride", 1, p(3, 7)))
+        repeat(3) {
+            GameEngine.apply(s, Action.Pass) // player 0 skips
+            GameEngine.apply(s, Action.Pass) // player 1 skips; player 0's turn starts and a pup arrives
+        }
+        val pups = s.unitsOf(0).filter { it.def.id == "w_pup" }
+        assertEquals(GameEngine.MAX_SUMMONED, pups.size)
+        assertTrue(pups.all { it.isToken })
     }
 
     @Test
@@ -163,7 +167,7 @@ class EngineTest {
         )
         GameEngine.apply(s, Action.UseAbility(u[0].id, 0, Target.Unit(u[1].id)))
         assertEquals(1, u[0].pos.distanceTo(u[1].pos))
-        assertEquals(7 - 2, u[1].hp, "3 attack, -1 Armored")
+        assertEquals(7 - 3, u[1].hp, "4 attack, -1 Armored")
     }
 
     @Test
@@ -171,7 +175,7 @@ class EngineTest {
         val (s, u) = battle(Triple("w_direwolf", 0, p(3, 3)), Triple("b_king_elder", 1, p(3, 4)), Triple("w_king_alpha", 0, p(0, 0)))
         u[0].attack = 9
         GameEngine.apply(s, Action.Attack(u[0].id, u[1].id))
-        assertEquals(7, u[1].hp)
+        assertEquals(u[1].maxHp - 3, u[1].hp, "a single hit deals at most 3")
     }
 
     @Test

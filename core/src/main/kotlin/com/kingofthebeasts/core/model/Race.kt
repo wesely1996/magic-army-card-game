@@ -26,7 +26,8 @@ enum class Keyword(val displayName: String, val description: String) {
     BLOODTHIRST("Bloodthirst", "Whenever an enemy unit dies, heals 2 and gains +1 attack permanently."),
     UNSTOPPABLE("Unstoppable", "Can't be stunned. No single hit deals it more than 3 damage."),
     GUARDIAN("Guardian", "Adjacent allies take 1 less damage."),
-    TEMPEST("Tempest", "At the start of your turn, deals 1 damage to a random enemy unit."),
+    TEMPEST("Tempest", "At the start of your turn, deals 1 damage to a random enemy within 3 squares."),
     PETRIFY("Petrifying Gaze", "Units it attacks are stunned for 1 turn."),
-    COMMANDER("Commander", "Other allies within 2 squares get +1 attack."),
+    COMMANDER("Commander", "Other allies within 3 squares get +1 attack."),
+    PACK_CALLER("Call the Pack", "At the start of your turn, summons a Wolf Pup token next to it (at most 2 pups at a time)."),
 }

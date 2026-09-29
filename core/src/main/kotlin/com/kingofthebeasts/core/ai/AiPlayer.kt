@@ -29,7 +29,14 @@ enum class Difficulty(val displayName: String, val description: String) {
  * Simulations assume nobody interrupts; interrupts are decided separately when
  * a response window actually opens.
  */
-class AiPlayer(val difficulty: Difficulty = Difficulty.MEDIUM, seed: Long = 1L) {
+class AiPlayer(
+    val difficulty: Difficulty = Difficulty.MEDIUM,
+    seed: Long = 1L,
+    /** Randomness added to Easy's choices; lower is steadier (the balance simulator uses a low value). */
+    private val greedyNoise: Double = 1.6,
+    /** Chance that Easy ignores a chance to interrupt. */
+    private val skipInterruptChance: Double = 0.5,
+) {
     private val rng = Random(seed)
 
     fun choose(s: GameState): Action {
@@ -37,7 +44,7 @@ class AiPlayer(val difficulty: Difficulty = Difficulty.MEDIUM, seed: Long = 1L) 
         return when (d.kind) {
             DecisionKind.DEPLOY -> chooseDeploy(s, d.player)
             DecisionKind.MAIN -> when (difficulty) {
-                Difficulty.EASY -> chooseGreedy(s, d.player, noise = 1.6)
+                Difficulty.EASY -> chooseGreedy(s, d.player, noise = greedyNoise)
                 Difficulty.MEDIUM -> chooseBySearch(s, d.player)
             }
             DecisionKind.RESPOND -> chooseResponse(s, d.player)
@@ -142,7 +149,7 @@ class AiPlayer(val difficulty: Difficulty = Difficulty.MEDIUM, seed: Long = 1L) 
         GameEngine.applyUnchecked(passSim, Action.Pass)
         val passScore = Evaluator.evaluate(passSim, p)
         // Easy players often miss the chance to interrupt.
-        if (difficulty == Difficulty.EASY && rng.nextDouble() < 0.5) return Action.Pass
+        if (difficulty == Difficulty.EASY && rng.nextDouble() < skipInterruptChance) return Action.Pass
         var best: Action = Action.Pass
         var bestScore = passScore + 0.75
         for (a in GameEngine.legalActions(s, distinctCards = true)) {
