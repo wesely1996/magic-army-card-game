@@ -73,3 +73,18 @@ tasks.register<JavaExec>("balanceExperiments") {
         *listOfNotNull(project.findProperty("cache") as String?).toTypedArray(),
     )
 }
+
+// King balance: prices King health with a paired experiment and proposes HP changes (KingSolver.kt).
+tasks.register<JavaExec>("balanceKings") {
+    group = "verification"
+    description = "Measures the value of King health and proposes per-King HP changes"
+    classpath = balance.runtimeClasspath
+    mainClass.set("com.kingofthebeasts.core.balance.KingSolverKt")
+    workingDir = rootProject.projectDir
+    args(
+        (project.findProperty("games") as String?) ?: "2500",
+        (project.findProperty("ai") as String?) ?: "greedy",
+        (project.findProperty("out") as String?) ?: "docs/BALANCE_KINGS.md",
+        *listOfNotNull(project.findProperty("cache") as String?).toTypedArray(),
+    )
+}
