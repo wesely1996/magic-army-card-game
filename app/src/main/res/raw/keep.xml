@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card art is looked up by name at runtime; keep it if resource shrinking is ever enabled. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/art_*,@drawable/board_texture,@drawable/paper_background" />

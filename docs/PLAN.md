@@ -1,53 +1,45 @@
-# Magic Army — MVP implementation plan
+# Magic Army — MVP plan and decisions
 
-Status: **draft, awaiting confirmation** of the items marked ⚠.
+Status: **MVP implemented.** This file records the agreed rules and the design decisions behind them.
 
-## 1. Tech stack
-- Kotlin + Jetpack Compose (Material 3), native Android.
-- 2.5D: perspective-projected 8×8 board drawn on a Compose `Canvas`, upright unit "standees"
-  with shadows, painter's-order depth sorting, inverse projection for touch.
-- Modules: `core` (pure Kotlin: cards, deck rules, engine, AI — JVM unit tests) and `app` (Android UI).
-- GitHub Actions: run tests + build a downloadable debug APK.
+## Decisions confirmed by the product owner
+- Look: modern hand-drawn style with watercolor coloring.
+- Deploy zone: each player's **first 3 rows**.
+- Cards: full-art background, rules text in a box at the bottom, base stats (ATK, HP, MOV, **RNG**)
+  in separate fields.
+- Every race has **2 Kings** with a signature gimmick.
+- No hot-seat two-player mode. Online play with friends comes next.
+- CI/CD runs on GitHub Actions.
 
-## 2. Rules (interpretations flagged ⚠)
-- 8×8 board; "own fields" = your first two rows. Coin flip winner deploys first and acts first in battle.
-- Deploy: alternate placing one unit, up to 5 each; King must be first; may stop early after the King.
-- ⚠ Deploy units are chosen from **all unit cards in the deck** (not a random hand). Afterwards the deck
-  is shuffled and each player draws 5.
-- Battle: one action per turn — move, attack in range, use ability, play a card, or skip.
-- ⚠ Draw 1 card at the start of each turn, hand limit 8, **no card costs** (the action is the cost).
-- Movement: up to Move king-steps (8 directions), blocked by units unless Flying.
-  Range: Chebyshev distance (range 1 = melee). Attackers do not move into the target square.
-- ⚠ Battle-phase unit placement: empty border square, ≥2 squares from every enemy (never adjacent).
-- King dies → owner loses; both at once → draw.
-- Interrupts: every action goes on a stack; the opponent may respond with a Magic card or a *quick*
-  ability, the other player may respond back, etc. On a pass the stack resolves LIFO; actions that are no
-  longer legal fizzle (e.g. a stunned unit's attack). Counter cards cancel the action they answer and can
-  themselves be countered.
-- ⚠ All Magic cards can be used as interrupts; Strategy/Equipment/Unit cards only as your turn action;
-  abilities only if marked quick.
-- Strategy: field-wide rule changes for N of your turns, one active per player (Blitz, Silence, Ambush,
-  Fortify, Swamp, War Drums, …). Equipment: permanent stat/keyword upgrades on a unit.
+## Rules as implemented
+- 8×8 board. Coin-flip winner deploys first and acts first in battle.
+- Deploy: alternate placing one unit, up to 5 each, King first, chosen from all unit cards in the deck.
+  Then shuffle and draw 5.
+- Battle: draw 1 per turn (hand limit 8), then one action: move, attack, ability, play card, or skip.
+  Cards have no cost.
+- Movement: king-steps in 8 directions, blocked by units unless Flying. Range uses Chebyshev distance.
+- Battle-phase units: empty border square, ≥2 squares from every enemy (Ambush strategy relaxes this).
+- Interrupts: every action goes on a stack. Magic cards and ⚡ quick abilities can respond, alternating.
+  A pass resolves the whole chain last-in-first-out, and illegal actions fizzle. Counter cards cancel the action they answer.
+- Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.
+- King death loses. Both at once is a draw. 200-turn limit is a draw.
 
-## 3. Content
-- 5 races × 15 cards: Wolf, Bear, Hawk, Serpent, Lion (2 Kings, 6 Units, 3 Magic, 2 Strategy, 2 Equipment each).
-- Keywords: Flying, Armored, Retaliate, Poisonous, Pack Hunter, Regenerate; abilities with cooldowns.
-- Deck rules: ≤3 races, exactly 40 cards, exactly 1 King, ≤3 copies. 3 starter decks.
+## Kings
+| Race | King | Gimmick |
+|---|---|---|
+| Wolf | Alpha Wolf | Call the Pack: summons Wolf Pup tokens |
+| Wolf | Moon Howler | Bloodthirst: heals and grows on every enemy death |
+| Bear | Elder Bear | Unstoppable (no stun, max 3 damage per hit); Earthshaker Roar |
+| Bear | Cave Warden | Guardian aura; Regenerate |
+| Hawk | Sky Sovereign | Change of Winds: quick swap with any ally |
+| Hawk | Storm Eagle | Tempest: random 1 damage each turn; Lightning Strike (quick stun) |
+| Serpent | Naga Queen | Enthrall: take control of a weakened enemy |
+| Serpent | Basilisk | Petrifying Gaze: its attacks stun |
+| Lion | Pride King | Commander aura: +1 attack to nearby allies |
+| Lion | Lioness Queen | Pounce: leap next to a distant enemy and attack |
 
-## 4. Screens
-Main menu → Deck list → Deck builder (name, race picker, filtered pool with type tabs, x/40 counter,
-validation, save as JSON) → Game setup → Game (2.5D board, highlights, hand, unit panel, interrupt
-banner with Pass, log, damage popups, game-over dialog).
-
-## 5. Opponent
-Vs AI for the MVP (local hot-seat later). 1-ply simulation over all legal actions with a heuristic
-(material, King HP, next-turn threat map, advancement). Responses: compare pass vs each response,
-respond only when clearly better.
-
-## 6. Build order
-1. Gradle setup + core model  2. Card DB, starter decks, validator, codec
-3. Engine (deploy, move/attack, effects, stack, turn lifecycle, win)  4. AI
-5. Tests (rules, counter chains, AI-vs-AI soak)  6. Android UI  7. README, CI, APK build, push.
-
-## 7. Out of scope for MVP
-Art/animation beyond simple tweens, sound, online/hot-seat multiplayer, progression, mana, balance.
+## Next steps
+- Online multiplayer. The engine is deterministic and action-based, so a server or peer can
+  relay `Action`s. Hidden information (hands, deck order) needs server-side authority.
+- Real painted art: drop `art_<id>.webp` files in `app/src/main/res/drawable-nodpi/`.
+- Balance pass using AI-vs-AI statistics, sound, richer animations, tutorial.
