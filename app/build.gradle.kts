@@ -30,6 +30,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Dev builds say so in their version, e.g. 0.3.0-dev or 0.3.0-dev.57 on CI.
+            versionNameSuffix = "-dev" + ((project.findProperty("devBuild") as String?)?.let { ".$it" } ?: "")
+        }
         release {
             isMinifyEnabled = false
             // Signed with the release key when CI provides one, otherwise with the debug key
@@ -39,6 +43,15 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+        }
+    }
+
+    // Name the APK after the game and version instead of app-debug.apk / app-release.apk.
+    applicationVariants.all {
+        val apkVersion = versionName
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "KingOfTheBeasts-$apkVersion.apk"
         }
     }
 
