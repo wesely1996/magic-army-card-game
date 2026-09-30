@@ -4,11 +4,11 @@ Target set by the product owner: **no race (clan) above a 55% win rate.**
 
 | | Before balancing | After |
 |---|---|---|
-| Race win rates | 45.3% – 61.2% | **51.2% – 54.6%** |
-| King win rates | 31.2% – 72.0% | **46.5% – 53.2%** |
+| Race win rates | 45.3% – 61.2% | **48.7% – 53.6%** |
+| King win rates | 31.2% – 72.0% | **45.9% – 51.9%** |
 | Draws (games hitting the 200-turn limit) | 7.5% | **0%** |
-| First player wins | 51.7% | 52.8% |
-| Starter decks (overall) | 40.0% – 61.5% | **46.6% – 53.8%** |
+| First player wins | 51.7% | 50.9% |
+| Starter decks (overall) | 40.0% – 61.5% | **48.7% – 52.1%** |
 
 Full, regenerable numbers are in [BALANCE.md](BALANCE.md).
 
@@ -116,7 +116,8 @@ Each race got one Magic card that moves or swaps units: Pack Relay (Wolf), Might
 (Hawk), Mirage (Serpent) and Royal Exchange (Lion). Races stayed between 49% and 53%. The pushes hurt the
 Pride King most, because his Commander aura depends on standing next to his army: he fell to 40%. The King
 solver (20 Elo per point of King health) suggested +2 HP for him and −2 for the Lioness Queen and Alpha
-Wolf; he got +2, and the other two −1 each (half steps, as full steps overshot before).
+Wolf; he got +2, and the other two −1 each (half steps, as full steps overshot before). After that the
+Kings sit between 45.9% and 51.9% (Pride King back to 45.9%) and races between 48.7% and 53.6%.
 
 ## Starter decks
 
