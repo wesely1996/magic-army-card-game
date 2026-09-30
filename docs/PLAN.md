@@ -27,12 +27,16 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
   Cards have no cost.
 - Movement: king-steps in 8 directions, blocked by units unless Flying. Range uses Chebyshev distance.
 - Battle-phase units: empty border square, ≥2 squares from every enemy (Ambush strategy relaxes this).
-- At most 10 units per side on the board. Unit cards, summons (Call the Pack) and Enthrall all respect the cap.
 - Interrupts: every action goes on a stack. Magic cards and ⚡ quick abilities can respond, alternating.
   A pass resolves the whole chain last-in-first-out, and illegal actions fizzle. Counter cards cancel the action they answer.
 - Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.
 - "+X for 1 turn" effects applied during the unit owner's own turn last through their next turn.
 - Exhaustion: from turn 120 each King loses 1 health (+1 every 20 turns) at the start of its owner's turn and can't be healed.
+- Unit slots: 16 per side (24 with the Endless Horde trait). Elite units take 2, other units 1, Kings 0.
+- Kings take no damage from Magic cards or abilities and are Immovable (can't be pushed, swapped or replaced).
+- Racial trait: the race of the deck's King gives the army a bonus (sometimes with a drawback).
+- Used cards: units, equipment, damage and summoning spells are exhausted (out of the game); Strategy and other
+  Magic cards go to the discard pile, which becomes the new deck when the deck runs out.
 - King death loses. Both at once is a draw. 200-turn limit is a draw (practically unreachable with Exhaustion).
 
 ## Kings
@@ -48,6 +52,8 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 | Serpent | Basilisk | Petrifying Gaze: its attacks stun |
 | Lion | Pride King | Commander aura: +1 attack to allies within 3 |
 | Lion | Lioness Queen | Pounce: leap next to a distant enemy and attack |
+| Vermin | Rat King | Call the Mischief: two Swarm Rats appear next to him |
+| Vermin | Blight Seer | Hidden; Blight Bolt damages the target and everything next to it |
 
 ## Next steps
 - Online multiplayer. The engine is deterministic and action-based, so a server or peer can

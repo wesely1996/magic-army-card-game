@@ -246,14 +246,27 @@ fun PlaySetupScreen(decks: List<Deck>, onBack: () -> Unit, onStart: (Deck, Deck?
 fun RulesScreen(onBack: () -> Unit) {
     val sections = listOf(
         "Goal" to "Defeat the enemy King. If your King falls, you lose.",
-        "Decks" to "Build a 40-card deck from up to 3 animal races. It must contain exactly one King. At most 3 copies of any other card.",
+        "Decks" to "Build a 40-card deck from up to 3 of the 6 races. It must contain exactly one King. At most 3 copies of any other card.",
+        "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter. " +
+            "Bear — Thick Fur: +2 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged units +1 range, " +
+            "but all units −1 health. Serpent — Venom Blood: all units are Poisonous, but −1 attack. Lion — Royal Pride: your King " +
+            "gets +3 health and +1 attack, other units −1 health. Vermin — Endless Horde: 24 unit slots instead of 16.",
+        "Kings are special" to "Kings take no damage from Magic cards or abilities — only attacks (and Exhaustion) can bring them " +
+            "down. They are Immovable: nothing can push, swap or replace them. And they don't take a unit slot.",
+        "Used cards" to "Unit cards, equipment and spells that deal damage or summon units are exhausted: once used they are " +
+            "out of the game. Strategy cards and other Magic cards go to your discard pile; when your deck runs out, the discard " +
+            "pile is shuffled into a new deck.",
         "Card types" to "Units put a piece on the board. Magic cards buff, heal, damage or cancel — and can be played as interrupts. " +
             "Strategy cards change the rules of the battlefield for a few turns. Equipment permanently upgrades one of your units.",
         "Displacement spells" to "Each race has one Magic card that moves or swaps units. Pack Relay (Wolf) sends an ally back " +
             "into your deck and a random unit from your deck takes its square. Mighty Shove (Bear) pushes an enemy 2 squares away " +
             "from your nearest unit, with 2 damage if something stops it. Gale Force (Hawk) blows an enemy up to 3 squares back toward " +
             "its own side. Mirage (Serpent) sends an enemy back into its owner's deck and a random unit from that deck takes its square. " +
-            "Royal Exchange (Lion) lets an ally and your King trade squares — handy to pull the King out of danger.",
+            "Rally to the King (Lion) brings an ally next to your King. Rat Run (Vermin) swaps an enemy with your nearest unit.",
+        "Keywords" to "Hidden: can only be attacked or targeted from a square next to it. Backstab: +2 attack when attacking " +
+            "from behind (from the target's own side of the board). Brood: a Swarm Rat pops out next to it at the start of your " +
+            "next 2 turns. Arrival: happens when the unit is played. Immovable: can't be pushed, swapped or replaced. " +
+            "Elite (★): takes 2 unit slots.",
         "Deployment" to "A coin flip decides who starts. Players take turns placing one unit at a time in their first 3 rows, " +
             "up to 5 units each. Your King must be the first unit you place. You choose from all unit cards in your deck. " +
             "Afterwards everyone shuffles and draws 5 cards.",
@@ -264,8 +277,8 @@ fun RulesScreen(onBack: () -> Unit) {
         "Exhaustion" to "From turn 120 on, each King loses health at the start of its owner's turn (1, rising by 1 every 20 turns) " +
             "and can no longer be healed, so every battle reaches an ending.",
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
-            "that is at least 2 squares away from every enemy. Each side can have at most 10 units on the board " +
-            "(summoned and enthralled units count too).",
+            "that is at least 2 squares away from every enemy. Each side has 16 unit slots (24 with the Endless Horde): " +
+            "Elite units take 2 slots, other units 1 and the King none. Summoned and enthralled units count too.",
         "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ quick ability — " +
             "and they may respond to that, and so on. Then everything resolves from the last response back to the first. " +
             "An action that no longer makes sense (a stunned unit's attack, a target that died) fizzles.",
@@ -281,7 +294,8 @@ fun RulesScreen(onBack: () -> Unit) {
             "(up to 2), the Moon Howler feeds on every kill, " +
             "the Elder Bear can't be stunned or hit for more than 3, the Cave Warden guards nearby allies, the Sky Sovereign swaps " +
             "places with allies, the Storm Eagle strikes nearby enemies with lightning, the Naga Queen enthralls weak enemies, the Basilisk petrifies " +
-            "what it bites, the Pride King inspires allies around him and the Lioness Queen pounces across the board.",
+            "what it bites, the Pride King inspires allies around him, the Lioness Queen pounces across the board, the Rat King " +
+            "calls rats to his side and the Blight Seer hides while his blight bolts hurt everything around the target.",
     )
     PaperBackground {
         Column(Modifier.fillMaxSize().systemBarsPadding()) {
