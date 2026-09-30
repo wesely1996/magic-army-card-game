@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -62,19 +66,36 @@ fun CardInspectDialog(
                 .clickable(dismissSource, indication = null, onClick = onDismiss),
             contentAlignment = Alignment.TopCenter,
         ) {
-            val cardWidth = min(maxWidth - 32.dp, 340.dp)
-            Column(
-                Modifier
-                    .systemBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                CardFace(def, width = cardWidth, full = true, onClick = onDismiss)
-                Spacer(Modifier.height(12.dp))
-                RulesPanel(def, unit, state, Modifier.width(cardWidth))
-                Spacer(Modifier.height(10.dp))
-                Text("Tap anywhere to close", style = MaterialTheme.typography.bodySmall, color = Ink.Paper)
+            if (maxWidth > maxHeight) {
+                // Landscape: the card as tall as the screen allows, the rules beside it.
+                val cardWidth = min((maxHeight - 32.dp) * CARD_ASPECT, maxWidth * 0.42f)
+                Row(
+                    Modifier.fillMaxSize().systemBarsPadding().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CardFace(def, width = cardWidth, full = true, onClick = onDismiss)
+                    Column(Modifier.widthIn(max = 460.dp).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                        RulesPanel(def, unit, state, Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(10.dp))
+                        Text("Tap anywhere to close", style = MaterialTheme.typography.bodySmall, color = Ink.Paper)
+                    }
+                }
+            } else {
+                val cardWidth = min(maxWidth - 32.dp, 340.dp)
+                Column(
+                    Modifier
+                        .systemBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    CardFace(def, width = cardWidth, full = true, onClick = onDismiss)
+                    Spacer(Modifier.height(12.dp))
+                    RulesPanel(def, unit, state, Modifier.width(cardWidth))
+                    Spacer(Modifier.height(10.dp))
+                    Text("Tap anywhere to close", style = MaterialTheme.typography.bodySmall, color = Ink.Paper)
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -72,35 +73,37 @@ fun RaceEmblem(race: Race, size: androidx.compose.ui.unit.Dp = 44.dp, selected: 
 @Composable
 fun MenuScreen(onPlay: () -> Unit, onDecks: () -> Unit, onRules: () -> Unit) {
     PaperBackground {
-        Column(
-            Modifier.fillMaxSize().systemBarsPadding().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        Row(
+            Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("King of the", style = MaterialTheme.typography.headlineMedium, color = Ink.Faded)
-            Text(
-                "Beasts",
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp),
-                modifier = Modifier.brushUnderline(Ink.Gold, 3),
-            )
-            Text("card chess of the wild clans", style = MaterialTheme.typography.bodyLarge, color = Ink.Faded)
-            Spacer(Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Race.entries.forEach { RaceEmblem(it, 52.dp) } }
-            Spacer(Modifier.height(40.dp))
-            SketchButton("⚔  Battle", onPlay, Modifier.width(220.dp), color = Ink.Enemy)
-            Spacer(Modifier.height(14.dp))
-            SketchButton("🂠  Deck Builder", onDecks, Modifier.width(220.dp), color = Ink.You)
-            Spacer(Modifier.height(14.dp))
-            SketchButton("📜  How to Play", onRules, Modifier.width(220.dp), color = Ink.Gold)
-            Spacer(Modifier.height(40.dp))
-            Text(
-                "Online battles with friends — coming soon",
-                style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
-            )
-            Text(
-                "Illustrations built from game-icons.net (CC BY 3.0)",
-                style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
-            )
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("King of the", style = MaterialTheme.typography.headlineMedium, color = Ink.Faded)
+                Text(
+                    "Beasts",
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp),
+                    modifier = Modifier.brushUnderline(Ink.Gold, 3),
+                )
+                Text("card chess of the wild clans", style = MaterialTheme.typography.bodyLarge, color = Ink.Faded)
+                Spacer(Modifier.height(20.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Race.entries.forEach { RaceEmblem(it, 52.dp) } }
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                SketchButton("⚔  Battle", onPlay, Modifier.width(240.dp), color = Ink.Enemy)
+                Spacer(Modifier.height(14.dp))
+                SketchButton("🂠  Deck Builder", onDecks, Modifier.width(240.dp), color = Ink.You)
+                Spacer(Modifier.height(14.dp))
+                SketchButton("📜  How to Play", onRules, Modifier.width(240.dp), color = Ink.Gold)
+                Spacer(Modifier.height(28.dp))
+                Text(
+                    "Online battles with friends — coming soon",
+                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+                )
+                Text(
+                    "Illustrations built from game-icons.net (CC BY 3.0)",
+                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+                )
+            }
         }
     }
 }
@@ -185,49 +188,55 @@ fun PlaySetupScreen(decks: List<Deck>, onBack: () -> Unit, onStart: (Deck, Deck?
     PaperBackground {
         Column(Modifier.fillMaxSize().systemBarsPadding()) {
             ScreenHeader("Battle", onBack)
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
-                Text("Your army", style = MaterialTheme.typography.titleLarge)
-                playable.forEach { d ->
-                    Box(Modifier.padding(vertical = 4.dp)) { DeckRow(d, selected = d == mine, onClick = { mine = d }) }
+            Row(Modifier.weight(1f).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                    Text("Your army", style = MaterialTheme.typography.titleLarge)
+                    playable.forEach { d ->
+                        Box(Modifier.padding(vertical = 4.dp)) { DeckRow(d, selected = d == mine, onClick = { mine = d }) }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
-                Spacer(Modifier.height(16.dp))
-                Text("Difficulty", style = MaterialTheme.typography.titleLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Difficulty.entries.forEach { d ->
-                        val on = d == difficulty
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(vertical = 4.dp)
-                                .then(if (on) Modifier.watercolor(if (d == Difficulty.EASY) Ink.Heal else Ink.Enemy, 60 + d.ordinal, 1.2f) else Modifier)
-                                .sketchBorder(if (on) Ink.Line else Ink.Faded, seed = 60 + d.ordinal)
-                                .clickable { difficulty = d }
-                                .padding(10.dp),
-                        ) {
-                            Text(d.displayName, style = MaterialTheme.typography.titleMedium)
-                            Text(d.description, style = MaterialTheme.typography.bodySmall, color = if (on) Ink.Line else Ink.Faded)
+                Column(Modifier.weight(1f).fillMaxHeight()) {
+                    Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                        Text("Difficulty", style = MaterialTheme.typography.titleLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Difficulty.entries.forEach { d ->
+                                val on = d == difficulty
+                                Column(
+                                    Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 4.dp)
+                                        .then(if (on) Modifier.watercolor(if (d == Difficulty.EASY) Ink.Heal else Ink.Enemy, 60 + d.ordinal, 1.2f) else Modifier)
+                                        .sketchBorder(if (on) Ink.Line else Ink.Faded, seed = 60 + d.ordinal)
+                                        .clickable { difficulty = d }
+                                        .padding(10.dp),
+                                ) {
+                                    Text(d.displayName, style = MaterialTheme.typography.titleMedium)
+                                    Text(d.description, style = MaterialTheme.typography.bodySmall, color = if (on) Ink.Line else Ink.Faded)
+                                }
+                            }
                         }
+                        Spacer(Modifier.height(12.dp))
+                        Text("Opponent", style = MaterialTheme.typography.titleLarge)
+                        Box(Modifier.padding(vertical = 4.dp)) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .then(if (opponent == null) Modifier.watercolor(Ink.Gold, 9, 1.2f) else Modifier)
+                                    .sketchBorder(if (opponent == null) Ink.Line else Ink.Faded, seed = 9)
+                                    .clickable { opponent = null }
+                                    .padding(14.dp),
+                            ) { Text("🎲  Random starter deck", style = MaterialTheme.typography.titleMedium) }
+                        }
+                        StarterDecks.all.forEach { d ->
+                            Box(Modifier.padding(vertical = 4.dp)) { DeckRow(d, selected = d == opponent, onClick = { opponent = d }) }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                        SketchButton("⚔  To battle!", { onStart(mine, opponent, difficulty) }, Modifier.width(240.dp), color = Ink.Enemy)
                     }
                 }
-                Spacer(Modifier.height(16.dp))
-                Text("Opponent", style = MaterialTheme.typography.titleLarge)
-                Box(Modifier.padding(vertical = 4.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .then(if (opponent == null) Modifier.watercolor(Ink.Gold, 9, 1.2f) else Modifier)
-                            .sketchBorder(if (opponent == null) Ink.Line else Ink.Faded, seed = 9)
-                            .clickable { opponent = null }
-                            .padding(14.dp),
-                    ) { Text("🎲  Random starter deck", style = MaterialTheme.typography.titleMedium) }
-                }
-                StarterDecks.all.forEach { d ->
-                    Box(Modifier.padding(vertical = 4.dp)) { DeckRow(d, selected = d == opponent, onClick = { opponent = d }) }
-                }
-                Spacer(Modifier.height(12.dp))
-            }
-            Box(Modifier.fillMaxWidth().background(Ink.Paper.copy(alpha = 0.9f)).padding(12.dp), contentAlignment = Alignment.Center) {
-                SketchButton("⚔  To battle!", { onStart(mine, opponent, difficulty) }, Modifier.width(240.dp), color = Ink.Enemy)
             }
         }
     }
@@ -257,6 +266,10 @@ fun RulesScreen(onBack: () -> Unit) {
             "An action that no longer makes sense (a stunned unit's attack, a target that died) fizzles.",
         "Inspecting" to "Press and hold any card — in your hand, in the deck builder or a unit on the board — to open it large " +
             "with every rule, trait and ability explained. Units on the board also show their current stats and effects.",
+        "Controls" to "When it's your move your hand fans out in front of the board. Pick a card and the hand moves to the side " +
+            "while you choose a highlighted square. Swipe the hand down or tap Hide to look at the board, and tap the strip on the " +
+            "left (or swipe it right) to bring it back. ⟲ and ⟳ turn the board, a two-finger twist turns it freely, and " +
+            "Reset view puts your side back at the bottom.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",
         "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
             "(up to 2), the Moon Howler feeds on every kill, " +

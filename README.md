@@ -7,15 +7,18 @@ The art is hand-drawn ink over watercolor washes.
 > Status: **playable MVP**. You play against the computer (Easy or Medium). Online battles with friends are planned next.
 
 <p>
-<img src="docs/screenshots/menu.webp" width="200" alt="Main menu">
-<img src="docs/screenshots/battle.webp" width="200" alt="Battle">
-<img src="docs/screenshots/deploy.webp" width="200" alt="Deployment">
-<img src="docs/screenshots/builder.webp" width="200" alt="Deck builder">
+<img src="docs/screenshots/battle.webp" width="420" alt="Battle: your hand in front of the board">
+<img src="docs/screenshots/placing.webp" width="420" alt="Placing a card: the hand moves aside and legal squares light up">
 </p>
 <p>
-<img src="docs/screenshots/setup.webp" width="200" alt="Battle setup with difficulty">
-<img src="docs/screenshots/inspect_king.webp" width="200" alt="Inspecting a King card">
-<img src="docs/screenshots/inspect_unit.webp" width="200" alt="Inspecting a unit on the board">
+<img src="docs/screenshots/rotated.webp" width="420" alt="The board turned around to view it from the other side">
+<img src="docs/screenshots/deploy.webp" width="420" alt="Deployment">
+</p>
+<p>
+<img src="docs/screenshots/menu.webp" width="270" alt="Main menu">
+<img src="docs/screenshots/builder.webp" width="270" alt="Deck builder">
+<img src="docs/screenshots/setup.webp" width="270" alt="Battle setup with difficulty">
+<img src="docs/screenshots/inspect_king.webp" width="270" alt="Inspecting a King card">
 </p>
 <img src="docs/screenshots/cards.webp" width="420" alt="Cards">
 
@@ -32,6 +35,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Exhaustion** | From turn 120 each King loses health at the start of its owner's turn (1, +1 every 20 turns) and can't be healed, so every battle ends. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
+| **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
 
 ### Races and their Kings

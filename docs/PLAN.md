@@ -13,6 +13,9 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - The game is called **King of the Beasts** (app id `com.kingofthebeasts.app`).
 - Press-and-hold opens any card (or a unit on the board) large, with every rule written out.
 - Two AI levels: **Easy** (greedy, one step ahead) and **Medium** (3-ply alpha-beta search).
+- Landscape only, for a bigger board. The hand comes to the front when you choose a card and moves to a
+  strip at the side when you choose where to play it; it can be hidden and shown by hand. The board can be
+  turned (90° buttons or a two-finger twist) to look at it from any side.
 
 ## Rules as implemented
 - 8×8 board. Coin-flip winner deploys first and acts first in battle.
