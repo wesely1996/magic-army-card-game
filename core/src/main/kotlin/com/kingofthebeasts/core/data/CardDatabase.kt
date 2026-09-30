@@ -84,11 +84,11 @@ object CardDatabase {
         add(equipment("w_charm", "Fang Charm", WOLF, "+1 attack and +1 movement.", Buff(attack = 1, move = 1)))
 
         // ------------------------------------------------------------------ BEAR
-        add(king("b_king_elder", "Elder Bear", BEAR, 3, 6, 1, 1, setOf(Keyword.UNSTOPPABLE),
+        add(king("b_king_elder", "Elder Bear", BEAR, 3, 7, 1, 1, setOf(Keyword.UNSTOPPABLE),
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
-        add(king("b_king_warden", "Cave Warden", BEAR, 3, 6, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
+        add(king("b_king_warden", "Cave Warden", BEAR, 3, 7, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
         add(unit("b_cub", "Bear Cub", BEAR, 2, 2, 2, 1, setOf(REGENERATE)))
         add(unit("b_brawler", "Brown Brawler", BEAR, 3, 3, 1, 1, setOf(RETALIATE)))
@@ -120,11 +120,11 @@ object CardDatabase {
             TargetRule.ENEMY, EffectOp.Push(2, PushFrom.NEAREST_ALLY, impactDamage = 2)))
         add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY, 3))
         add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY, 3))
-        add(equipment("b_bark", "Bark Armor", BEAR, "+3 health.", Buff(health = 3)))
+        add(equipment("b_bark", "Bark Armor", BEAR, "+2 health.", Buff(health = 2)))
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 9, 3, 2, setOf(FLYING),
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 10, 3, 2, setOf(FLYING),
             ability("Change of Winds", "Swap places with any allied unit.", TargetRule.FRIENDLY, 2,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
@@ -238,11 +238,11 @@ object CardDatabase {
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
         // ---------------------------------------------------------------- VERMIN
-        add(king("v_king_rat", "Rat King", VERMIN, 3, 12, 2, 1, emptySet(),
+        add(king("v_king_rat", "Rat King", VERMIN, 3, 13, 2, 1, emptySet(),
             ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 2,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
-        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 9, 2, 2, setOf(HIDDEN),
+        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 8, 2, 2, setOf(HIDDEN),
             ability("Blight Bolt", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1)))),

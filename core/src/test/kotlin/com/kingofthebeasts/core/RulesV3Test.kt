@@ -131,7 +131,8 @@ class RulesV3Test {
     @Test
     fun traitsComeFromTheKingsRace() {
         val s = GameEngine.newGame(StarterDecks.all[0], StarterDecks.all.first { it.name == "Warren Horde" }, listOf("A", "B"), 3)
-        assertEquals(RacialTrait.ROYAL_PRIDE, s.players[0].trait, "Pack & Pride is led by the Pride King")
+        val king0 = StarterDecks.all[0].cards.keys.map { CardDatabase.get(it) }.first { it.isKing }
+        assertEquals(king0.race.trait, s.players[0].trait, "the trait of the deck's King's race")
         assertEquals(RacialTrait.ENDLESS_HORDE, s.players[1].trait)
     }
 
