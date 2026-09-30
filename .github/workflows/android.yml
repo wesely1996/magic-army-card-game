@@ -11,6 +11,10 @@ on:
         description: "Release version to build and publish, e.g. 0.1.0 (creates tag v<version>). Leave empty for a normal CI run."
         required: false
         default: ""
+      commit:
+        description: "Commit to build the release from (default: the branch head). Lets you release an older state."
+        required: false
+        default: ""
 
 # A new push cancels the previous CI run on the same branch, but never a manual release run.
 concurrency:
@@ -83,6 +87,8 @@ jobs:
       VERSION: ${{ inputs.version || github.ref_name }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit || github.sha }}
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -102,12 +108,13 @@ jobs:
           RELEASE_VERSION="${VERSION#v}"
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
           ./gradlew :app:assembleRelease -PversionCode=${{ github.run_number }} -PversionName="$RELEASE_VERSION"
-          cp "app/build/outputs/apk/release/KingOfTheBeasts-$RELEASE_VERSION.apk" .
+          # Older commits name the APK app-release.apk; newer ones KingOfTheBeasts-<version>.apk.
+          cp app/build/outputs/apk/release/*.apk "KingOfTheBeasts-$RELEASE_VERSION.apk"
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v3
         with:
           # For a manual run the action creates the tag on the commit being built.
           tag_name: v${{ env.RELEASE_VERSION }}
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ inputs.commit || github.sha }}
           files: KingOfTheBeasts-*.apk
           generate_release_notes: true
