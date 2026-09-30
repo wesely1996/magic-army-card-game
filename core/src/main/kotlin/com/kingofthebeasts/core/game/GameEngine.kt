@@ -533,7 +533,7 @@ object GameEngine {
                 if (!u.isKing && u.hp <= op.maxHealth && hasRoomForUnit(s, p)) {
                     u.owner = p
                     u.stun = 0
-                    s.log("${u.name} is enthralled and now fights for ${s.players[p].name}")
+                    s.log("${u.tag} is enthralled and now fights for ${s.players[p].name}")
                     s.event { GameEvent.Status(it, u.pos, "Enthralled!") }
                 } else {
                     s.event { GameEvent.Status(it, u.pos, "Resisted") }
@@ -585,7 +585,7 @@ object GameEngine {
             if (a.has(Keyword.POISONOUS) && dealt > 0) poison(s, t, 1, 2)
             if (a.has(Keyword.PETRIFY)) stun(s, t, 1)
             if (t.has(Keyword.RETALIATE) && t.stun == 0 && a.pos.distanceTo(t.pos) == 1) {
-                s.log("${t.name} retaliates")
+                s.log("${t.tag} retaliates")
                 dealDamage(s, a, attackDamage(s, t, a))
             }
         }
@@ -668,7 +668,7 @@ object GameEngine {
         if (dead.isEmpty()) return
         for (u in dead) {
             s.units.remove(u)
-            s.log("${u.name} is defeated")
+            s.log("${u.tag} is defeated")
             s.event { GameEvent.Died(it, u.id, u.pos) }
             if (!u.isToken) s.players[u.owner].discard += u.card
             for (b in s.units.filter { it.alive && it.owner != u.owner && it.has(Keyword.BLOODTHIRST) }) {
@@ -743,7 +743,7 @@ object GameEngine {
             val enemies = s.unitsOf(1 - p).filter { it.pos.distanceTo(u.pos) <= TEMPEST_RANGE }
             if (enemies.isEmpty()) continue
             val t = enemies[s.rng.nextInt(enemies.size)]
-            s.log("Tempest strikes ${t.name}")
+            s.log("Tempest strikes ${t.tag}")
             dealDamage(s, t, 1)
         }
         for (u in s.unitsOf(p).filter { it.has(Keyword.PACK_CALLER) }) summonToken(s, u, "w_pup")
@@ -781,11 +781,11 @@ object GameEngine {
         is Action.Deploy -> "deploy at ${action.pos}"
         Action.EndDeploy -> "finish deployment"
         Action.Pass -> "pass"
-        is Action.Move -> "${s.unit(action.unitId)?.name} moves to ${action.to}"
-        is Action.Attack -> "${s.unit(action.unitId)?.name} attacks ${s.unit(action.targetId)?.name}"
+        is Action.Move -> "${s.unit(action.unitId)?.tag} moves to ${action.to}"
+        is Action.Attack -> "${s.unit(action.unitId)?.tag} attacks ${s.unit(action.targetId)?.tag}"
         is Action.UseAbility -> {
             val u = s.unit(action.unitId)
-            "${u?.name} uses ${u?.abilities?.getOrNull(action.abilityIndex)?.def?.name}${targetText(s, action.target)}"
+            "${u?.tag} uses ${u?.abilities?.getOrNull(action.abilityIndex)?.def?.name}${targetText(s, action.target)}"
         }
         is Action.PlayCard -> {
             val c = s.players.flatMap { it.hand }.firstOrNull { it.uid == action.cardUid }
@@ -795,7 +795,7 @@ object GameEngine {
 
     private fun targetText(s: GameState, t: Target): String = when (t) {
         Target.None -> ""
-        is Target.Unit -> s.unit(t.unitId)?.let { " on ${it.name}" } ?: ""
+        is Target.Unit -> s.unit(t.unitId)?.let { " on ${it.tag}" } ?: ""
         is Target.Tile -> " at ${t.pos}"
         is Target.StackEntry -> s.stack.firstOrNull { it.id == t.itemId }?.let { " against “${it.label}”" } ?: ""
     }

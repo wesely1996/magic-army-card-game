@@ -421,7 +421,7 @@ private fun DrawScope.drawCoordinates(proj: BoardProjection, paint: Paint) {
     // Files (a–h) just outside row 1, ranks (1–8) just outside file a; they turn with the board.
     for (x in 0 until Board.SIZE) {
         val p = proj.project(x + 0.5f, -0.3f)
-        label(('a' + x).toString(), Offset(p.x, p.y + 0.1f * proj.scale(x + 0.5f, -0.3f)), 0.24f * proj.scale(x + 0.5f, -0.3f), Ink.Faded, paint)
+        label(('A' + x).toString(), Offset(p.x, p.y + 0.1f * proj.scale(x + 0.5f, -0.3f)), 0.24f * proj.scale(x + 0.5f, -0.3f), Ink.Faded, paint)
     }
     for (y in 0 until Board.SIZE) {
         val p = proj.project(-0.3f, y + 0.5f)

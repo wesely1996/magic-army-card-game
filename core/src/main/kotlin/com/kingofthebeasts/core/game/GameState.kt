@@ -22,7 +22,8 @@ data class Pos(val x: Int, val y: Int) {
     }
 
     /** Chess-style name, e.g. "c4". Player 0 sits at row 1. */
-    override fun toString(): String = "${'a' + x}${y + 1}"
+    /** Chess-style square name, e.g. "G4". */
+    override fun toString(): String = "${'A' + x}${y + 1}"
 }
 
 object Board {
@@ -70,6 +71,9 @@ class UnitState(
 ) {
     val def: CardDef get() = card.def
     val name: String get() = def.name
+
+    /** Name with the square it stands on, e.g. "Dire Wolf (G4)". */
+    val tag: String get() = "$name ($pos)"
     val alive: Boolean get() = hp > 0
 
     fun has(k: Keyword): Boolean = k in keywords || timedKeywords.any { it.keyword == k }

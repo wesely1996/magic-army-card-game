@@ -42,6 +42,14 @@ class EngineTest {
     }
 
     @Test
+    fun actionDescriptionsNameTheSquares() {
+        val (s, u) = battle(Triple("w_direwolf", 0, p(6, 3)), Triple("b_cub", 1, p(6, 4)))
+        assertEquals("G4", p(6, 3).toString())
+        assertEquals("Dire Wolf (G4) attacks Bear Cub (G5)", GameEngine.describe(s, Action.Attack(u[0].id, u[1].id)))
+        assertEquals("Dire Wolf (G4) moves to F3", GameEngine.describe(s, Action.Move(u[0].id, p(5, 2))))
+    }
+
+    @Test
     fun groundUnitsAreBlockedButFlyersPassOver() {
         val (s, u) = battle(
             Triple("b_grizzly", 0, p(0, 0)), Triple("b_cub", 0, p(1, 0)), Triple("b_cub", 0, p(0, 1)),

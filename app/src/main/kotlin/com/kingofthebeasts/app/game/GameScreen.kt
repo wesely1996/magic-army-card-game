@@ -294,7 +294,7 @@ private fun ActionRail(vm: GameViewModel, actions: List<Action>, onOpen: () -> U
                     style = MaterialTheme.typography.bodySmall.copy(
                         textDecoration = if (item.countered) TextDecoration.LineThrough else null,
                     ),
-                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    maxLines = 3, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
                         .watercolor(if (item.controller == vm.human) Ink.You else Ink.Enemy, item.id, 0.8f)
@@ -335,7 +335,7 @@ private fun RailSelection(vm: GameViewModel, actions: List<Action>) {
                 val u = s.unit(sel.unitId) ?: return@Column
                 val mine = u.owner == vm.human
                 Text(
-                    (if (u.isKing) "♛ " else "") + u.name,
+                    (if (u.isKing) "♛ " else "") + u.tag,
                     style = MaterialTheme.typography.labelMedium, color = if (mine) Ink.You else Ink.Enemy,
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
@@ -381,10 +381,10 @@ private fun statusLine(vm: GameViewModel): Pair<String, Color> {
 
 /**
  * A few words for a chain entry, e.g. "Sky Strike → Pride King" or "Dire Wolf ⚔ Cobra".
- * [verbose] spells out answers to other entries ("against Wolf Scout" instead of "vs #2").
+ * [verbose] spells out answers to other entries ("against “Wolf Scout → A4”" instead of "vs #2").
  */
 private fun shortLabel(s: GameState, item: StackItem, verbose: Boolean = false): String {
-    fun unitName(id: Int) = s.unit(id)?.name ?: "(gone)"
+    fun unitName(id: Int) = s.unit(id)?.tag ?: "(gone)"
     fun target(t: Target) = when (t) {
         Target.None -> ""
         is Target.Unit -> " → ${unitName(t.unitId)}"
@@ -393,7 +393,7 @@ private fun shortLabel(s: GameState, item: StackItem, verbose: Boolean = false):
             val i = s.stack.indexOfFirst { it.id == t.itemId }
             when {
                 i < 0 -> ""
-                verbose -> " against “${actionName(s, s.stack[i])}”"
+                verbose -> " against “${shortLabel(s, s.stack[i])}”"
                 else -> " vs #${s.stack.size - i}"
             }
         }
@@ -411,8 +411,8 @@ private fun shortLabel(s: GameState, item: StackItem, verbose: Boolean = false):
 private fun actionName(s: GameState, item: StackItem): String = when (val a = item.action) {
     is Action.PlayCard -> item.card?.def?.name ?: item.label
     is Action.UseAbility -> s.unit(a.unitId)?.abilities?.getOrNull(a.abilityIndex)?.def?.name ?: item.label
-    is Action.Attack -> "${s.unit(a.unitId)?.name ?: "(gone)"} attacks"
-    is Action.Move -> "${s.unit(a.unitId)?.name ?: "(gone)"} moves"
+    is Action.Attack -> "${s.unit(a.unitId)?.tag ?: "(gone)"} attacks"
+    is Action.Move -> "${s.unit(a.unitId)?.tag ?: "(gone)"} moves"
     else -> item.label
 }
 
@@ -425,7 +425,7 @@ private fun chainDetail(s: GameState, item: StackItem): String = when (val a = i
         val attacker = s.unit(a.unitId)
         val target = s.unit(a.targetId)
         if (attacker == null || target == null) "Attacker or target is gone, so this will fizzle."
-        else "Deals ${GameEngine.attackDamage(s, attacker, target)} damage before armor and shields. ${target.name} has ${target.hp} health."
+        else "Deals ${GameEngine.attackDamage(s, attacker, target)} damage before armor and shields. ${target.tag} has ${target.hp} health."
     }
     is Action.Move -> "Moves to ${a.to} if the path is still open."
     else -> ""
@@ -529,7 +529,7 @@ private fun StatusDrawer(
                     style = MaterialTheme.typography.labelLarge, color = if (p == vm.human) Ink.You else Ink.Enemy,
                 )
                 Text(
-                    (king?.let { "♛ ${it.name} ${it.hp}/${it.maxHp} health · " } ?: "") +
+                    (king?.let { "♛ ${it.tag} ${it.hp}/${it.maxHp} health · " } ?: "") +
                         "${s.unitsOf(p).size}/${GameEngine.MAX_UNITS_ON_FIELD} units · ${player.hand.size} in hand · ${player.deck.size} in deck",
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -592,7 +592,7 @@ private fun SelectionPanel(vm: GameViewModel, actions: List<Action>, onInspect: 
             is Selection.Ability -> s.unit(sel.unitId)?.let { u ->
                 val ab = u.abilities[sel.index].def
                 Column {
-                    Text("${u.name}: ${ab.name}", style = MaterialTheme.typography.titleMedium)
+                    Text("${u.tag}: ${ab.name}", style = MaterialTheme.typography.titleMedium)
                     Text("${ab.text} Choose a highlighted target.", style = MaterialTheme.typography.bodySmall)
                     SketchButton("Cancel", { vm.selection = Selection.None }, Modifier.padding(top = 4.dp), small = true, color = Ink.PaperDeep)
                 }
@@ -611,7 +611,7 @@ private fun UnitInfo(vm: GameViewModel, u: UnitState, actions: List<Action>, onI
     val mine = u.owner == vm.human
     Column {
         Text(
-            (if (u.isKing) "♛ " else "") + u.name,
+            (if (u.isKing) "♛ " else "") + u.tag,
             style = MaterialTheme.typography.titleMedium, color = if (mine) Ink.You else Ink.Enemy,
             modifier = Modifier.clickable { onInspect(u) },
         )
