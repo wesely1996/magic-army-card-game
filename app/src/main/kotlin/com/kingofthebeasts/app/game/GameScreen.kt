@@ -274,9 +274,9 @@ private fun ActionRail(vm: GameViewModel, actions: List<Action>, onOpen: () -> U
             style = MaterialTheme.typography.labelSmall, color = Ink.Faded,
         )
         Row {
-            Text("⚔${s.unitsOf(vm.human).size}", style = MaterialTheme.typography.labelMedium, color = Ink.You)
+            Text("⚔${GameEngine.usedSlots(s, vm.human)}", style = MaterialTheme.typography.labelMedium, color = Ink.You)
             Text("  vs  ", style = MaterialTheme.typography.labelMedium, color = Ink.Faded)
-            Text("⚔${s.unitsOf(1 - vm.human).size}", style = MaterialTheme.typography.labelMedium, color = Ink.Enemy)
+            Text("⚔${GameEngine.usedSlots(s, 1 - vm.human)}", style = MaterialTheme.typography.labelMedium, color = Ink.Enemy)
         }
         Spacer(Modifier.height(8.dp))
         Text(
@@ -530,9 +530,13 @@ private fun StatusDrawer(
                 )
                 Text(
                     (king?.let { "♛ ${it.tag} ${it.hp}/${it.maxHp} health · " } ?: "") +
-                        "${s.unitsOf(p).size}/${GameEngine.MAX_UNITS_ON_FIELD} units · ${player.hand.size} in hand · ${player.deck.size} in deck",
+                        "${s.unitsOf(p).size} units in ${GameEngine.usedSlots(s, p)}/${GameEngine.unitCap(s, p)} slots · " +
+                        "${player.hand.size} in hand · ${player.deck.size} in deck · ${player.exhausted.size} exhausted",
                     style = MaterialTheme.typography.bodySmall,
                 )
+                player.trait?.let { t ->
+                    Text("Racial trait — ${t.displayName}: ${t.description}", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                }
             }
 
             if (s.fields.isNotEmpty()) {

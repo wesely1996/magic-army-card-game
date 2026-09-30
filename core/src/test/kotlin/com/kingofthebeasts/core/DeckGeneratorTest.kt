@@ -17,7 +17,7 @@ class DeckGeneratorTest {
             races.flatMapIndexed { i, a ->
                 races.drop(i + 1).flatMapIndexed { j, b -> races.drop(i + j + 2).map { c -> listOf(a, b, c) } }
             }
-        assertEquals(5 + 10 + 10, combos.size)
+        assertEquals(6 + 15 + 20, combos.size)
         val rng = Random(1)
         for (combo in combos) for (king in CardDatabase.all.filter { it.isKing && it.race in combo }) repeat(5) {
             val deck = DeckGenerator.generate(combo, king.id, rng)

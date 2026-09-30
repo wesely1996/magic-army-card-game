@@ -42,5 +42,17 @@ object StarterDecks {
                 "b_claws" to 3, "b_bark" to 3,
             ),
         ),
+        Deck(
+            name = "Warren Horde",
+            races = listOf(Race.VERMIN),
+            cards = mapOf(
+                "v_king_rat" to 1,
+                "v_rat" to 3, "v_tunnel" to 3, "v_skulker" to 2, "v_blade" to 2, "v_brood" to 2, "v_driver" to 2,
+                "v_warren" to 1, "v_brute" to 2, "v_friar" to 2, "v_tinker" to 1, "v_slinger" to 1,
+                "v_blightfire" to 3, "v_vanish" to 2, "v_swarm" to 2, "v_ratrun" to 2,
+                "v_tunnels" to 2, "v_plague" to 2,
+                "v_grafts" to 3, "v_cloak" to 2,
+            ),
+        ),
     )
 }

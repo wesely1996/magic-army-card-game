@@ -197,27 +197,26 @@ class EngineTest {
     }
 
     @Test
-    fun eachSideIsCappedAtTenUnits() {
-        // Player 0: Alpha Wolf + 9 pups = 10 units. Player 1: Naga Queen + one weak pup.
-        val mine = listOf(Triple("w_king_alpha", 0, p(3, 1))) +
-            (0 until 8).map { Triple("w_pup", 0, p(it, 0)) } + Triple("w_pup", 0, p(0, 1))
-        val (s, u) = battle(*(mine + Triple("s_king_naga", 1, p(3, 3)) + Triple("w_pup", 1, p(3, 5))).toTypedArray())
-        assertEquals(GameEngine.MAX_UNITS_ON_FIELD, s.unitsOf(0).size)
+    fun eachSideIsCappedAtSixteenUnitSlots() {
+        // Player 0: Alpha Wolf (0 slots) + 16 pups = 16 slots. Player 1: Naga Queen + one weak pup.
+        val mine = listOf(Triple("w_king_alpha", 0, p(3, 2))) + (0 until 16).map { Triple("w_pup", 0, p(it % 8, it / 8)) }
+        val (s, u) = battle(*(mine + Triple("s_king_naga", 1, p(3, 5)) + Triple("w_pup", 1, p(3, 7))).toTypedArray())
+        assertEquals(GameEngine.MAX_UNITS_ON_FIELD, GameEngine.usedSlots(s, 0))
         val card = s.giveCard(0, "w_scout")
         val actions = GameEngine.legalActions(s)
         assertTrue(actions.none { it is Action.PlayCard && it.cardUid == card.uid }, "no room to play another unit")
-        assertTrue(actions.none { it is Action.UseAbility && it.unitId == u[0].id }, "no room to call the pack")
 
-        // Losing a unit frees a slot again.
+        // Losing a unit frees a slot again, but an Elite unit needs two.
         u[1].hp = 0
         s.units.remove(u[1])
         assertTrue(GameEngine.legalActions(s).any { it is Action.PlayCard && it.cardUid == card.uid })
+        val elite = s.giveCard(0, "w_direwolf")
+        assertTrue(GameEngine.legalActions(s).none { it is Action.PlayCard && it.cardUid == elite.uid }, "Elite units take 2 slots")
     }
 
     @Test
     fun enthrallNeedsRoomOnTheBoard() {
-        val naga = listOf(Triple("s_king_naga", 0, p(3, 3))) + (0 until 8).map { Triple("s_adder", 0, p(it, 0)) } +
-            Triple("s_adder", 0, p(0, 1))
+        val naga = listOf(Triple("s_king_naga", 0, p(3, 3))) + (0 until 16).map { Triple("s_adder", 0, p(it % 8, it / 8)) }
         val (s, u) = battle(*(naga + Triple("w_pup", 1, p(3, 5)) + Triple("w_king_alpha", 1, p(7, 7))).toTypedArray())
         assertTrue(GameEngine.abilityTargets(s, u[0], 0).isEmpty(), "a full side can't take control of more units")
     }

@@ -1,5 +1,6 @@
 package com.kingofthebeasts.core.game
 
+import com.kingofthebeasts.core.data.CardDatabase
 import com.kingofthebeasts.core.deck.Deck
 import com.kingofthebeasts.core.model.CardDef
 import com.kingofthebeasts.core.model.CardType
@@ -8,6 +9,7 @@ import com.kingofthebeasts.core.model.FieldRule
 import com.kingofthebeasts.core.model.Keyword
 import com.kingofthebeasts.core.model.PERMANENT
 import com.kingofthebeasts.core.model.PushFrom
+import com.kingofthebeasts.core.model.RacialTrait
 import com.kingofthebeasts.core.model.Side
 import com.kingofthebeasts.core.model.TargetKind
 import com.kingofthebeasts.core.model.TargetRule
@@ -22,11 +24,21 @@ import kotlin.math.sign
  */
 object GameEngine {
     const val MAX_DEPLOY = 5
-    /** Most units one side may have on the board at once (reinforcements, summons, enthralled units). */
-    const val MAX_UNITS_ON_FIELD = 10
+    /**
+     * Unit slots each side has on the board (reinforcements, summons, enthralled units). Elite units
+     * take 2 slots, other units 1 and Kings none.
+     */
+    const val MAX_UNITS_ON_FIELD = 16
+    /** Unit slots for an army with the Endless Horde trait (Vermin King). */
+    const val HORDE_UNITS_ON_FIELD = 24
+    /** Extra attack for Backstab when attacking from behind. */
+    const val BACKSTAB_BONUS = 2
+    /** Turns a Brood unit keeps spawning Swarm Rats. */
+    const val BROOD_TURNS = 2
+    const val SWARM_RAT = "v_rat"
     /** Tempest only reaches enemies this close to the unit that has it. */
     const val TEMPEST_RANGE = 3
-    /** Most tokens of one kind a single side can have summoned at once. */
+    /** Most Wolf Pups that Call the Pack can keep on the board at once. */
     const val MAX_SUMMONED = 2
     /** From this turn on, each King loses health at the start of its owner's turn (anti-stalemate). */
     const val EXHAUSTION_TURN = 120
@@ -48,7 +60,8 @@ object GameEngine {
         val players = listOf(deck0, deck1).mapIndexed { i, d ->
             val cards = d.cardIds().mapTo(mutableListOf()) { CardInstance(uid++, it) }
             rng.shuffle(cards)
-            PlayerState(i, names[i], cards)
+            val king = d.cards.keys.mapNotNull { CardDatabase.find(it) }.firstOrNull { it.isKing }
+            PlayerState(i, names[i], cards, trait = king?.race?.trait)
         }
         val first = rng.nextInt(2)
         val s = GameState(players, mutableListOf(), Phase.DEPLOY, first, first, nextId = uid, rng = rng)
@@ -161,8 +174,13 @@ object GameEngine {
             s.unitsOf(a.owner).any { it.id != a.id && it.pos.distanceTo(t.pos) == 1 }
         ) d += 1
         if (s.fieldActive(a.owner, FieldRule.HUNTING_GROUNDS) && t.hp < t.maxHp) d += 1
+        if (a.has(Keyword.BACKSTAB) && attacksFromBehind(a, t)) d += BACKSTAB_BONUS
         return d
     }
+
+    /** Behind = on the target's own side of it (nearer the target owner's back row). */
+    fun attacksFromBehind(a: UnitState, t: UnitState): Boolean =
+        if (t.owner == 0) a.pos.y < t.pos.y else a.pos.y > t.pos.y
 
     fun reachable(s: GameState, u: UnitState): List<Pos> = reachableWithMove(s, u, moveOf(s, u))
 
@@ -189,7 +207,7 @@ object GameEngine {
 
     fun attackTargets(s: GameState, u: UnitState): List<UnitState> {
         val r = rangeOf(s, u)
-        return s.units.filter { it.alive && it.owner != u.owner && it.pos.distanceTo(u.pos) <= r }
+        return s.units.filter { it.alive && it.owner != u.owner && it.pos.distanceTo(u.pos) <= r && canSee(s, u.owner, it, u) }
     }
 
     fun abilityTargets(s: GameState, u: UnitState, index: Int): List<Target> {
@@ -198,7 +216,7 @@ object GameEngine {
     }
 
     fun cardTargets(s: GameState, p: Int, def: CardDef): List<Target> = when (def.type) {
-        CardType.UNIT -> battleDeployTiles(s, p).map { Target.Tile(it) }
+        CardType.UNIT -> if (hasRoomForUnit(s, p, slotsOf(def))) battleDeployTiles(s, p).map { Target.Tile(it) } else emptyList()
         CardType.STRATEGY -> listOf(Target.None)
         CardType.MAGIC, CardType.EQUIPMENT -> ruleTargets(s, p, def.target, null).filter { cardEffectApplicable(s, p, def.effects, it) }
     }
@@ -206,17 +224,40 @@ object GameEngine {
     /** Filters out card targets that a displacement effect can't work on. */
     private fun cardEffectApplicable(s: GameState, p: Int, effects: List<EffectOp>, target: Target): Boolean {
         val t = (target as? Target.Unit)?.let { s.unit(it.unitId) }
+        if (t != null && t.isKing && onlyHarms(effects)) return false
         for (op in effects) when (op) {
-            EffectOp.Replace -> if (t == null || t.isKing) return false
-            EffectOp.SwapWithKing -> if (t == null || t.isKing || s.king(t.owner) == null) return false
+            EffectOp.Replace -> if (t == null || t.isKing || t.has(Keyword.IMMOVABLE)) return false
+            EffectOp.RallyToKing -> if (t == null || rallySquare(s, t) == null) return false
+            EffectOp.SwapWithNearestAlly -> if (t == null || t.has(Keyword.IMMOVABLE) || nearestMovableAlly(s, p, t) == null) return false
+            is EffectOp.Summon -> if (t == null || !hasRoomForUnit(s, t.owner, slotsOf(CardDatabase.get(op.cardId))) ||
+                t.pos.neighbors().none { s.unitAt(it) == null }
+            ) return false
             is EffectOp.Push -> {
-                val (to, blocked) = t?.let { pushPath(s, p, it, op) } ?: return false
+                if (t == null || t.has(Keyword.IMMOVABLE)) return false
+                val (to, blocked) = pushPath(s, p, t, op) ?: return false
                 if (to == t.pos && !(blocked && op.impactDamage > 0)) return false
             }
             else -> {}
         }
         return true
     }
+
+    /** Kings take no damage from cards or abilities, so pure damage/poison can't target them. */
+    private fun onlyHarms(effects: List<EffectOp>) = effects.isNotEmpty() && effects.all { it is EffectOp.Damage || it is EffectOp.Poison }
+
+    /** The empty square next to [t]'s King nearest to [t], if [t] may rally there. */
+    fun rallySquare(s: GameState, t: UnitState): Pos? {
+        if (t.isKing || t.has(Keyword.IMMOVABLE)) return null
+        val king = s.king(t.owner) ?: return null
+        if (t.pos.distanceTo(king.pos) == 1) return null
+        return king.pos.neighbors().filter { s.unitAt(it) == null }
+            .minWithOrNull(compareBy<Pos>({ it.distanceTo(t.pos) }, { it.y }, { it.x }))
+    }
+
+    /** [p]'s unit (that can be moved) nearest to [t]. */
+    fun nearestMovableAlly(s: GameState, p: Int, t: UnitState): UnitState? =
+        s.unitsOf(p).filter { it.id != t.id && !it.has(Keyword.IMMOVABLE) }
+            .minWithOrNull(compareBy<UnitState>({ it.pos.distanceTo(t.pos) }, { it.id }))
 
     /** Where a push would leave [t], and whether something stopped it early. Null if there is no direction. */
     fun pushPath(s: GameState, p: Int, t: UnitState, op: EffectOp.Push): Pair<Pos, Boolean>? {
@@ -238,7 +279,27 @@ object GameEngine {
         return pos to false
     }
 
-    fun hasRoomForUnit(s: GameState, p: Int): Boolean = s.unitsOf(p).size < MAX_UNITS_ON_FIELD
+    /** Most units player [p] may have on the board (the Endless Horde trait raises it). */
+    fun unitCap(s: GameState, p: Int): Int =
+        if (s.players[p].trait == RacialTrait.ENDLESS_HORDE) HORDE_UNITS_ON_FIELD else MAX_UNITS_ON_FIELD
+
+    fun slotsOf(def: CardDef): Int = def.unit?.slots ?: 0
+
+    /** Unit slots player [p]'s units currently take up. */
+    fun usedSlots(s: GameState, p: Int): Int = s.unitsOf(p).sumOf { slotsOf(it.def) }
+
+    /** Whether [p] has [slots] free unit slots. */
+    fun hasRoomForUnit(s: GameState, p: Int, slots: Int = 1): Boolean = usedSlots(s, p) + slots <= unitCap(s, p)
+
+    fun isHidden(s: GameState, u: UnitState): Boolean = u.has(Keyword.HIDDEN) || s.fieldActive(u.owner, FieldRule.TUNNELS)
+
+    /**
+     * Whether player [p] can attack or target [t]: Hidden enemies only from a square next to them
+     * (the acting unit's square, or for cards any of [p]'s units).
+     */
+    fun canSee(s: GameState, p: Int, t: UnitState, source: UnitState?): Boolean =
+        t.owner == p || !isHidden(s, t) ||
+            (if (source != null) source.pos.distanceTo(t.pos) == 1 else s.unitsOf(p).any { it.pos.distanceTo(t.pos) == 1 })
 
     fun battleDeployTiles(s: GameState, p: Int): List<Pos> {
         if (!hasRoomForUnit(s, p)) return emptyList()
@@ -257,8 +318,8 @@ object GameEngine {
             TargetKind.NONE -> listOf(Target.None)
             TargetKind.SELF -> listOfNotNull(source?.let { Target.Unit(it.id) })
             TargetKind.FRIENDLY_UNIT -> s.unitsOf(p).filter { it.id != source?.id && inRange(it) }.map { Target.Unit(it.id) }
-            TargetKind.ENEMY_UNIT -> s.unitsOf(1 - p).filter { inRange(it) }.map { Target.Unit(it.id) }
-            TargetKind.ANY_UNIT -> s.units.filter { it.alive && inRange(it) }.map { Target.Unit(it.id) }
+            TargetKind.ENEMY_UNIT -> s.unitsOf(1 - p).filter { inRange(it) && canSee(s, p, it, source) }.map { Target.Unit(it.id) }
+            TargetKind.ANY_UNIT -> s.units.filter { it.alive && inRange(it) && canSee(s, p, it, source) }.map { Target.Unit(it.id) }
             TargetKind.STACK_ITEM -> {
                 val top = s.stack.lastOrNull()
                 if (top != null && top.controller != p) listOf(Target.StackEntry(top.id)) else emptyList()
@@ -268,11 +329,12 @@ object GameEngine {
 
     private fun effectApplicable(s: GameState, source: UnitState, effects: List<EffectOp>, target: Target): Boolean {
         val t = (target as? Target.Unit)?.let { s.unit(it.unitId) }
+        if (t != null && t.isKing && onlyHarms(effects)) return false
         for (op in effects) when (op) {
-            is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, source.owner)) return false
+            EffectOp.Swap -> if (t == null || (t.id != source.id && t.has(Keyword.IMMOVABLE))) return false
+            is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, source.owner, slotsOf(t.def))) return false
             is EffectOp.Pounce -> if (t == null || pounceSquare(s, source, t) == null) return false
-            is EffectOp.Summon -> if (!hasRoomForUnit(s, source.owner) ||
-                s.unitsOf(source.owner).count { it.isToken && it.def.id == op.cardId } >= MAX_SUMMONED ||
+            is EffectOp.Summon -> if (!hasRoomForUnit(s, source.owner, slotsOf(CardDatabase.get(op.cardId))) ||
                 source.pos.neighbors().none { s.unitAt(it) == null }
             ) return false
             else -> {}
@@ -325,6 +387,7 @@ object GameEngine {
                 val card = ps.deck.first { it.uid == action.cardUid }
                 ps.deck.remove(card)
                 val u = summon(s, p, card, action.pos, token = false)
+                arrive(s, p, u)
                 ps.deployed++
                 s.log("${ps.name}: deploys ${u.name} at ${action.pos}")
                 if (ps.deployed >= MAX_DEPLOY || deployableCards(s, p).isEmpty()) ps.deployDone = true
@@ -390,7 +453,7 @@ object GameEngine {
             val item = s.stack.removeAt(s.stack.lastIndex)
             if (item.countered) {
                 s.log("Cancelled: ${item.label}")
-                item.card?.let { s.players[item.controller].discard += it }
+                item.card?.let { retire(s, item.controller, it) }
                 item.action.sourcePos(s)?.let { p -> s.event { GameEvent.Status(it, p, "Cancelled") } }
             } else {
                 resolveItem(s, item)
@@ -441,7 +504,7 @@ object GameEngine {
                 val u = s.unit(a.unitId)
                 val t = s.unit(a.targetId)
                 if (u == null || t == null || u.owner != p || t.owner == p || u.stun > 0 ||
-                    u.pos.distanceTo(t.pos) > rangeOf(s, u)
+                    u.pos.distanceTo(t.pos) > rangeOf(s, u) || !canSee(s, p, t, u)
                 ) fizzle(s, item)
                 else performAttack(s, u, t)
             }
@@ -459,16 +522,16 @@ object GameEngine {
                 when (def.type) {
                     CardType.UNIT -> {
                         val pos = (a.target as Target.Tile).pos
-                        if (s.unitAt(pos) != null || !hasRoomForUnit(s, p)) {
+                        if (s.unitAt(pos) != null || !hasRoomForUnit(s, p, slotsOf(def))) {
                             fizzle(s, item)
-                            s.players[p].discard += card
+                            s.players[p].exhausted += card
                         } else {
-                            summon(s, p, card, pos, token = false)
+                            arrive(s, p, summon(s, p, card, pos, token = false))
                         }
                     }
                     CardType.STRATEGY -> {
                         applyEffects(s, p, null, def.effects, a.target, def.id)
-                        s.players[p].discard += card
+                        retire(s, p, card)
                     }
                     CardType.MAGIC, CardType.EQUIPMENT -> {
                         if (!targetStillValid(s, p, def.target, null, a.target)) {
@@ -479,7 +542,7 @@ object GameEngine {
                                 (a.target as? Target.Unit)?.let { s.unit(it.unitId) }?.equipment?.add(def.name)
                             }
                         }
-                        s.players[p].discard += card
+                        retire(s, p, card)
                     }
                 }
             }
@@ -500,7 +563,8 @@ object GameEngine {
                         TargetKind.SELF -> t.id == source?.id
                         else -> true
                     } &&
-                    (source == null || rule.kind == TargetKind.SELF || source.pos.distanceTo(t.pos) <= rule.range)
+                    (source == null || rule.kind == TargetKind.SELF || source.pos.distanceTo(t.pos) <= rule.range) &&
+                    canSee(s, p, t, source)
             }
         }
 
@@ -519,11 +583,11 @@ object GameEngine {
         target: Target, cardId: String?,
     ) {
         when (op) {
-            is EffectOp.Damage -> t?.let { dealDamage(s, it, op.amount) }
+            is EffectOp.Damage -> t?.let { if (it.isKing) kingImmune(s, it) else dealDamage(s, it, op.amount) }
             is EffectOp.Heal -> t?.let { heal(s, it, op.amount) }
             is EffectOp.Buff -> t?.let { buff(s, it, op) }
             is EffectOp.Stun -> t?.let { stun(s, it, op.turns) }
-            is EffectOp.Poison -> t?.let { poison(s, it, op.damage, op.turns) }
+            is EffectOp.Poison -> t?.let { if (it.isKing) kingImmune(s, it) else poison(s, it, op.damage, op.turns) }
             is EffectOp.Shield -> t?.let { u ->
                 u.shield += op.amount
                 s.event { GameEvent.Status(it, u.pos, "+${op.amount} shield") }
@@ -558,8 +622,8 @@ object GameEngine {
                 s.fields += FieldEffect(p, op.rule, op.turns, cardId ?: "")
                 s.log("${s.players[p].name}: ${op.rule.displayName} is now active")
             }
-            is EffectOp.Summon -> source?.let { summonToken(s, it, op.cardId) }
-            EffectOp.Swap -> if (source != null && t != null) {
+            is EffectOp.Summon -> (source ?: t)?.let { summonToken(s, it, op.cardId) }
+            EffectOp.Swap -> if (source != null && t != null && (t.id == source.id || !t.has(Keyword.IMMOVABLE))) {
                 val a = source.pos
                 source.pos = t.pos
                 t.pos = a
@@ -567,7 +631,7 @@ object GameEngine {
                 s.event { GameEvent.Moved(it, t.id, source.pos, t.pos) }
             }
             is EffectOp.Enthrall -> t?.let { u ->
-                if (!u.isKing && u.hp <= op.maxHealth && hasRoomForUnit(s, p)) {
+                if (!u.isKing && u.hp <= op.maxHealth && hasRoomForUnit(s, p, slotsOf(u.def))) {
                     u.owner = p
                     u.stun = 0
                     s.log("${u.tag} is enthralled and now fights for ${s.players[p].name}")
@@ -577,6 +641,7 @@ object GameEngine {
                 }
             }
             is EffectOp.Push -> t?.let { u ->
+                if (u.has(Keyword.IMMOVABLE)) return@let
                 val (to, blocked) = pushPath(s, p, u, op) ?: return@let
                 if (to != u.pos) moveUnit(s, u, to)
                 s.log("${u.name} is pushed to $to")
@@ -585,16 +650,22 @@ object GameEngine {
                     dealDamage(s, u, op.impactDamage)
                 }
             }
-            EffectOp.SwapWithKing -> t?.let { u ->
-                val king = s.king(u.owner)
-                if (king != null && !u.isKing) {
-                    val a = u.pos
-                    moveUnit(s, u, king.pos)
-                    moveUnit(s, king, a)
-                    s.log("${u.name} and ${king.name} trade places: ${u.name} to ${u.pos}, ${king.name} to ${king.pos}")
+            EffectOp.Replace -> t?.let { u -> if (!u.isKing && !u.has(Keyword.IMMOVABLE)) replaceUnit(s, u) }
+            EffectOp.RallyToKing -> t?.let { u ->
+                rallySquare(s, u)?.let { to ->
+                    moveUnit(s, u, to)
+                    s.log("${u.name} rallies to the King at $to")
                 }
             }
-            EffectOp.Replace -> t?.let { u -> if (!u.isKing) replaceUnit(s, u) }
+            EffectOp.SwapWithNearestAlly -> t?.let { u ->
+                val ally = nearestMovableAlly(s, p, u)
+                if (ally != null && !u.has(Keyword.IMMOVABLE)) {
+                    val a = u.pos
+                    moveUnit(s, u, ally.pos)
+                    moveUnit(s, ally, a)
+                    s.log("${u.name} and ${ally.name} trade places: ${u.name} to ${u.pos}, ${ally.name} to ${ally.pos}")
+                }
+            }
             EffectOp.Pounce -> if (source != null && t != null) {
                 val spot = pounceSquare(s, source, t)
                 if (spot != null) {
@@ -609,7 +680,8 @@ object GameEngine {
     private fun replaceUnit(s: GameState, u: UnitState) {
         val p = u.owner
         val deck = s.players[p].deck
-        val pool = deck.filter { it.def.unit != null && !it.def.isKing }
+        val free = unitCap(s, p) - usedSlots(s, p) + slotsOf(u.def)
+        val pool = deck.filter { it.def.unit != null && !it.def.isKing && slotsOf(it.def) <= free }
         if (pool.isEmpty()) {
             s.event { GameEvent.Status(it, u.pos, "No answer") }
             return
@@ -623,11 +695,32 @@ object GameEngine {
         s.log("${u.tag} returns to the deck; ${fresh.name} takes its place")
     }
 
-    /** Summons a token of [cardId] next to [source], respecting the board and summon limits. */
-    private fun summonToken(s: GameState, source: UnitState, cardId: String) {
+    /** A used card either goes back into the deck at a random spot or is exhausted (out of the game). */
+    private fun retire(s: GameState, p: Int, card: CardInstance) {
+        val ps = s.players[p]
+        if (card.def.returnsToDeck) ps.deck.add(s.rng.nextInt(ps.deck.size + 1), card)
+        else ps.exhausted += card
+    }
+
+    /** Kings shrug off damage and poison from cards and abilities. */
+    private fun kingImmune(s: GameState, k: UnitState) {
+        s.event { GameEvent.Status(it, k.pos, "Immune") }
+    }
+
+    /** A unit played from a card: triggers its arrival effects. */
+    private fun arrive(s: GameState, p: Int, u: UnitState) {
+        val arrival = u.def.unit?.arrival.orEmpty()
+        if (arrival.isNotEmpty()) applyEffects(s, p, u, arrival, Target.Unit(u.id), null)
+    }
+
+    /**
+     * Summons a token of [cardId] next to [source], respecting the unit cap. [limit] caps how many
+     * tokens of that kind the side may have at once (Call the Pack).
+     */
+    private fun summonToken(s: GameState, source: UnitState, cardId: String, limit: Int? = null) {
         val p = source.owner
-        if (!hasRoomForUnit(s, p)) return
-        if (s.unitsOf(p).count { it.isToken && it.def.id == cardId } >= MAX_SUMMONED) return
+        if (!hasRoomForUnit(s, p, slotsOf(CardDatabase.get(cardId)))) return
+        if (limit != null && s.unitsOf(p).count { it.isToken && it.def.id == cardId } >= limit) return
         val spot = source.pos.neighbors().firstOrNull { s.unitAt(it) == null } ?: return
         val u = summon(s, p, CardInstance(s.newId(), cardId), spot, token = true)
         s.event { GameEvent.Status(it, spot, "Summoned") }
@@ -643,8 +736,39 @@ object GameEngine {
             abilities = st.abilities.mapTo(mutableListOf()) { AbilityState(it) },
             isKing = st.isKing, isToken = token,
         )
+        applyTrait(s.players[p].trait, u)
+        if (!token && u.has(Keyword.BROOD)) u.broodLeft = BROOD_TURNS
         s.units += u
         return u
+    }
+
+    /** Racial trait adjustments for a unit entering [trait]'s army. */
+    private fun applyTrait(trait: RacialTrait?, u: UnitState) {
+        fun health(delta: Int) {
+            val hp = max(1, u.maxHp + delta)
+            u.maxHp = hp
+            u.hp = hp
+        }
+        when (trait) {
+            RacialTrait.PACK_TACTICS -> u.keywords += Keyword.PACK_HUNTER
+            RacialTrait.THICK_FUR -> {
+                health(+2)
+                if (u.move >= 3) u.move -= 1
+            }
+            RacialTrait.EAGLE_EYES -> {
+                if (u.range >= 2) u.range += 1
+                health(-1)
+            }
+            RacialTrait.VENOM_BLOOD -> {
+                u.keywords += Keyword.POISONOUS
+                u.attack = max(1, u.attack - 1)
+            }
+            RacialTrait.ROYAL_PRIDE -> if (u.isKing) {
+                health(+3)
+                u.attack += 1
+            } else health(-1)
+            RacialTrait.ENDLESS_HORDE, null -> {}
+        }
     }
 
     private fun moveUnit(s: GameState, u: UnitState, to: Pos) {
@@ -744,7 +868,7 @@ object GameEngine {
             s.units.remove(u)
             s.log("${u.tag} is defeated")
             s.event { GameEvent.Died(it, u.id, u.pos) }
-            if (!u.isToken) s.players[u.owner].discard += u.card
+            if (!u.isToken) s.players[u.owner].exhausted += u.card
             for (b in s.units.filter { it.alive && it.owner != u.owner && it.has(Keyword.BLOODTHIRST) }) {
                 b.attack += 1
                 heal(s, b, 2)
@@ -814,13 +938,24 @@ object GameEngine {
             }
         }
         for (u in s.unitsOf(p).filter { it.has(Keyword.TEMPEST) }) {
-            val enemies = s.unitsOf(1 - p).filter { it.pos.distanceTo(u.pos) <= TEMPEST_RANGE }
+            val enemies = s.unitsOf(1 - p).filter { !it.isKing && it.pos.distanceTo(u.pos) <= TEMPEST_RANGE }
             if (enemies.isEmpty()) continue
             val t = enemies[s.rng.nextInt(enemies.size)]
             s.log("Tempest strikes ${t.tag}")
             dealDamage(s, t, 1)
         }
-        for (u in s.unitsOf(p).filter { it.has(Keyword.PACK_CALLER) }) summonToken(s, u, "w_pup")
+        for (u in s.unitsOf(p).filter { it.has(Keyword.PACK_CALLER) }) summonToken(s, u, "w_pup", limit = MAX_SUMMONED)
+        for (u in s.unitsOf(p).filter { it.broodLeft > 0 }) {
+            u.broodLeft--
+            summonToken(s, u, SWARM_RAT)
+        }
+        if (s.fieldActive(p, FieldRule.PLAGUE)) {
+            val mine = s.unitsOf(p)
+            s.unitsOf(1 - p).filter { e -> !e.isKing && mine.any { it.pos.distanceTo(e.pos) == 1 } }.forEach { e ->
+                s.log("Creeping Plague hurts ${e.tag}")
+                dealDamage(s, e, 1)
+            }
+        }
         // Exhaustion: very long battles wear the Kings down so that games reach an ending.
         if (exhausted(s)) {
             s.king(p)?.let { k ->
@@ -842,8 +977,8 @@ object GameEngine {
         }
         val card = ps.deck.removeAt(0)
         if (ps.hand.size >= HAND_LIMIT) {
-            ps.discard += card
-            s.log("${ps.name}'s hand is full: ${card.def.name} is discarded")
+            ps.exhausted += card
+            s.log("${ps.name}'s hand is full: ${card.def.name} is exhausted")
         } else {
             ps.hand += card
         }

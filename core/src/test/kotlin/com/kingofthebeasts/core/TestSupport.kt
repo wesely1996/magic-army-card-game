@@ -11,7 +11,8 @@ import com.kingofthebeasts.core.game.UnitState
 /** Builds a battle-phase position with exactly the given units and empty hands. */
 fun battle(vararg units: Triple<String, Int, Pos>, active: Int = 0): Pair<GameState, List<UnitState>> {
     val s = GameEngine.newGame(StarterDecks.all[0], StarterDecks.all[1], listOf("A", "B"), 1)
-    s.players.forEach { it.hand.clear(); it.deployDone = true }
+    // No racial traits unless a test asks for one, so unit stats match the card database.
+    s.players.forEach { it.hand.clear(); it.deployDone = true; it.trait = null }
     s.phase = Phase.BATTLE
     s.activePlayer = active
     s.turnNumber = 1

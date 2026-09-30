@@ -34,6 +34,7 @@ object Ink {
         Race.HAWK -> Color(0xFFB7832F)
         Race.SERPENT -> Color(0xFF3F7D57)
         Race.LION -> Color(0xFFC0662B)
+        Race.VERMIN -> Color(0xFF6E7A3A)
     }
 
     fun type(t: CardType): Color = when (t) {

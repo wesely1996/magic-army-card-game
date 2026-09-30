@@ -125,9 +125,9 @@ fun CardFace(
                     modifier = Modifier.align(Alignment.CenterEnd),
                 )
             }
-            if (def.isKing) {
+            if (def.isKing || def.unit?.isElite == true) {
                 Text(
-                    "♛ KING",
+                    if (def.isKing) "♛ KING" else "★ ELITE",
                     style = TextStyle(fontFamily = HandFont, fontWeight = FontWeight.Bold, fontSize = unit * 0.7f, color = Ink.Line),
                     modifier = Modifier
                         .padding(start = w * 0.05f)

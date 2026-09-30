@@ -44,7 +44,7 @@ sealed interface EffectOp {
     data class Area(val radius: Int, val side: Side, val includeCenter: Boolean, val op: EffectOp) : EffectOp
     data class Draw(val count: Int) : EffectOp
     data class Field(val rule: FieldRule, val turns: Int) : EffectOp
-    /** Places a token copy of [cardId] on an empty square next to the source unit. */
+    /** Places a token copy of [cardId] on an empty square next to the source unit (or the target, for cards). */
     data class Summon(val cardId: String) : EffectOp
     /** Source unit swaps squares with the target unit. */
     data object Swap : EffectOp
@@ -57,14 +57,25 @@ sealed interface EffectOp {
      * If a unit or the board edge stops it, it takes [impactDamage].
      */
     data class Push(val distance: Int, val from: PushFrom, val impactDamage: Int = 0) : EffectOp
-    /** The target (not a King) swaps squares with its controller's King. */
-    data object SwapWithKing : EffectOp
     /**
      * The target (not a King) is shuffled into its controller's deck and a random unit card
      * from that deck takes its square. Tokens simply vanish. Nothing happens if the deck has no units.
      */
     data object Replace : EffectOp
+    /** The allied target moves to the empty square next to your King that is nearest to it. */
+    data object RallyToKing : EffectOp
+    /** The enemy target swaps squares with the caster's movable unit nearest to it. */
+    data object SwapWithNearestAlly : EffectOp
 }
+
+/** Damage (now or over time) and summons make a spell exhausting: it is used once, then gone. */
+val EffectOp.exhausting: Boolean
+    get() = when (this) {
+        is EffectOp.Damage, is EffectOp.Poison, is EffectOp.Summon -> true
+        is EffectOp.Push -> impactDamage > 0
+        is EffectOp.Area -> op.exhausting
+        else -> false
+    }
 
 enum class PushFrom {
     /** Directly away from the caster's unit nearest to the target. */
@@ -91,7 +102,13 @@ data class UnitStats(
     val keywords: Set<Keyword> = emptySet(),
     val abilities: List<AbilityDef> = emptyList(),
     val isKing: Boolean = false,
-)
+    /** Effects that happen when the unit is played from a card (source and target: the unit itself). */
+    val arrival: List<EffectOp> = emptyList(),
+    /** Unit slots it takes up: 2 for Elite units, 1 for the rest, 0 for Kings. */
+    val slots: Int = if (isKing) 0 else 1,
+) {
+    val isElite: Boolean get() = slots >= 2
+}
 
 data class CardDef(
     val id: String,
@@ -111,9 +128,18 @@ data class CardDef(
     /** Magic cards can always be played as interrupts. */
     val isQuick: Boolean get() = type == CardType.MAGIC
 
+    /**
+     * After use, Strategy cards and Magic cards that don't deal damage or summon are shuffled back
+     * into the deck. Everything else (units, equipment, damage and summoning spells) is exhausted:
+     * used once, then out of the game.
+     */
+    val returnsToDeck: Boolean
+        get() = type == CardType.STRATEGY || (type == CardType.MAGIC && effects.none { it.exhausting })
+
     val text: String
         get() = if (unit == null) rulesText else buildString {
-            if (unit.isKing) append("King. ")
+            if (unit.isKing) append("King: takes no damage from Magic cards or abilities. ")
+            if (unit.isElite) append("Elite: takes 2 unit slots. ")
             unit.keywords.forEach { append(it.displayName).append(": ").append(it.description).append(' ') }
             unit.abilities.forEach {
                 append(it.name)
@@ -136,4 +162,6 @@ enum class FieldRule(val displayName: String, val description: String) {
     SILENCE("Silence", "Your opponent can't interrupt your actions."),
     WAR_DRUMS("War Drums", "Your units get +1 attack."),
     AMBUSH("Ambush", "You may play units anywhere in your half of the board (still 2+ squares from enemies)."),
+    TUNNELS("Warren Tunnels", "Your units are Hidden."),
+    PLAGUE("Creeping Plague", "At the start of your turn, every enemy unit next to one of your units takes 1 damage (not Kings)."),
 }

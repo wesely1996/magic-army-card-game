@@ -50,13 +50,25 @@ class DisplacementSpellTest {
     }
 
     @Test
-    fun royalExchangeSwapsAnAllyWithYourKing() {
+    fun rallyToTheKingBringsAnAllyNextToYourKing() {
         val (s, u) = battle(Triple("l_guard", 0, p(5, 4)), Triple("l_king_pride", 0, p(1, 0)), Triple("b_king_warden", 1, p(7, 7)))
-        val swap = s.giveCard(0, "l_exchange")
-        assertFalse(GameEngine.legalActions(s).any { it == Action.PlayCard(swap.uid, Target.Unit(u[1].id)) }, "not on the King itself")
-        GameEngine.apply(s, Action.PlayCard(swap.uid, Target.Unit(u[0].id)))
-        assertEquals(p(1, 0), u[0].pos)
-        assertEquals(p(5, 4), u[1].pos)
+        val rally = s.giveCard(0, "l_rally")
+        assertFalse(GameEngine.legalActions(s).any { it == Action.PlayCard(rally.uid, Target.Unit(u[1].id)) }, "not on the King itself")
+        GameEngine.apply(s, Action.PlayCard(rally.uid, Target.Unit(u[0].id)))
+        assertEquals(p(2, 1), u[0].pos, "the free square next to the King nearest the Guard")
+        assertEquals(p(1, 0), u[1].pos, "the King never moves")
+    }
+
+    @Test
+    fun kingsAreImmovable() {
+        val (s, u) = battle(Triple("b_grizzly", 0, p(3, 2)), Triple("w_king_alpha", 0, p(0, 0)), Triple("b_king_warden", 1, p(3, 3)))
+        val shove = s.giveCard(0, "b_shove")
+        val gale = s.giveCard(0, "h_gale")
+        val mirage = s.giveCard(0, "s_mirage")
+        val actions = GameEngine.legalActions(s)
+        for (c in listOf(shove, gale, mirage)) {
+            assertFalse(actions.any { it == Action.PlayCard(c.uid, Target.Unit(u[2].id)) }, "${c.def.name} can't touch a King")
+        }
     }
 
     @Test
@@ -70,7 +82,7 @@ class DisplacementSpellTest {
         assertEquals(0, fresh.owner)
         assertNotEquals(u[0].id, fresh.id)
         assertTrue(u[0].card in s.players[0].deck, "the Dire Wolf went back into the deck")
-        assertEquals(deckSize, s.players[0].deck.size)
+        assertEquals(deckSize + 1, s.players[0].deck.size, "one unit out, one in, and Pack Relay itself is shuffled back")
     }
 
     @Test

@@ -297,6 +297,8 @@ fun BoardView(
                     dstSize = IntSize(rect.width.roundToInt(), rect.height.roundToInt()),
                 )
                 if (u.stun > 0) drawRect(Color(0x55A0A0FF), rect.topLeft, rect.size)
+                // Hidden units look shadowy.
+                if (GameEngine.isHidden(state, u)) drawRect(Color(0x66302838), rect.topLeft, rect.size)
             }
             val selected = highlights.selected == u.pos
             drawPath(arch, if (selected) Ink.Gold else team, style = Stroke(if (selected) 0.09f * s else 0.055f * s, join = StrokeJoin.Round))

@@ -143,6 +143,9 @@ fun DeckBuilderScreen(
                         "Cards ${deck.size}/${DeckRules.DECK_SIZE}  ·  King: ${king.joinToString { it.name }.ifEmpty { "none yet" }}",
                         style = MaterialTheme.typography.labelLarge,
                     )
+                    king.firstOrNull()?.race?.trait?.let { t ->
+                        Text("Racial trait — ${t.displayName}: ${t.description}", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    }
                     if (errors.isEmpty()) {
                         Text("✓ Ready for battle", style = MaterialTheme.typography.bodySmall, color = Ink.Heal)
                     } else {

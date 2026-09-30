@@ -29,6 +29,7 @@ RACE_PALETTES = {
     "h": {"bg": ["#9CC7E0", "#F0D9A0"], "ground": "#B7C98F", "subject": "#B7832F", "shade": "#5E3F12", "accent": "#6FA8D6"},
     "s": {"bg": ["#9CC9A6", "#B9A5D0"], "ground": "#7E9C6B", "subject": "#3F7D57", "shade": "#1F4230", "accent": "#9BC53D"},
     "l": {"bg": ["#F2C57C", "#E89B6B"], "ground": "#B9A265", "subject": "#C0662B", "shade": "#6E3317", "accent": "#E0A526"},
+    "v": {"bg": ["#AEB58C", "#9A88AE"], "ground": "#6F7556", "subject": "#5E5648", "shade": "#2B2822", "accent": "#8FD14F"},
 }
 TYPE_TINT = {"magic": "#B89AD8", "strategy": "#D8C08A", "equipment": "#A9B4BE"}
 

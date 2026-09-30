@@ -5,6 +5,7 @@ import com.kingofthebeasts.core.model.AbilityDef
 import com.kingofthebeasts.core.model.CardDef
 import com.kingofthebeasts.core.model.FieldRule
 import com.kingofthebeasts.core.model.Keyword
+import com.kingofthebeasts.core.model.RacialTrait
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -68,6 +69,8 @@ class UnitState(
     val equipment: MutableList<String> = mutableListOf(),
     val isKing: Boolean = false,
     val isToken: Boolean = false,
+    /** Brood: how many more Swarm Rats it will spawn at the start of its owner's turns. */
+    var broodLeft: Int = 0,
 ) {
     val def: CardDef get() = card.def
     val name: String get() = def.name
@@ -84,7 +87,7 @@ class UnitState(
         mods.mapTo(mutableListOf()) { TimedMod(it.attack, it.move, it.range, it.turns) },
         stun, poisonDamage, poisonTurns, shield,
         abilities.mapTo(mutableListOf()) { AbilityState(it.def, it.cooldown) },
-        equipment.toMutableList(), isKing, isToken,
+        equipment.toMutableList(), isKing, isToken, broodLeft,
     )
 }
 
@@ -93,11 +96,14 @@ class PlayerState(
     val name: String,
     val deck: MutableList<CardInstance>,
     val hand: MutableList<CardInstance> = mutableListOf(),
-    val discard: MutableList<CardInstance> = mutableListOf(),
+    /** Cards used up for good: played units, equipment, damage and summoning spells, burned cards. */
+    val exhausted: MutableList<CardInstance> = mutableListOf(),
     var deployed: Int = 0,
     var deployDone: Boolean = false,
+    /** Racial trait from the race of this player's King (null: none, used by tests). */
+    var trait: RacialTrait? = null,
 ) {
-    fun copy() = PlayerState(index, name, deck.toMutableList(), hand.toMutableList(), discard.toMutableList(), deployed, deployDone)
+    fun copy() = PlayerState(index, name, deck.toMutableList(), hand.toMutableList(), exhausted.toMutableList(), deployed, deployDone, trait)
 }
 
 class StackItem(

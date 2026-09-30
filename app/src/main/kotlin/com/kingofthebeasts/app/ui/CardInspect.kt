@@ -117,6 +117,27 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             style = MaterialTheme.typography.labelLarge, color = Ink.Faded,
         )
 
+        if (def.isKing) {
+            Section("King rules")
+            Line("Immune", "takes no damage from Magic cards or abilities (attacks still hurt)")
+            Line("Immovable", "can't be pushed, swapped or replaced by other cards and abilities")
+            Line("No slot", "doesn't count toward the unit slots")
+            Line("Racial trait: ${def.race.trait.displayName}", def.race.trait.description + " (for the army this King leads)")
+        } else if (def.unit != null) {
+            Line(
+                if (def.unit!!.isElite) "Elite" else "Unit slot",
+                if (def.unit!!.isElite) "takes 2 of your unit slots" else "takes 1 of your unit slots",
+            )
+        }
+        Line(
+            "After use",
+            when {
+                def.unit != null -> "exhausted: a unit card can be played only once"
+                def.returnsToDeck -> "shuffled back into your deck"
+                else -> "exhausted: out of the game once used"
+            },
+        )
+
         def.unit?.let { st ->
             Section("Base stats")
             Line("Attack ${st.attack}", "damage dealt by a normal attack")
