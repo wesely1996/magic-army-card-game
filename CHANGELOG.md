@@ -3,6 +3,24 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.3.0 — The Vermin Horde, racial traits and new card rules
+
+- **New race: Vermin Horde** (inspired by mutant rat-folk). Hidden units, Backstab, Brood (a Swarm Rat
+  pops out on each of the next 2 turns), units that arrive with 2–3 rats, Warren Tunnels, Creeping Plague,
+  Rat Run and the Kings **Rat King** and **Blight Seer**. Starter deck: **Warren Horde**.
+- **Racial traits**: the race of your King gives your whole army a bonus (some with a drawback) — Pack
+  Tactics, Thick Fur, Eagle Eyes, Venom Blood, Royal Pride, Endless Horde.
+- **Kings** take no damage from Magic cards or abilities (only attacks and Exhaustion hurt them) and are
+  **Immovable**. Royal Exchange became **Rally to the King**.
+- **Unit slots**: 16 per side (24 for the Endless Horde). **Elite** units (★) take 2 slots, other units 1,
+  Kings none.
+- **Used cards**: unit cards, equipment and damage/summoning spells are **exhausted** (used once). Strategy
+  and other Magic cards go to the **discard pile**, which becomes the new deck when the deck runs out.
+- **5 new units** for each of the five original races, all with new watercolor art.
+- New keywords: Hidden, Backstab, Brood, Immovable; arrival effects.
+- APKs are named `KingOfTheBeasts-<version>.apk`.
+- BALANCE_PLACEHOLDER
+
 ## 0.2.0 — Landscape, balance and displacement spells
 
 - **Balance pass**, measured with AI-vs-AI simulation and solved mathematically: every race between 48.7%
