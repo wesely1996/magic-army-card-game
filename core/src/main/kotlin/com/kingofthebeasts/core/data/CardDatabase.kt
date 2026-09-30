@@ -40,7 +40,7 @@ object CardDatabase {
 
     private val base: List<CardDef> = buildList {
         // ------------------------------------------------------------------ WOLF
-        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 10, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
+        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 9, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
         add(king("w_king_moon", "Moon Howler", WOLF, 2, 5, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
@@ -162,9 +162,9 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 13, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
-        add(king("l_king_queen", "Lioness Queen", LION, 4, 9, 2, 1, setOf(PACK_HUNTER, ARMORED),
+        add(king("l_king_queen", "Lioness Queen", LION, 4, 8, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 4), 2, effects = listOf(EffectOp.Pounce)),
             flavor = "You never see the first strike."))

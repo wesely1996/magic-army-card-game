@@ -75,7 +75,7 @@ for that player. Human play will differ somewhat; the tools make it cheap to re-
 | Card | Before | After |
 |---|---|---|
 | **Wolf** | | |
-| Alpha Wolf (King) | 3/8, active summon | 4/10, passive Call the Pack |
+| Alpha Wolf (King) | 3/8, active summon | 4/9, passive Call the Pack |
 | Moon Howler (King) | 2/8 | 2/5 |
 | Wolf Pup / Scout / Grey Hunter | 1/3, 2/3, 3/4 | 3/3, 3/4, 4/5 |
 | Shadow Stalker / Dire Wolf / Wolf Shaman | 3/3, 4/6, 1/4 | 4/4, 5/7, 2/4 |
@@ -102,13 +102,21 @@ for that player. Human play will differ somewhat; the tools make it cheap to re-
 | Venom Surge | 2 dmg × 3 turns | 2 dmg × 2 turns |
 | Murky Swamp, Hypnotic Trance | 3, 2 turns | 4, 3 turns |
 | **Lion** | | |
-| Pride King (King) | 4/9 | 5/11 |
-| Lioness Queen (King) | 3/8 | 4/9, Armored |
+| Pride King (King) | 4/9 | 5/13 |
+| Lioness Queen (King) | 3/8 | 4/8, Armored |
 | Lion Cub | 2/3 | 2/5, Pack Hunter |
 | Lioness Hunter / Royal Guard / Pride Sage | 3/4, 2/6, 1/4 | 3/6, 2/7, 1/5 |
 | Maned Warlord | 4/6 | 4/8, Retaliate |
 | Pride Runner | 2/3 | 3/4 |
 | War Banner, Tall Grass | 3 turns | 4 turns |
+
+## Displacement spells
+
+Each race got one Magic card that moves or swaps units: Pack Relay (Wolf), Mighty Shove (Bear), Gale Force
+(Hawk), Mirage (Serpent) and Royal Exchange (Lion). Races stayed between 49% and 53%. The pushes hurt the
+Pride King most, because his Commander aura depends on standing next to his army: he fell to 40%. The King
+solver (20 Elo per point of King health) suggested +2 HP for him and −2 for the Lioness Queen and Alpha
+Wolf; he got +2, and the other two −1 each (half steps, as full steps overshot before).
 
 ## Starter decks
 
