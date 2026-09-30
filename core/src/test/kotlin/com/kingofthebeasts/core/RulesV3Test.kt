@@ -100,10 +100,24 @@ class RulesV3Test {
         val frenzy = s.giveCard(0, "w_frenzy")
         GameEngine.apply(s, Action.PlayCard(frenzy.uid, Target.Unit(u[0].id)))
         if (s.stack.isNotEmpty()) GameEngine.apply(s, Action.Pass) // the opponent may get a chance to respond
-        assertTrue(frenzy in s.players[0].deck, "non-damage magic goes back into the deck")
+        assertTrue(frenzy in s.players[0].discard, "non-damage magic goes to the discard pile")
         assertFalse(CardDatabase.get("w_scout").returnsToDeck, "unit cards are used once")
         assertTrue(CardDatabase.get("w_hunt").returnsToDeck, "strategy cards come back")
         assertFalse(CardDatabase.get("v_swarm").returnsToDeck, "summoning spells are used once")
+    }
+
+    @Test
+    fun anEmptyDeckIsRefilledFromTheDiscardPile() {
+        val (s, _) = battle(Triple("w_king_alpha", 0, p(0, 0)), Triple("l_king_pride", 1, p(7, 7)))
+        val ps = s.players[0]
+        ps.discard += ps.deck.take(3)
+        ps.exhausted += ps.deck.drop(3)
+        ps.deck.clear()
+        GameEngine.apply(s, Action.Pass)
+        GameEngine.apply(s, Action.Pass) // player 0's turn starts: draws from the reshuffled discard pile
+        assertEquals(1, ps.hand.size)
+        assertEquals(2, ps.deck.size)
+        assertTrue(ps.discard.isEmpty())
     }
 
     @Test

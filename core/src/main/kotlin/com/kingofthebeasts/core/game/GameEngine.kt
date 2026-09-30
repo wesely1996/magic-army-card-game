@@ -695,11 +695,10 @@ object GameEngine {
         s.log("${u.tag} returns to the deck; ${fresh.name} takes its place")
     }
 
-    /** A used card either goes back into the deck at a random spot or is exhausted (out of the game). */
+    /** A used card goes to the discard pile (it will come back) or is exhausted (out of the game). */
     private fun retire(s: GameState, p: Int, card: CardInstance) {
         val ps = s.players[p]
-        if (card.def.returnsToDeck) ps.deck.add(s.rng.nextInt(ps.deck.size + 1), card)
-        else ps.exhausted += card
+        if (card.def.returnsToDeck) ps.discard += card else ps.exhausted += card
     }
 
     /** Kings shrug off damage and poison from cards and abilities. */
@@ -971,14 +970,21 @@ object GameEngine {
 
     private fun drawCard(s: GameState, p: Int) {
         val ps = s.players[p]
+        if (ps.deck.isEmpty() && ps.discard.isNotEmpty()) {
+            // An empty deck is refilled by shuffling the discard pile.
+            ps.deck += ps.discard
+            ps.discard.clear()
+            s.rng.shuffle(ps.deck)
+            s.log("${ps.name} shuffles the discard pile into a new deck")
+        }
         if (ps.deck.isEmpty()) {
             s.log("${ps.name} has no cards left to draw")
             return
         }
         val card = ps.deck.removeAt(0)
         if (ps.hand.size >= HAND_LIMIT) {
-            ps.exhausted += card
-            s.log("${ps.name}'s hand is full: ${card.def.name} is exhausted")
+            ps.discard += card
+            s.log("${ps.name}'s hand is full: ${card.def.name} is discarded")
         } else {
             ps.hand += card
         }

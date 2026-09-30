@@ -82,7 +82,8 @@ class DisplacementSpellTest {
         assertEquals(0, fresh.owner)
         assertNotEquals(u[0].id, fresh.id)
         assertTrue(u[0].card in s.players[0].deck, "the Dire Wolf went back into the deck")
-        assertEquals(deckSize + 1, s.players[0].deck.size, "one unit out, one in, and Pack Relay itself is shuffled back")
+        assertEquals(deckSize, s.players[0].deck.size, "one unit out, one in")
+        assertTrue(relay in s.players[0].discard)
     }
 
     @Test

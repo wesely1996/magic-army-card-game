@@ -531,7 +531,7 @@ private fun StatusDrawer(
                 Text(
                     (king?.let { "♛ ${it.tag} ${it.hp}/${it.maxHp} health · " } ?: "") +
                         "${s.unitsOf(p).size} units in ${GameEngine.usedSlots(s, p)}/${GameEngine.unitCap(s, p)} slots · " +
-                        "${player.hand.size} in hand · ${player.deck.size} in deck · ${player.exhausted.size} exhausted",
+                        "${player.hand.size} in hand · ${player.deck.size} in deck · ${player.discard.size} discarded · ${player.exhausted.size} exhausted",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 player.trait?.let { t ->

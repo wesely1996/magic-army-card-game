@@ -133,7 +133,7 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             "After use",
             when {
                 def.unit != null -> "exhausted: a unit card can be played only once"
-                def.returnsToDeck -> "shuffled back into your deck"
+                def.returnsToDeck -> "goes to your discard pile, which becomes your new deck when the deck runs out"
                 else -> "exhausted: out of the game once used"
             },
         )

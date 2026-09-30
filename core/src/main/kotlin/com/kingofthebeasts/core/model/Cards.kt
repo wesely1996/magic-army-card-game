@@ -129,9 +129,9 @@ data class CardDef(
     val isQuick: Boolean get() = type == CardType.MAGIC
 
     /**
-     * After use, Strategy cards and Magic cards that don't deal damage or summon are shuffled back
-     * into the deck. Everything else (units, equipment, damage and summoning spells) is exhausted:
-     * used once, then out of the game.
+     * After use, Strategy cards and Magic cards that don't deal damage or summon go to the discard
+     * pile, which becomes the new deck when the deck runs out. Everything else (units, equipment,
+     * damage and summoning spells) is exhausted: used once, then out of the game.
      */
     val returnsToDeck: Boolean
         get() = type == CardType.STRATEGY || (type == CardType.MAGIC && effects.none { it.exhausting })

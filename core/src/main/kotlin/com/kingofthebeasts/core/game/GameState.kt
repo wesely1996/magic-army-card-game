@@ -96,14 +96,16 @@ class PlayerState(
     val name: String,
     val deck: MutableList<CardInstance>,
     val hand: MutableList<CardInstance> = mutableListOf(),
-    /** Cards used up for good: played units, equipment, damage and summoning spells, burned cards. */
+    /** Used cards that come back: shuffled into a new deck when the deck runs out. */
+    val discard: MutableList<CardInstance> = mutableListOf(),
+    /** Cards used up for good: played units, equipment, damage and summoning spells. */
     val exhausted: MutableList<CardInstance> = mutableListOf(),
     var deployed: Int = 0,
     var deployDone: Boolean = false,
     /** Racial trait from the race of this player's King (null: none, used by tests). */
     var trait: RacialTrait? = null,
 ) {
-    fun copy() = PlayerState(index, name, deck.toMutableList(), hand.toMutableList(), exhausted.toMutableList(), deployed, deployDone, trait)
+    fun copy() = PlayerState(index, name, deck.toMutableList(), hand.toMutableList(), discard.toMutableList(), exhausted.toMutableList(), deployed, deployDone, trait)
 }
 
 class StackItem(
