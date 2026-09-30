@@ -249,6 +249,11 @@ fun RulesScreen(onBack: () -> Unit) {
         "Decks" to "Build a 40-card deck from up to 3 animal races. It must contain exactly one King. At most 3 copies of any other card.",
         "Card types" to "Units put a piece on the board. Magic cards buff, heal, damage or cancel — and can be played as interrupts. " +
             "Strategy cards change the rules of the battlefield for a few turns. Equipment permanently upgrades one of your units.",
+        "Displacement spells" to "Each race has one Magic card that moves or swaps units. Pack Relay (Wolf) sends an ally back " +
+            "into your deck and a random unit from your deck takes its square. Mighty Shove (Bear) pushes an enemy 2 squares away " +
+            "from your nearest unit, with 2 damage if something stops it. Gale Force (Hawk) blows an enemy up to 3 squares back toward " +
+            "its own side. Mirage (Serpent) sends an enemy back into its owner's deck and a random unit from that deck takes its square. " +
+            "Royal Exchange (Lion) lets an ally and your King trade squares — handy to pull the King out of danger.",
         "Deployment" to "A coin flip decides who starts. Players take turns placing one unit at a time in their first 3 rows, " +
             "up to 5 units each. Your King must be the first unit you place. You choose from all unit cards in your deck. " +
             "Afterwards everyone shuffles and draws 5 cards.",

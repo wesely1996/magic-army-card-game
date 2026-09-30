@@ -52,6 +52,25 @@ sealed interface EffectOp {
     data class Enthrall(val maxHealth: Int) : EffectOp
     /** Source leaps next to the target (ignoring blockers) and attacks it. */
     data object Pounce : EffectOp
+    /**
+     * Pushes the target up to [distance] squares in a straight line (direction set by [from]).
+     * If a unit or the board edge stops it, it takes [impactDamage].
+     */
+    data class Push(val distance: Int, val from: PushFrom, val impactDamage: Int = 0) : EffectOp
+    /** The target (not a King) swaps squares with its controller's King. */
+    data object SwapWithKing : EffectOp
+    /**
+     * The target (not a King) is shuffled into its controller's deck and a random unit card
+     * from that deck takes its square. Tokens simply vanish. Nothing happens if the deck has no units.
+     */
+    data object Replace : EffectOp
+}
+
+enum class PushFrom {
+    /** Directly away from the caster's unit nearest to the target. */
+    NEAREST_ALLY,
+    /** Straight back toward the target owner's own side of the board. */
+    OWNER_SIDE,
 }
 
 data class AbilityDef(

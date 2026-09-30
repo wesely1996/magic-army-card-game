@@ -1,6 +1,9 @@
 """Generates all watercolor card art and UI textures for the app.
 
-Usage:  python3 tools/art/generate.py <path to @iconify-json/game-icons icons.json>
+Usage:  python3 tools/art/generate.py <path to @iconify-json/game-icons icons.json> [card ids...]
+
+With card ids, only those illustrations are (re)painted; seeds stay tied to manifest order,
+so repainting a single card gives the same picture as a full run.
 
 Get icons.json from the npm package @iconify-json/game-icons (CC BY 3.0,
 https://game-icons.net). Requires: pillow numpy scipy cairosvg.
@@ -38,12 +41,14 @@ def card_types():
     return {cid: ("unit" if kind in ("unit", "king") else kind) for kind, cid in found}
 
 
-def main(icons_path):
+def main(icons_path, only=None):
     wc.load_icons(icons_path)
     manifest = json.load(open(os.path.join(HERE, "art_manifest.json")))
     types = card_types()
     os.makedirs(RES, exist_ok=True)
     for i, (cid, meta) in enumerate(manifest.items()):
+        if only and cid not in only:
+            continue
         pal = dict(RACE_PALETTES[cid[0]])
         t = types[cid]
         if t in TYPE_TINT:
@@ -54,6 +59,8 @@ def main(icons_path):
                        subject_offset=(0, -0.145 if t == "unit" else -0.12))
         img.save(os.path.join(RES, f"art_{cid}.webp"), quality=82, method=6)
         print("art", cid)
+    if only:
+        return
     board_texture()
     paper_texture()
     launcher_icon()
@@ -116,4 +123,4 @@ def launcher_icon():
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], set(sys.argv[2:]))

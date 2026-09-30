@@ -21,6 +21,7 @@ import com.kingofthebeasts.core.model.Keyword.PACK_HUNTER
 import com.kingofthebeasts.core.model.Keyword.POISONOUS
 import com.kingofthebeasts.core.model.Keyword.REGENERATE
 import com.kingofthebeasts.core.model.Keyword.RETALIATE
+import com.kingofthebeasts.core.model.PushFrom
 import com.kingofthebeasts.core.model.Race
 import com.kingofthebeasts.core.model.Race.BEAR
 import com.kingofthebeasts.core.model.Race.HAWK
@@ -60,6 +61,9 @@ object CardDatabase {
         add(magic("w_bite", "Savage Bite", WOLF, "Deal 3 damage to an enemy unit.", TargetRule.ENEMY, Damage(3)))
         add(magic("w_scatter", "Scatter", WOLF, "Interrupt only. Cancel the action you are responding to.",
             TargetRule.STACK, EffectOp.Counter))
+        add(magic("w_relay", "Pack Relay", WOLF,
+            "Shuffle an allied unit (not your King) into your deck. A random unit from your deck takes its square.",
+            TargetRule.FRIENDLY, EffectOp.Replace))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ, 4))
         add(strategy("w_moonlit", "Moonlit Hunt", WOLF, FieldRule.HUNTING_GROUNDS, 4))
         add(equipment("w_collar", "Spiked Collar", WOLF, "+1 attack and Retaliate.",
@@ -87,6 +91,9 @@ object CardDatabase {
             TargetRule.FRIENDLY, Heal(4), EffectOp.Cleanse))
         add(magic("b_hug", "Bear Hug", BEAR, "Stun an enemy unit for 1 turn. As an interrupt it stops that unit's action.",
             TargetRule.ENEMY, Stun(1)))
+        add(magic("b_shove", "Mighty Shove", BEAR,
+            "Push an enemy unit 2 squares directly away from your nearest unit. If a unit or the edge stops it, it takes 2 damage.",
+            TargetRule.ENEMY, EffectOp.Push(2, PushFrom.NEAREST_ALLY, impactDamage = 2)))
         add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY, 4))
         add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY, 5))
         add(equipment("b_bark", "Bark Armor", BEAR, "+3 health.", Buff(health = 3)))
@@ -115,6 +122,9 @@ object CardDatabase {
             TargetRule.FRIENDLY, Buff(move = 2, turns = 1), GrantKeyword(FLYING, 1)))
         add(magic("h_skystrike", "Sky Strike", HAWK, "Deal 2 damage to an enemy unit and 1 damage to enemies next to it.",
             TargetRule.ENEMY, Damage(2), Area(1, Side.ENEMY, includeCenter = false, op = Damage(1))))
+        add(magic("h_gale", "Gale Force", HAWK,
+            "Blow an enemy unit up to 3 squares straight back toward its own side of the board.",
+            TargetRule.ENEMY, EffectOp.Push(3, PushFrom.OWNER_SIDE)))
         add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND, 4))
         add(strategy("h_winds", "Favorable Winds", HAWK, FieldRule.TAILWIND, 4))
         add(equipment("h_talons", "Razor Talons", HAWK, "+1 attack and +1 range.", Buff(attack = 1, range = 1)))
@@ -143,6 +153,9 @@ object CardDatabase {
             TargetRule.ENEMY, Poison(2, 2)))
         add(magic("s_shed", "Shed Skin", SERPENT, "Remove stun and poison from an allied unit and heal it by 2.",
             TargetRule.FRIENDLY, EffectOp.Cleanse, Heal(2)))
+        add(magic("s_mirage", "Mirage", SERPENT,
+            "Shuffle an enemy unit (not a King) into its owner's deck. A random unit from that deck takes its square.",
+            TargetRule.ENEMY, EffectOp.Replace))
         add(strategy("s_swamp", "Murky Swamp", SERPENT, FieldRule.SWAMP, 4))
         add(strategy("s_trance", "Hypnotic Trance", SERPENT, FieldRule.SILENCE, 3))
         add(equipment("s_fangs", "Venom Fangs", SERPENT, "+1 attack and Poisonous.", Buff(attack = 1), GrantKeyword(POISONOUS)))
@@ -169,6 +182,9 @@ object CardDatabase {
             TargetRule.FRIENDLY, Heal(3), Buff(attack = 1, turns = 1)))
         add(magic("l_sunfire", "Sunfire", LION, "Deal 2 damage to an enemy unit and draw a card.",
             TargetRule.ENEMY, Damage(2), EffectOp.Draw(1)))
+        add(magic("l_exchange", "Royal Exchange", LION,
+            "An allied unit and your King trade squares.",
+            TargetRule.FRIENDLY, EffectOp.SwapWithKing))
         add(strategy("l_banner", "War Banner", LION, FieldRule.WAR_DRUMS, 4))
         add(strategy("l_grass", "Tall Grass", LION, FieldRule.AMBUSH, 4))
         add(equipment("l_mane", "Golden Mane", LION, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))

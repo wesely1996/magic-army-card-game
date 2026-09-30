@@ -7,11 +7,13 @@ import com.kingofthebeasts.core.model.EffectOp
 import com.kingofthebeasts.core.model.FieldRule
 import com.kingofthebeasts.core.model.Keyword
 import com.kingofthebeasts.core.model.PERMANENT
+import com.kingofthebeasts.core.model.PushFrom
 import com.kingofthebeasts.core.model.Side
 import com.kingofthebeasts.core.model.TargetKind
 import com.kingofthebeasts.core.model.TargetRule
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 
 /**
  * All game rules. The engine is deterministic: the same seed and the same
@@ -198,7 +200,42 @@ object GameEngine {
     fun cardTargets(s: GameState, p: Int, def: CardDef): List<Target> = when (def.type) {
         CardType.UNIT -> battleDeployTiles(s, p).map { Target.Tile(it) }
         CardType.STRATEGY -> listOf(Target.None)
-        CardType.MAGIC, CardType.EQUIPMENT -> ruleTargets(s, p, def.target, null)
+        CardType.MAGIC, CardType.EQUIPMENT -> ruleTargets(s, p, def.target, null).filter { cardEffectApplicable(s, p, def.effects, it) }
+    }
+
+    /** Filters out card targets that a displacement effect can't work on. */
+    private fun cardEffectApplicable(s: GameState, p: Int, effects: List<EffectOp>, target: Target): Boolean {
+        val t = (target as? Target.Unit)?.let { s.unit(it.unitId) }
+        for (op in effects) when (op) {
+            EffectOp.Replace -> if (t == null || t.isKing) return false
+            EffectOp.SwapWithKing -> if (t == null || t.isKing || s.king(t.owner) == null) return false
+            is EffectOp.Push -> {
+                val (to, blocked) = t?.let { pushPath(s, p, it, op) } ?: return false
+                if (to == t.pos && !(blocked && op.impactDamage > 0)) return false
+            }
+            else -> {}
+        }
+        return true
+    }
+
+    /** Where a push would leave [t], and whether something stopped it early. Null if there is no direction. */
+    fun pushPath(s: GameState, p: Int, t: UnitState, op: EffectOp.Push): Pair<Pos, Boolean>? {
+        val (dx, dy) = when (op.from) {
+            PushFrom.NEAREST_ALLY -> {
+                val from = s.unitsOf(p).filter { it.id != t.id }
+                    .minWithOrNull(compareBy<UnitState>({ it.pos.distanceTo(t.pos) }, { it.id })) ?: return null
+                (t.pos.x - from.pos.x).sign to (t.pos.y - from.pos.y).sign
+            }
+            PushFrom.OWNER_SIDE -> 0 to if (t.owner == 0) -1 else 1
+        }
+        if (dx == 0 && dy == 0) return null
+        var pos = t.pos
+        repeat(op.distance) {
+            val next = Pos(pos.x + dx, pos.y + dy)
+            if (!next.onBoard || s.unitAt(next) != null) return pos to true
+            pos = next
+        }
+        return pos to false
     }
 
     fun hasRoomForUnit(s: GameState, p: Int): Boolean = s.unitsOf(p).size < MAX_UNITS_ON_FIELD
@@ -539,6 +576,25 @@ object GameEngine {
                     s.event { GameEvent.Status(it, u.pos, "Resisted") }
                 }
             }
+            is EffectOp.Push -> t?.let { u ->
+                val (to, blocked) = pushPath(s, p, u, op) ?: return@let
+                if (to != u.pos) moveUnit(s, u, to)
+                s.log("${u.name} is pushed to $to")
+                if (blocked && op.impactDamage > 0) {
+                    s.event { GameEvent.Status(it, u.pos, "Slammed!") }
+                    dealDamage(s, u, op.impactDamage)
+                }
+            }
+            EffectOp.SwapWithKing -> t?.let { u ->
+                val king = s.king(u.owner)
+                if (king != null && !u.isKing) {
+                    val a = u.pos
+                    moveUnit(s, u, king.pos)
+                    moveUnit(s, king, a)
+                    s.log("${u.name} and ${king.name} trade places: ${u.name} to ${u.pos}, ${king.name} to ${king.pos}")
+                }
+            }
+            EffectOp.Replace -> t?.let { u -> if (!u.isKing) replaceUnit(s, u) }
             EffectOp.Pounce -> if (source != null && t != null) {
                 val spot = pounceSquare(s, source, t)
                 if (spot != null) {
@@ -547,6 +603,24 @@ object GameEngine {
                 }
             }
         }
+    }
+
+    /** Shuffles [u] into its controller's deck and puts a random unit card from that deck on its square. */
+    private fun replaceUnit(s: GameState, u: UnitState) {
+        val p = u.owner
+        val deck = s.players[p].deck
+        val pool = deck.filter { it.def.unit != null && !it.def.isKing }
+        if (pool.isEmpty()) {
+            s.event { GameEvent.Status(it, u.pos, "No answer") }
+            return
+        }
+        val incoming = pool[s.rng.nextInt(pool.size)]
+        deck.remove(incoming)
+        s.units.remove(u)
+        if (!u.isToken) deck.add(s.rng.nextInt(deck.size + 1), u.card)
+        val fresh = summon(s, p, incoming, u.pos, token = false)
+        s.event { GameEvent.Status(it, fresh.pos, "Replaced") }
+        s.log("${u.tag} returns to the deck; ${fresh.name} takes its place")
     }
 
     /** Summons a token of [cardId] next to [source], respecting the board and summon limits. */

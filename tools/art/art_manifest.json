@@ -77,5 +77,10 @@
   "l_banner":       {"icon": "knight-banner"},
   "l_grass":        {"icon": "high-grass"},
   "l_mane":         {"icon": "fluffy-swirl"},
-  "l_shield":       {"icon": "bordered-shield"}
+  "l_shield":       {"icon": "bordered-shield"},
+  "w_relay":        {"icon": "cycle"},
+  "b_shove":        {"icon": "push"},
+  "h_gale":         {"icon": "wind-slap"},
+  "s_mirage":       {"icon": "mirror-mirror"},
+  "l_exchange":     {"icon": "body-swapping", "crown": true}
 }
