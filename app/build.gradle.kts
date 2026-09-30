@@ -13,8 +13,8 @@ android {
         minSdk = 24
         targetSdk = 35
         // CI passes the build number so every pipeline run produces an installable upgrade.
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
-        versionName = (project.findProperty("versionName") as String?) ?: "0.1.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 2
+        versionName = (project.findProperty("versionName") as String?) ?: "0.2.0"
     }
 
     signingConfigs {
