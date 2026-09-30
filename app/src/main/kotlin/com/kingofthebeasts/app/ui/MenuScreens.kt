@@ -269,7 +269,8 @@ fun RulesScreen(onBack: () -> Unit) {
         "Controls" to "When it's your move your hand fans out in front of the board. Pick a card and the hand moves to the side " +
             "while you choose a highlighted square. Swipe the hand down or tap Hide to look at the board, and tap the strip on the " +
             "left (or swipe it right) to bring it back. ⟲ and ⟳ turn the board, a two-finger twist turns it freely, and " +
-            "Reset view puts your side back at the bottom.",
+            "Reset view puts your side back at the bottom. The rail on the right shows the action queue; tap Details " +
+            "or swipe it left for a full explanation of what's going on.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",
         "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
             "(up to 2), the Moon Howler feeds on every kill, " +
