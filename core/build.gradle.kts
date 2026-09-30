@@ -32,6 +32,8 @@ tasks.register<JavaExec>("balanceReport") {
     group = "verification"
     description = "Simulates AI-vs-AI games and writes docs/BALANCE.md"
     classpath = balance.runtimeClasspath
+    // How many races generated decks use, e.g. -Praces=2-2 (default 1-3, the current deck rule).
+    systemProperty("balance.races", (project.findProperty("races") as String?) ?: "1-3")
     mainClass.set("com.kingofthebeasts.core.balance.BalanceReportKt")
     workingDir = rootProject.projectDir
     args(
