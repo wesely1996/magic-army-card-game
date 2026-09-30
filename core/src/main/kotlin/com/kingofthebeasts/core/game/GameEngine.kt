@@ -749,21 +749,21 @@ object GameEngine {
             u.hp = hp
         }
         when (trait) {
-            RacialTrait.PACK_TACTICS -> u.keywords += Keyword.PACK_HUNTER
+            RacialTrait.PACK_TACTICS -> {
+                u.keywords += Keyword.PACK_HUNTER
+                u.move += 1
+            }
             RacialTrait.THICK_FUR -> {
-                health(+2)
+                health(+1)
                 if (u.move >= 3) u.move -= 1
             }
-            RacialTrait.EAGLE_EYES -> {
-                if (u.range >= 2) u.range += 1
-                health(-1)
-            }
+            RacialTrait.EAGLE_EYES -> if (u.range >= 2) u.range += 1
             RacialTrait.VENOM_BLOOD -> {
                 u.keywords += Keyword.POISONOUS
-                u.attack = max(1, u.attack - 1)
+                if (u.attack >= 3) u.attack -= 1
             }
             RacialTrait.ROYAL_PRIDE -> if (u.isKing) {
-                health(+3)
+                health(+1)
                 u.attack += 1
             } else health(-1)
             RacialTrait.ENDLESS_HORDE, null -> {}

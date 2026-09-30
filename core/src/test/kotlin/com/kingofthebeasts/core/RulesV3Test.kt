@@ -141,7 +141,7 @@ class RulesV3Test {
         s.players[0].trait = RacialTrait.ROYAL_PRIDE
         val king = GameEngine.summon(s, 0, com.kingofthebeasts.core.game.CardInstance(s.newId(), "l_king_pride"), p(0, 0), token = false)
         val guard = GameEngine.summon(s, 0, com.kingofthebeasts.core.game.CardInstance(s.newId(), "l_guard"), p(1, 0), token = false)
-        assertEquals(CardDatabase.get("l_king_pride").unit!!.health + 3, king.maxHp)
+        assertEquals(CardDatabase.get("l_king_pride").unit!!.health + 1, king.maxHp)
         assertEquals(CardDatabase.get("l_guard").unit!!.health - 1, guard.maxHp)
     }
 

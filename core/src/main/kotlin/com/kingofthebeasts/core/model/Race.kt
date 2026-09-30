@@ -26,11 +26,11 @@ enum class Race(val displayName: String, val blurb: String) {
 
 /** Army-wide bonus (sometimes with a drawback) set by the race of the deck's King. */
 enum class RacialTrait(val displayName: String, val description: String) {
-    PACK_TACTICS("Pack Tactics", "All your units have Pack Hunter."),
-    THICK_FUR("Thick Fur", "Your units have +2 health, but units with 3 or more movement get −1 movement."),
-    EAGLE_EYES("Eagle Eyes", "Your ranged units (range 2+) get +1 range, but all your units have −1 health (never below 1)."),
-    VENOM_BLOOD("Venom Blood", "All your units are Poisonous, but have −1 attack (never below 1)."),
-    ROYAL_PRIDE("Royal Pride", "Your King has +3 health and +1 attack, but your other units have −1 health (never below 1)."),
+    PACK_TACTICS("Pack Tactics", "All your units have Pack Hunter and +1 movement."),
+    THICK_FUR("Thick Fur", "Your units have +1 health, but units with 3 or more movement get −1 movement."),
+    EAGLE_EYES("Eagle Eyes", "Your ranged units (range 2+) get +1 range."),
+    VENOM_BLOOD("Venom Blood", "All your units are Poisonous, but units with 3 or more attack get −1 attack."),
+    ROYAL_PRIDE("Royal Pride", "Your King has +1 health and +1 attack, but your other units have −1 health (never below 1)."),
     ENDLESS_HORDE("Endless Horde", "You can have up to 20 units on the board instead of 10."),
 }
 

@@ -47,9 +47,9 @@ object CardDatabase {
 
     private val base: List<CardDef> = buildList {
         // ------------------------------------------------------------------ WOLF
-        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 9, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
+        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 10, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
-        add(king("w_king_moon", "Moon Howler", WOLF, 2, 5, 2, 1, setOf(Keyword.BLOODTHIRST),
+        add(king("w_king_moon", "Moon Howler", WOLF, 2, 6, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
@@ -84,11 +84,11 @@ object CardDatabase {
         add(equipment("w_charm", "Fang Charm", WOLF, "+1 attack and +1 movement.", Buff(attack = 1, move = 1)))
 
         // ------------------------------------------------------------------ BEAR
-        add(king("b_king_elder", "Elder Bear", BEAR, 3, 9, 1, 1, setOf(Keyword.UNSTOPPABLE),
+        add(king("b_king_elder", "Elder Bear", BEAR, 3, 7, 1, 1, setOf(Keyword.UNSTOPPABLE),
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
-        add(king("b_king_warden", "Cave Warden", BEAR, 3, 9, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
+        add(king("b_king_warden", "Cave Warden", BEAR, 3, 7, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
         add(unit("b_cub", "Bear Cub", BEAR, 2, 3, 2, 1, setOf(REGENERATE)))
         add(unit("b_brawler", "Brown Brawler", BEAR, 3, 5, 1, 1, setOf(RETALIATE)))
@@ -124,11 +124,11 @@ object CardDatabase {
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 8, 3, 2, setOf(FLYING),
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 10, 3, 2, setOf(FLYING),
             ability("Change of Winds", "Swap places with any allied unit.", TargetRule.FRIENDLY, 2,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
-        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 6, 2, 2, setOf(FLYING, Keyword.TEMPEST),
+        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 8, 2, 2, setOf(FLYING, Keyword.TEMPEST),
             ability("Lightning Strike", "Deal 1 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 4, quick = true, effects = listOf(Damage(1), Stun(1))),
             flavor = "Thunder is just her wings."))
@@ -162,11 +162,11 @@ object CardDatabase {
         add(equipment("h_amulet", "Eagle Eye Amulet", HAWK, "+1 health and +1 range.", Buff(health = 1, range = 1)))
 
         // --------------------------------------------------------------- SERPENT
-        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 9, 2, 2, setOf(POISONOUS),
+        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 10, 2, 2, setOf(POISONOUS),
             ability("Enthrall", "Take control of a non-King enemy within 2 that has 3 or less health.",
                 TargetRule(TargetKind.ENEMY_UNIT, 2), 3, effects = listOf(EffectOp.Enthrall(3))),
             flavor = "Look into her eyes. Now fight for her."))
-        add(king("s_king_basilisk", "Basilisk", SERPENT, 3, 8, 1, 1, setOf(Keyword.PETRIFY), null,
+        add(king("s_king_basilisk", "Basilisk", SERPENT, 3, 9, 1, 1, setOf(Keyword.PETRIFY), null,
             flavor = "Stone is patient. So is he."))
         add(unit("s_adder", "Adder", SERPENT, 1, 2, 2, 1, setOf(POISONOUS)))
         add(unit("s_viper", "Viper", SERPENT, 2, 3, 2, 1, setOf(POISONOUS)))
@@ -202,7 +202,7 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 13, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 10, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
         add(king("l_king_queen", "Lioness Queen", LION, 4, 8, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
@@ -238,11 +238,11 @@ object CardDatabase {
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
         // ---------------------------------------------------------------- VERMIN
-        add(king("v_king_rat", "Rat King", VERMIN, 3, 9, 2, 1, emptySet(),
-            ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
+        add(king("v_king_rat", "Rat King", VERMIN, 3, 11, 2, 1, emptySet(),
+            ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 2,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
-        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 7, 2, 2, setOf(HIDDEN),
+        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 8, 2, 2, setOf(HIDDEN),
             ability("Blight Bolt", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1)))),
