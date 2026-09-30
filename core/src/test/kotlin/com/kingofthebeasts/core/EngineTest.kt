@@ -139,8 +139,9 @@ class EngineTest {
             Triple("s_viper", 0, p(3, 3)), Triple("b_brawler", 1, p(3, 4)),
             Triple("s_king_naga", 0, p(0, 0)), Triple("b_king_elder", 1, p(7, 7)),
         )
+        u[0].hp = u[1].attack // weak enough that the Brawler's retaliation kills it
         GameEngine.apply(s, Action.Attack(u[0].id, u[1].id))
-        assertFalse(u[0].alive, "3 retaliation damage kills the 3-health Viper")
+        assertFalse(u[0].alive, "retaliation kills the wounded Viper")
         // Full health minus the Viper's bite, then 1 poison at the start of its owner's turn.
         assertEquals(u[1].maxHp - u[0].attack - 1, u[1].hp)
         assertEquals(1, u[1].poisonTurns)
@@ -163,6 +164,7 @@ class EngineTest {
         val (s, u) = battle(
             Triple("s_king_naga", 0, p(3, 3)), Triple("w_pup", 1, p(3, 5)), Triple("w_king_alpha", 1, p(7, 7)),
         )
+        u[1].hp = 3 // Enthrall takes enemies with 3 or less health
         GameEngine.apply(s, Action.UseAbility(u[0].id, 0, Target.Unit(u[1].id)))
         assertEquals(0, u[1].owner)
     }
