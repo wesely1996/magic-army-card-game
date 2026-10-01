@@ -5,7 +5,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.kingofthebeasts.app.net.RemoteSide
 import com.kingofthebeasts.app.settings.AppSettings
+import com.kingofthebeasts.core.net.NetMessage
+import com.kingofthebeasts.core.net.checksum
 import androidx.lifecycle.viewModelScope
 import com.kingofthebeasts.core.ai.AiPlayer
 import com.kingofthebeasts.core.ai.Difficulty
@@ -42,22 +45,34 @@ data class Highlights(
 )
 
 /**
- * Owns one battle: the human is always player 0 (near side of the board),
- * the AI is player 1. The AI thinks off the main thread; the game state is
- * only ever mutated on the main thread.
+ * Owns one battle. Against the AI the human is player 0 (near side of the board) and the AI
+ * player 1; the AI thinks off the main thread. Online, [remote] is the friend's app and the human
+ * may be either player. The game state is only ever mutated on the main thread.
  */
 class GameViewModel(
-    val playerDeck: Deck,
-    val aiDeck: Deck,
+    /** Engine player 0's deck (the human's, against the AI; the host's, online). */
+    val deck0: Deck,
+    val deck1: Deck,
     val difficulty: Difficulty,
     private val seed: Long,
     /** Actions of a saved battle to replay (resume), encoded with [ActionCodec]. */
     resume: List<String> = emptyList(),
     /** Called after every action with the battle to save, or null once it is over. */
     private val onSave: (SavedBattle?) -> Unit = {},
+    /** Online: the friend's side of the game. Null against the AI. */
+    private val remote: RemoteSide? = null,
+    /** Which engine player is on this phone. */
+    val human: Int = 0,
+    names: List<String> = listOf("You", "Opponent"),
 ) : ViewModel() {
-    val human = 0
-    val state: GameState = GameEngine.newGame(playerDeck, aiDeck, listOf("You", "Opponent"), seed)
+    val state: GameState = GameEngine.newGame(deck0, deck1, names, seed)
+    val online: Boolean get() = remote != null
+    /** How the opponent is called on screen. */
+    val opponentLabel: String get() = remote?.opponentName ?: "Opponent (${difficulty.displayName})"
+
+    /** The two copies of an online game disagree (or the friend sent something impossible). */
+    var desynced by mutableStateOf(false)
+        private set
     private val ai = AiPlayer(difficulty, seed * 31 + 7 + resume.size)
     private var aiJob: Job? = null
 
@@ -81,19 +96,21 @@ class GameViewModel(
             history += code
         }
         resumedEventSeq = if (resume.isEmpty()) 0 else state.eventSeq
-        runAi()
+        if (remote != null) viewModelScope.launch { for (act in remote.incoming) receive(act) } else runAi()
     }
 
     /** The battle as it stands, for [onSave]. */
-    fun snapshot(): SavedBattle = SavedBattle(playerDeck, aiDeck, difficulty.name, seed, history.toList(), state.turnNumber)
+    fun snapshot(): SavedBattle = SavedBattle(deck0, deck1, difficulty.name, seed, history.toList(), state.turnNumber)
 
     private fun record(action: Action) {
         history += ActionCodec.encode(action)
-        onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
+        // Online games can't be resumed: the friend's app would have moved on.
+        if (remote == null) onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
     }
 
     val decision: Decision get() = GameEngine.decision(state)
-    val humanToAct: Boolean get() = decision.player == human && decision.kind != DecisionKind.NONE && !aiThinking
+    val humanToAct: Boolean
+        get() = decision.player == human && decision.kind != DecisionKind.NONE && !aiThinking && !desynced
 
     fun legalActions(): List<Action> = if (humanToAct) GameEngine.legalActions(state) else emptyList()
 
@@ -101,13 +118,31 @@ class GameViewModel(
         if (!humanToAct || !GameEngine.isLegal(state, action)) return
         GameEngine.apply(state, action)
         record(action)
+        remote?.send(history.size - 1, history.last(), state.checksum())
         selection = Selection.None
         version++
         runAi()
     }
 
+    /** An action from the friend's app: it must be their move, legal, and leave both copies equal. */
+    private fun receive(act: NetMessage.Act) {
+        if (desynced) return
+        val action = runCatching { ActionCodec.decode(act.code) }.getOrNull()
+        val d = decision
+        if (action == null || act.index != history.size || d.player != 1 - human || d.kind == DecisionKind.NONE ||
+            !GameEngine.isLegal(state, action)
+        ) {
+            desynced = true
+            return
+        }
+        GameEngine.apply(state, action)
+        record(action)
+        if (state.checksum() != act.checksum) desynced = true
+        version++
+    }
+
     private fun runAi() {
-        if (aiJob?.isActive == true) return
+        if (remote != null || aiJob?.isActive == true) return
         aiJob = viewModelScope.launch {
             while (true) {
                 val d = GameEngine.decision(state)

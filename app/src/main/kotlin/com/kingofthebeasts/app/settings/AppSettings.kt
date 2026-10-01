@@ -27,6 +27,9 @@ object AppSettings {
         private set
     var keepScreenOn by mutableStateOf(true)
         private set
+    /** Shown to friends in online games. */
+    var playerName by mutableStateOf("Player")
+        private set
 
     fun load(context: Context) {
         val p = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -35,6 +38,7 @@ object AppSettings {
         sfxVolume = p.getFloat("sfxVolume", 0.8f)
         animationSpeed = runCatching { AnimationSpeed.valueOf(p.getString("animationSpeed", null)!!) }.getOrDefault(AnimationSpeed.NORMAL)
         keepScreenOn = p.getBoolean("keepScreenOn", true)
+        playerName = p.getString("playerName", null) ?: "Player"
         GameAudio.musicVolume = musicVolume
         GameAudio.sfxVolume = sfxVolume
     }
@@ -59,5 +63,10 @@ object AppSettings {
     fun setScreenAwake(on: Boolean) {
         keepScreenOn = on
         prefs?.edit()?.putBoolean("keepScreenOn", on)?.apply()
+    }
+
+    fun setName(name: String) {
+        playerName = name
+        prefs?.edit()?.putString("playerName", name)?.apply()
     }
 }

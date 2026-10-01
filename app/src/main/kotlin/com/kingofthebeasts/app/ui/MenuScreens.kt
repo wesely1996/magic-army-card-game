@@ -119,7 +119,7 @@ fun MenuScreen(
                     SketchButton("⚔  New game", { if (resumeLabel != null) confirmNew = true else onPlay() }, wide, color = Ink.Enemy)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("🤝  With friends", { onFriends?.invoke() }, wide, color = Ink.You, enabled = onFriends != null)
-                    if (onFriends == null) Text("Online play — coming soon", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    Text(if (onFriends == null) "Online play — coming soon" else "Online, on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("←  Back", { onPlayMenu(false) }, wide, color = Ink.PaperDeep)
                 }
@@ -344,6 +344,11 @@ fun RulesScreen(onBack: () -> Unit) {
             "volume, animation speed, keeping the screen on, and the credits.",
         "Continue" to "Your battle is saved after every move. If you leave it (or close the app), Play → Continue " +
             "picks it up. Forfeit ends it for good, and starting a new game replaces it.",
+        "With friends" to "Play a friend on the same Wi-Fi. Pick your name and army, then one of you taps Host a game " +
+            "and the other Join a game: hosted games show up in a list, or join by the address the host's screen shows. " +
+            "You both need the same version of the game. Each phone runs the battle and only moves are sent, checked " +
+            "against each other after every action. Online battles can't be resumed; leaving one hands your friend the win, " +
+            "and after a battle you can both tap Rematch.",
         "Battle log" to "Tap Details (or swipe the rail left) for the drawer: it covers most of the screen and explains " +
             "what is going on, the action queue, both armies, the field and recent events. Full battle log shows everything.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",

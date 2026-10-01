@@ -268,7 +268,8 @@ fun BoardView(
                         // a card from the hand flies in from its owner's side
                         lastLook = e.look
                         sound(Sfx.CARD_PLAY)
-                        val side = if (e.player == vm.human) -1.5f else Board.SIZE + 1.5f
+                        // player 0's side of the board is row 1, player 1's is row 8
+                        val side = if (e.player == 0) -1.5f else Board.SIZE + 1.5f
                         queued += CardFly(t, e.cardId, Offset(target.x, side), target, color)
                         t += 400
                         sound(lookSound(e.look))
@@ -391,7 +392,7 @@ fun BoardView(
         projHolder[0] = proj
 
         drawBoardBase(proj, boardTexture, matrix, bitmapPaint)
-        drawZones(proj, state.phase == Phase.DEPLOY)
+        drawZones(proj, state.phase == Phase.DEPLOY, vm.human)
         drawHighlights(proj, highlights)
         drawCoordinates(proj, textPaint)
 
@@ -604,12 +605,12 @@ private fun DrawScope.drawBoardBase(proj: BoardProjection, texture: ImageBitmap,
     drawPath(outline, Ink.Line, style = Stroke(2.6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
-private fun DrawScope.drawZones(proj: BoardProjection, deploy: Boolean) {
+private fun DrawScope.drawZones(proj: BoardProjection, deploy: Boolean, human: Int) {
     if (!deploy) return
     for (y in 0 until Board.SIZE) for (x in 0 until Board.SIZE) {
         val c = when {
-            Board.isDeployZone(0, Pos(x, y)) -> Ink.You.copy(alpha = 0.13f)
-            Board.isDeployZone(1, Pos(x, y)) -> Ink.Enemy.copy(alpha = 0.10f)
+            Board.isDeployZone(human, Pos(x, y)) -> Ink.You.copy(alpha = 0.13f)
+            Board.isDeployZone(1 - human, Pos(x, y)) -> Ink.Enemy.copy(alpha = 0.10f)
             else -> continue
         }
         drawPath(proj.quad(x, y), c)

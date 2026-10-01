@@ -57,6 +57,8 @@ fun CardInspectDialog(
     onDismiss: () -> Unit,
     unit: UnitState? = null,
     state: GameState? = null,
+    /** Which engine player is looking (online guests are player 1). */
+    human: Int = 0,
 ) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         val dismissSource = remember { MutableInteractionSource() }
@@ -77,7 +79,7 @@ fun CardInspectDialog(
                 ) {
                     CardFace(def, width = cardWidth, full = true, onClick = onDismiss)
                     Column(Modifier.widthIn(max = 460.dp).fillMaxHeight().verticalScroll(rememberScrollState())) {
-                        RulesPanel(def, unit, state, Modifier.fillMaxWidth())
+                        RulesPanel(def, unit, state, Modifier.fillMaxWidth(), human = human)
                         Spacer(Modifier.height(10.dp))
                         Text("Tap anywhere to close", style = MaterialTheme.typography.bodySmall, color = Ink.Paper)
                     }
@@ -93,7 +95,7 @@ fun CardInspectDialog(
                 ) {
                     CardFace(def, width = cardWidth, full = true, onClick = onDismiss)
                     Spacer(Modifier.height(12.dp))
-                    RulesPanel(def, unit, state, Modifier.width(cardWidth))
+                    RulesPanel(def, unit, state, Modifier.width(cardWidth), human = human)
                     Spacer(Modifier.height(10.dp))
                     Text("Tap anywhere to close", style = MaterialTheme.typography.bodySmall, color = Ink.Paper)
                 }
@@ -103,7 +105,7 @@ fun CardInspectDialog(
 }
 
 @Composable
-private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifier: Modifier) {
+private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifier: Modifier, human: Int = 0) {
     Column(
         modifier
             .background(Ink.Paper, RoundedCornerShape(14.dp))
@@ -153,7 +155,7 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
         }
 
         if (unit != null && state != null) {
-            Section(if (unit.owner == 0) "On the battlefield (yours)" else "On the battlefield (opponent's)")
+            Section(if (unit.owner == human) "On the battlefield (yours)" else "On the battlefield (opponent's)")
             Line(
                 "ATK ${GameEngine.attackOf(state, unit)} · HP ${unit.hp}/${unit.maxHp} · MOV ${GameEngine.moveOf(state, unit)} · RNG ${GameEngine.rangeOf(state, unit)}",
                 "current values including all bonuses",

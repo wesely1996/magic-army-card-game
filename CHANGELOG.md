@@ -3,6 +3,19 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.7.0 — Play with friends (same Wi-Fi)
+
+- **With friends:** peer-to-peer online battles between two phones on the same Wi-Fi — no server, no
+  account. Pick your name and army, then **Host a game** or **Join a game**. Hosted games appear in a
+  list (Network Service Discovery); you can also join by the address shown on the host's screen.
+- **Lockstep play:** both phones run the same deterministic battle and send only their moves. Every move
+  carries a checksum of the whole game, so a mismatch (or a tampered move) stops the battle instead of
+  letting it drift. Apps on different versions or with different cards refuse to pair.
+- The guest sees the board from their own side; the opponent's name is shown everywhere.
+- **Rematch** when both players ask for it; leaving a battle hands your friend the win, and a dropped
+  connection is noticed within about 20 seconds.
+- The connection layer is separate from the game, so internet play can be added later.
+
 ## 0.6.0 — Music, sound, settings and a new menu
 
 - **Background music:** medieval themes for the menus and battles, plus victory and defeat themes, with

@@ -88,8 +88,23 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/** What the battle screen needs to know about an online game. */
+data class OnlineInfo(
+    /** Why the connection ended (friend left, connection lost), or null while it's fine. */
+    val ended: String? = null,
+    val rematchMine: Boolean = false,
+    val rematchTheirs: Boolean = false,
+)
+
 @Composable
-fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onForfeit: () -> Unit = onExit) {
+fun GameScreen(
+    vm: GameViewModel,
+    onExit: () -> Unit,
+    onRematch: () -> Unit,
+    onForfeit: () -> Unit = onExit,
+    /** Set for online games. */
+    online: OnlineInfo? = null,
+) {
     @Suppress("UNUSED_VARIABLE") val version = vm.version // recompose on every state change
     val s = vm.state
     val actions = vm.legalActions()
@@ -102,7 +117,9 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
     BackHandler { confirmExit = true }
 
     // Board rotation in degrees (buttons turn it in 90° steps, a two-finger twist freely).
-    val angle = remember { Animatable(0f) }
+    // Your own side is always nearest at the start: the guest of an online game is player 1.
+    val baseAngle = if (vm.human == 1) 180f else 0f
+    val angle = remember { Animatable(baseAngle) }
     fun rotateBy(step: Float) = scope.launch {
         val base = (angle.value / 90f).roundToInt() * 90f
         angle.animateTo(base + step, tween(450))
@@ -178,12 +195,14 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
                     onInspect = { u -> detail = u.def to u.id },
                 )
                 BoardControls(
-                    rotated = (((angle.value % 360f) + 360f) % 360f).let { it > 1f && it < 359f },
+                    rotated = ((((angle.value - baseAngle) % 360f) + 360f) % 360f).let { it > 1f && it < 359f },
                     onMenu = { confirmExit = true },
                     onSettings = { showSettings = true },
                     onRotateLeft = { rotateBy(-90f) },
                     onRotateRight = { rotateBy(90f) },
-                    onReset = { scope.launch { angle.animateTo((angle.value / 360f).roundToInt() * 360f, tween(450)) } },
+                    onReset = {
+                        scope.launch { angle.animateTo(((angle.value - baseAngle) / 360f).roundToInt() * 360f + baseAngle, tween(450)) }
+                    },
                     modifier = Modifier.align(Alignment.TopStart),
                 )
                 androidx.compose.animation.AnimatedVisibility(
@@ -233,9 +252,27 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
             }
         }
 
-        if (s.phase == Phase.GAME_OVER) GameOverDialog(vm, onExit, onRematch)
+        when {
+            vm.desynced -> PaperDialog(onDismiss = {}) {
+                Text("Out of sync", style = MaterialTheme.typography.titleLarge, color = Ink.Enemy)
+                Text(
+                    "Your game and your friend's no longer match, so this battle can't go on. " +
+                        "Make sure you both have the same version of the app.",
+                    style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(12.dp))
+                SketchButton("Menu", onExit, color = Ink.PaperDeep)
+            }
+            s.phase == Phase.GAME_OVER -> GameOverDialog(vm, onExit, onRematch, online)
+            online?.ended != null -> PaperDialog(onDismiss = {}) {
+                Text("Battle ended", style = MaterialTheme.typography.titleLarge)
+                Text(online.ended, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(12.dp))
+                SketchButton("Menu", onExit, color = Ink.PaperDeep)
+            }
+        }
         detail?.let { (def, unitId) ->
-            CardInspectDialog(def, onDismiss = { detail = null }, unit = unitId?.let { s.unit(it) }, state = s)
+            CardInspectDialog(def, onDismiss = { detail = null }, unit = unitId?.let { s.unit(it) }, state = s, human = vm.human)
         }
         if (showLog) LogDialog(s.log) { showLog = false }
         if (showSettings) {
@@ -250,14 +287,19 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
             PaperDialog(onDismiss = { confirmExit = false }) {
                 Text("Leave the battle?", style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "It's saved — resume it from the main menu. Forfeit ends it for good.",
+                    if (vm.online) "Online battles can't be resumed: leaving ends it and ${vm.opponentLabel} wins."
+                    else "It's saved — resume it from the main menu. Forfeit ends it for good.",
                     style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
                 )
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SketchButton("Stay", { confirmExit = false }, color = Ink.Move)
-                    SketchButton("Leave", onExit, color = Ink.Gold)
-                    SketchButton("Forfeit", onForfeit, color = Ink.Enemy)
+                    if (vm.online) {
+                        SketchButton("Leave", onForfeit, color = Ink.Enemy)
+                    } else {
+                        SketchButton("Leave", onExit, color = Ink.Gold)
+                        SketchButton("Forfeit", onForfeit, color = Ink.Enemy)
+                    }
                 }
             }
         }
@@ -421,7 +463,7 @@ private fun statusLine(vm: GameViewModel): Pair<String, Color> {
     val d = vm.decision
     return when {
         s.phase == Phase.GAME_OVER -> "Game over" to Ink.Line
-        vm.aiThinking || d.player != vm.human -> "Opponent…" to Ink.Enemy
+        vm.aiThinking || d.player != vm.human -> (if (vm.online) "${vm.opponentLabel}…" else "Opponent…") to Ink.Enemy
         d.kind == DecisionKind.RESPOND -> "Respond?" to Ink.Target
         d.kind == DecisionKind.DEPLOY -> "Deploy" to Ink.Deploy
         else -> "Your move" to Ink.You
@@ -579,7 +621,7 @@ private fun StatusDrawer(
                     val player = s.players[p]
                     val king = s.king(p)
                     Text(
-                        if (p == vm.human) "You" else "Opponent (${vm.difficulty.displayName})",
+                        if (p == vm.human) "You" else vm.opponentLabel,
                         style = MaterialTheme.typography.labelLarge, color = if (p == vm.human) Ink.You else Ink.Enemy,
                     )
                     Text(
@@ -889,7 +931,7 @@ private fun LogLine(line: String) {
 }
 
 @Composable
-private fun GameOverDialog(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
+private fun GameOverDialog(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, online: OnlineInfo?) {
     val s = vm.state
     val (title, color) = when {
         s.isDraw -> "Draw" to Ink.Gold
@@ -899,9 +941,19 @@ private fun GameOverDialog(vm: GameViewModel, onExit: () -> Unit, onRematch: () 
     PaperDialog(onDismiss = {}) {
         Text(title, style = MaterialTheme.typography.displayLarge, color = color)
         Text(s.log.lastOrNull { "King" in it || "draw" in it } ?: "", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        when {
+            online?.ended != null -> Text(online.ended, style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+            online?.rematchTheirs == true && !online.rematchMine ->
+                Text("${vm.opponentLabel} wants a rematch!", style = MaterialTheme.typography.bodyMedium, color = Ink.Deploy)
+        }
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SketchButton("Rematch", onRematch, color = Ink.Deploy)
+            when {
+                online == null -> SketchButton("Rematch", onRematch, color = Ink.Deploy)
+                online.ended != null -> {}
+                online.rematchMine -> SketchButton("Waiting for ${vm.opponentLabel}…", {}, color = Ink.Deploy, enabled = false)
+                else -> SketchButton("Rematch", onRematch, color = Ink.Deploy)
+            }
             SketchButton("Menu", onExit, color = Ink.PaperDeep)
         }
     }

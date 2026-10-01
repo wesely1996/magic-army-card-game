@@ -59,8 +59,9 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 | Vermin | Blight Seer | Hidden; Blight Bolt damages the target and everything next to it |
 
 ## Next steps
-- Online multiplayer. The engine is deterministic and action-based, so a server or peer can
-  relay `Action`s. Hidden information (hands, deck order) needs server-side authority.
+- Online play over the internet. Same-Wi-Fi play (0.7.0) already relays `Action`s peer to peer through a
+  `Link`; an internet `Link` (e.g. WebRTC with invite codes) can slot in. Hidden information (hands, deck
+  order) is known to both apps in peer-to-peer play; hiding it needs a trusted server.
 - Real painted art: drop `art_<id>.webp` files in `app/src/main/res/drawable-nodpi/`.
 - Balance passes using AI-vs-AI statistics run every version. Basic battle animations are in (0.5.0).
 - Sound, richer animations, tutorial.
