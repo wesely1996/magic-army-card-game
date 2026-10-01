@@ -6,11 +6,17 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import com.kingofthebeasts.app.audio.GameAudio
+import com.kingofthebeasts.app.audio.Music
+import com.kingofthebeasts.app.settings.AppSettings
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kingofthebeasts.app.decks.BattleSaveRepository
 import com.kingofthebeasts.app.decks.DeckRepository
@@ -22,6 +28,7 @@ import com.kingofthebeasts.app.ui.DeckViewScreen
 import com.kingofthebeasts.app.ui.MenuScreen
 import com.kingofthebeasts.app.ui.PlaySetupScreen
 import com.kingofthebeasts.app.ui.RulesScreen
+import com.kingofthebeasts.app.ui.SettingsScreen
 import com.kingofthebeasts.app.ui.theme.KingOfTheBeastsTheme
 import com.kingofthebeasts.core.ai.Difficulty
 import com.kingofthebeasts.core.data.StarterDecks
@@ -32,7 +39,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        AppSettings.load(this)
+        GameAudio.init(this)
         setContent { KingOfTheBeastsTheme { App() } }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        GameAudio.resume()
+    }
+
+    override fun onStop() {
+        GameAudio.pause()
+        super.onStop()
     }
 }
 
@@ -52,6 +71,7 @@ private sealed interface Screen {
         val resume: List<String> = emptyList(),
     ) : Screen
     data object Rules : Screen
+    data object Settings : Screen
 }
 
 @Composable
@@ -68,6 +88,7 @@ private fun App() {
         if (b == null) battles.clear() else battles.save(b)
     }
     var screen by remember { mutableStateOf<Screen>(Screen.Menu) }
+    var playMenu by remember { mutableStateOf(false) }
 
     fun saveDecks(list: List<Deck>) {
         decks = list
@@ -80,6 +101,22 @@ private fun App() {
         screen = Screen.Battle(player, foe, difficulty, System.nanoTime())
     }
 
+    // Menu music everywhere except in battle; each new battle starts its theme from the top.
+    val battleKey = (screen as? Screen.Battle)?.seed
+    LaunchedEffect(battleKey) {
+        if (battleKey == null) GameAudio.music(Music.MENU) else {
+            GameAudio.music(null)
+            GameAudio.music(Music.BATTLE)
+        }
+    }
+    // Keep the screen awake during battles if the player wants that.
+    val view = LocalView.current
+    val awake = screen is Screen.Battle && AppSettings.keepScreenOn
+    DisposableEffect(awake) {
+        view.keepScreenOn = awake
+        onDispose { view.keepScreenOn = false }
+    }
+
     BackHandler(enabled = screen != Screen.Menu && screen !is Screen.Battle) {
         screen = if (screen is Screen.Builder || screen is Screen.ViewDeck) Screen.Decks else Screen.Menu
     }
@@ -89,6 +126,9 @@ private fun App() {
             onPlay = { screen = Screen.Setup },
             onDecks = { screen = Screen.Decks },
             onRules = { screen = Screen.Rules },
+            onSettings = { screen = Screen.Settings },
+            playMenu = playMenu,
+            onPlayMenu = { playMenu = it },
             resumeLabel = saved?.let { "Turn ${it.turn} vs ${it.opponent.name} (${Difficulty.valueOf(it.difficulty).displayName})" },
             onResume = {
                 saved?.let { b ->
@@ -134,5 +174,6 @@ private fun App() {
             )
         }
         Screen.Rules -> RulesScreen(onBack = { screen = Screen.Menu })
+        Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Menu })
     }
 }

@@ -46,6 +46,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.res.ResourcesCompat
 import com.kingofthebeasts.app.R
+import com.kingofthebeasts.app.audio.GameAudio
+import com.kingofthebeasts.app.audio.Sfx
+import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.app.ui.CardArt
 import com.kingofthebeasts.app.ui.theme.Ink
 import com.kingofthebeasts.core.game.Board
@@ -198,14 +201,27 @@ fun BoardView(
     // After a resume, don't replay the animations of everything that happened before.
     val seen = remember { intArrayOf(vm.resumedEventSeq) }
 
-    // Frame clock: ticks only while something is animating. Newly queued effects start on the next frame.
+    // Animation clock: ticks only while something is animating, at the speed chosen in Settings.
+    // Newly queued effects start on the next frame.
     LaunchedEffect(Unit) {
+        var clock = 0f
+        var last = -1L
         while (true) {
-            if (fx.isEmpty()) snapshotFlow { fx.size }.first { it > 0 }
+            if (fx.isEmpty()) {
+                snapshotFlow { fx.size }.first { it > 0 }
+                last = -1L
+            }
             withFrameMillis { t ->
-                for (f in fx) if (f.base < 0) f.base = t
-                now = t
-                fx.removeAll { it.done(t) }
+                if (last >= 0) clock += (t - last) * AppSettings.animationSpeed.factor
+                last = t
+                val c = clock.toLong()
+                for (f in fx) if (f.base < 0) f.base = c
+                for (f in fx) if (f is Cue && !f.played && f.started(c)) {
+                    f.played = true
+                    GameAudio.play(f.sfx, f.volume)
+                }
+                now = c
+                fx.removeAll { it.done(c) }
             }
         }
     }
@@ -220,6 +236,9 @@ fun BoardView(
         var t = 0L
         fun at(p: Pos) = Offset(p.x + 0.5f, p.y + 0.5f)
         val rows = HashMap<Pos, Int>()
+        var strikes = 0
+        var lastLook: CastLook? = null
+        fun sound(sfx: Sfx?, at: Long = t, volume: Float = 1f) { if (sfx != null) queued += Cue(at, sfx, volume) }
         fun text(text: String, color: Color, p: Pos) {
             val row = rows[p] ?: 0
             rows[p] = row + 1
@@ -234,6 +253,8 @@ fun BoardView(
                     val radius = if (e.radius > 0) e.radius + 0.5f else 0.5f
                     if (e.from != null) {
                         // an ability: a glow at the user, then an orb to the target
+                        lastLook = e.look
+                        sound(Sfx.ABILITY)
                         queued += Burst(t, at(e.from!!), color, 0.35f)
                         t += 120
                         if (e.at != null && e.at != e.from) {
@@ -241,12 +262,16 @@ fun BoardView(
                             t += 300
                         }
                         queued += Burst(t, target, color, radius)
+                        sound(lookSound(e.look))
                         t += 140
                     } else {
                         // a card from the hand flies in from its owner's side
+                        lastLook = e.look
+                        sound(Sfx.CARD_PLAY)
                         val side = if (e.player == vm.human) -1.5f else Board.SIZE + 1.5f
                         queued += CardFly(t, e.cardId, Offset(target.x, side), target, color)
                         t += 400
+                        sound(lookSound(e.look))
                         when (e.look) {
                             CastLook.FIELD -> queued += FieldWave(t, color)
                             CastLook.SUMMON -> {}
@@ -258,40 +283,53 @@ fun BoardView(
                 is GameEvent.Attacked -> {
                     val dir = Offset((e.to.x - e.from.x).toFloat(), (e.to.y - e.from.y).toFloat())
                     if (e.from.distanceTo(e.to) <= 1) {
+                        sound(if (strikes++ % 2 == 0) Sfx.SWORD1 else Sfx.SWORD2, t + 60)
                         queued += Lunge(t, e.unitId, dir.normalized(0.4f))
                         t += 170
                     } else {
                         queued += Lunge(t, e.unitId, dir.normalized(-0.1f))
                         queued += Bolt(t + 60, at(e.from), at(e.to), Ink.Line, arrow = true)
+                        sound(Sfx.ARROW, t + 40)
                         t += 400
                     }
                 }
                 is GameEvent.Damaged -> {
                     queued += Hit(t, e.unitId)
+                    sound(if (e.amount == 0) Sfx.BLOCK else if (strikes % 2 == 0) Sfx.HIT1 else Sfx.HIT2)
                     text(if (e.amount > 0) "-${e.amount}" else "0", Ink.Attack, e.pos)
                     t += 120
                 }
                 is GameEvent.Healed -> {
                     queued += Burst(t, at(e.pos), Ink.Heal, 0.4f)
+                    // healing spells already chimed when they landed
+                    if (lastLook != CastLook.HELP) sound(Sfx.SPELL_HELP, volume = 0.6f)
                     text("+${e.amount}", Ink.Heal, e.pos)
                     t += 120
                 }
                 is GameEvent.Status -> {
+                    when {
+                        e.text == "Stunned" -> sound(Sfx.STUN)
+                        e.text == "Poisoned" -> sound(Sfx.POISON)
+                        e.text.startsWith("Blocked") || e.text == "Immune" -> sound(Sfx.BLOCK, volume = 0.7f)
+                    }
                     text(e.text, Ink.Target, e.pos)
                     t += 120
                 }
                 is GameEvent.Died -> {
                     queued += Ghost(t, e.cardId, e.owner, at(e.pos))
+                    sound(Sfx.DEATH, t + 300)
                     t += 140
                 }
                 is GameEvent.Arrived -> {
                     queued += Appear(t, e.unitId)
+                    sound(Sfx.PLACE, t + 250, if (e.token) 0.7f else 1f)
                     queued += Burst(t + 250, at(e.pos), Ink.Faded, 0.45f)
                     t += if (e.token) 120 else 200
                 }
                 is GameEvent.Moved -> {
                     moveDelay[e.unitId] = t
                     queued += Hop(t, e.unitId)
+                    sound(Sfx.MOVE)
                     t += 160
                 }
                 is GameEvent.Announce -> {}
@@ -314,7 +352,9 @@ fun BoardView(
             val anim = positions[u.id]
             if (anim == null) positions[u.id] = Animatable(target, Offset.VectorConverter)
             else if (anim.targetValue != target) {
-                launch { anim.animateTo(target, tween(380, delayMillis = (batch.moveDelay[u.id] ?: 0L).toInt())) }
+                val speed = AppSettings.animationSpeed.factor
+                val delayMs = ((batch.moveDelay[u.id] ?: 0L) / speed).toInt()
+                launch { anim.animateTo(target, tween((380 / speed).toInt(), delayMillis = delayMs)) }
             }
         }
     }

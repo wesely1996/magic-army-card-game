@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.kingofthebeasts.app.settings.AppSettings
 import androidx.lifecycle.viewModelScope
 import com.kingofthebeasts.core.ai.AiPlayer
 import com.kingofthebeasts.core.ai.Difficulty
@@ -116,7 +117,8 @@ class GameViewModel(
                 val action = withContext(Dispatchers.Default) { ai.choose(state) }
                 // Keep a readable pace even when the AI decides instantly.
                 val minPause = if (d.kind == DecisionKind.DEPLOY) 600L else 1000L
-                delay((minPause - (System.currentTimeMillis() - started)).coerceAtLeast(0L))
+                val pause = (minPause / AppSettings.animationSpeed.factor).toLong()
+                delay((pause - (System.currentTimeMillis() - started)).coerceAtLeast(0L))
                 GameEngine.apply(state, action)
                 record(action)
                 version++

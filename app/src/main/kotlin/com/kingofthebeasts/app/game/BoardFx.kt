@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.kingofthebeasts.app.audio.Sfx
 import com.kingofthebeasts.app.ui.theme.Ink
 import com.kingofthebeasts.core.game.Board
 import com.kingofthebeasts.core.game.CastLook
@@ -67,8 +68,23 @@ internal class CardFly(delay: Long, val cardId: String, val from: Offset, val to
 /** A Strategy card washes the whole board in its colour. */
 internal class FieldWave(delay: Long, val color: Color) : Fx(delay, 1000)
 
+/** A sound effect timed with the animations; played once when its moment comes. */
+internal class Cue(delay: Long, val sfx: Sfx, val volume: Float = 1f) : Fx(delay, 1) {
+    var played = false
+}
+
 /** Floating text: damage, healing and status words. */
 internal class FloatText(delay: Long, val text: String, val color: Color, val at: Offset, val row: Int = 0) : Fx(delay, 1400)
+
+/** The sound of a spell or ability landing. */
+internal fun lookSound(look: CastLook): Sfx? = when (look) {
+    CastLook.HARM -> Sfx.SPELL_HARM
+    CastLook.HELP -> Sfx.SPELL_HELP
+    CastLook.CONTROL -> Sfx.SPELL_CONTROL
+    CastLook.EQUIP -> Sfx.EQUIP
+    CastLook.FIELD -> Sfx.FIELD
+    CastLook.SUMMON -> null
+}
 
 internal fun lookColor(look: CastLook): Color = when (look) {
     CastLook.HARM -> Color(0xFFE0672B)

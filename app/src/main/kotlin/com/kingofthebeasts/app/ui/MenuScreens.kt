@@ -1,5 +1,6 @@
 package com.kingofthebeasts.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -75,11 +76,18 @@ fun MenuScreen(
     onPlay: () -> Unit,
     onDecks: () -> Unit,
     onRules: () -> Unit,
+    onSettings: () -> Unit = {},
     /** A short description of the saved battle in progress, if any (e.g. "Turn 14 vs Venom & Wings"). */
     resumeLabel: String? = null,
     onResume: () -> Unit = {},
+    /** Online play with a friend; null while it isn't available. */
+    onFriends: (() -> Unit)? = null,
+    /** Whether the play options behind "Play" are showing instead of the basic menu. */
+    playMenu: Boolean = false,
+    onPlayMenu: (Boolean) -> Unit = {},
 ) {
     var confirmNew by remember { mutableStateOf(false) }
+    BackHandler(enabled = playMenu) { onPlayMenu(false) }
     PaperBackground {
         Row(
             Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
@@ -97,26 +105,34 @@ fun MenuScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Race.entries.forEach { RaceEmblem(it, 52.dp) } }
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (resumeLabel != null) {
-                    SketchButton("▶  Resume battle", onResume, Modifier.width(240.dp), color = Ink.Deploy)
-                    Text(resumeLabel, style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                val wide = Modifier.width(240.dp)
+                if (!playMenu) {
+                    SketchButton("⚔  Play", { onPlayMenu(true) }, wide, color = Ink.Enemy)
+                    Spacer(Modifier.height(14.dp))
+                    SketchButton("🂠  Deck Builder", onDecks, wide, color = Ink.You)
+                    Spacer(Modifier.height(14.dp))
+                    SketchButton("📜  How to Play", onRules, wide, color = Ink.Gold)
+                } else {
+                    SketchButton("▶  Continue", onResume, wide, color = Ink.Deploy, enabled = resumeLabel != null)
+                    Text(resumeLabel ?: "No battle in progress", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                     Spacer(Modifier.height(10.dp))
+                    SketchButton("⚔  New game", { if (resumeLabel != null) confirmNew = true else onPlay() }, wide, color = Ink.Enemy)
+                    Spacer(Modifier.height(14.dp))
+                    SketchButton("🤝  With friends", { onFriends?.invoke() }, wide, color = Ink.You, enabled = onFriends != null)
+                    if (onFriends == null) Text("Online play — coming soon", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    Spacer(Modifier.height(14.dp))
+                    SketchButton("←  Back", { onPlayMenu(false) }, wide, color = Ink.PaperDeep)
                 }
-                SketchButton("⚔  Battle", { if (resumeLabel != null) confirmNew = true else onPlay() }, Modifier.width(240.dp), color = Ink.Enemy)
-                Spacer(Modifier.height(14.dp))
-                SketchButton("🂠  Deck Builder", onDecks, Modifier.width(240.dp), color = Ink.You)
-                Spacer(Modifier.height(14.dp))
-                SketchButton("📜  How to Play", onRules, Modifier.width(240.dp), color = Ink.Gold)
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(20.dp))
                 Text(
-                    "Online battles with friends — coming soon",
-                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
-                )
-                Text(
-                    "Illustrations built from game-icons.net (CC BY 3.0)",
-                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+                    "Illustrations built from game-icons.net (CC BY 3.0) · music and sounds CC0 (see Settings)",
+                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded, textAlign = TextAlign.Center,
                 )
             }
+        }
+        // The settings wheel sits in the top corner.
+        Box(Modifier.align(Alignment.TopEnd).systemBarsPadding().padding(12.dp)) {
+            SketchButton("⚙", onSettings, color = Ink.PaperDeep)
         }
         if (confirmNew) {
             com.kingofthebeasts.app.game.PaperDialog(onDismiss = { confirmNew = false }) {
@@ -124,8 +140,8 @@ fun MenuScreen(
                 Text("Starting a new battle ends it for good.", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SketchButton("Resume it", { confirmNew = false; onResume() }, color = Ink.Deploy)
-                    SketchButton("New battle", { confirmNew = false; onPlay() }, color = Ink.Enemy)
+                    SketchButton("Continue it", { confirmNew = false; onResume() }, color = Ink.Deploy)
+                    SketchButton("New game", { confirmNew = false; onPlay() }, color = Ink.Enemy)
                 }
             }
         }
@@ -323,8 +339,13 @@ fun RulesScreen(onBack: () -> Unit) {
             "left (or swipe it right) to bring it back. ⟲ and ⟳ turn the board, a two-finger twist turns it freely, and " +
             "Reset view puts your side back at the bottom. The rail on the right shows the action queue; tap Details " +
             "or swipe it left for a full explanation of what's going on.",
-        "Resume" to "Your battle is saved after every move. If you leave it (or close the app), the main menu offers " +
-            "Resume battle. Forfeit ends it for good, and starting a new battle replaces it.",
+        "Menu" to "Play opens the play options: Continue picks up your battle in progress, New game starts one against " +
+            "the AI, and With friends plays online. The ⚙ wheel in the top corner opens Settings: music and sound " +
+            "volume, animation speed, keeping the screen on, and the credits.",
+        "Continue" to "Your battle is saved after every move. If you leave it (or close the app), Play → Continue " +
+            "picks it up. Forfeit ends it for good, and starting a new game replaces it.",
+        "Battle log" to "Tap Details (or swipe the rail left) for the drawer: it covers most of the screen and explains " +
+            "what is going on, the action queue, both armies, the field and recent events. Full battle log shows everything.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",
         "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
             "(up to 2), the Moon Howler feeds on every kill, " +

@@ -43,7 +43,10 @@ The art is hand-drawn ink over watercolor washes.
 | **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. The rail on the right shows whose move it is, the action queue (the interrupt chain, next to resolve on top) and the buttons you need now; tap **◀ Details** or swipe it left to pull out a drawer that explains what is going on, what each queued action will do, both armies, active battlefield rules and recent events. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
 | **Animations** | Every action plays out on the board: melee units lunge at their target, archers loose arrows, spells and abilities fly as glowing orbs and burst on impact (orange harms, green helps, violet controls), hit units shake and flash red, fallen units topple and fade, played cards fly in from their owner's side, new units drop onto the board, and Strategy cards wash the whole board in their colour. |
-| **Resume** | Battles are saved after every move. Leave a battle (or close the app) and the main menu offers **Resume battle**; **Forfeit** ends it for good. |
+| **Menu** | **Play** opens the play options: **Continue** (your battle in progress), **New game** (against the AI) and **With friends** (online), with **Back** to the main menu. The **⚙** wheel in the top corner opens Settings. |
+| **Continue** | Battles are saved after every move. Leave a battle (or close the app) and **Play → Continue** picks it up; **Forfeit** ends it for good. |
+| **Sound** | Medieval background music (menu, battle, victory and defeat themes) and sound effects for every action: swords, arrows, hits, falls, spells, cards and turns. All CC0, see [CREDITS.md](CREDITS.md). |
+| **Settings** | Music and sound effect volume, animation speed (Slow / Normal / Fast, also paces the AI), and keeping the screen on during battles. Open it from the ⚙ wheel on the main menu or during a battle. |
 
 ### Races, racial traits and Kings
 
@@ -152,5 +155,10 @@ python3 tools/art/generate.py package/icons.json
 
 ## Credits
 
-* Icons: game-icons.net contributors (Lorc, Delapouite and others), CC BY 3.0.
+* Created by **wesely1996**.
+* Card illustrations: icons by Lorc, Delapouite, Caro Asercion, Skoll, Sbed, DarkZaitzev, Cathelineau,
+  Sparker, Lucas and Faithtoken from game-icons.net, CC BY 3.0.
+* Music: RandomMind (OpenGameArt.org), CC0. Sound effects: Kenney, rubberduck, haeldb, StarNinjas,
+  artisticdude and someoneman, CC0.
 * Fonts: Kalam and Caveat Brush, SIL Open Font License (`licenses/OFL-fonts.txt`).
+* Full list, icon by icon: [CREDITS.md](CREDITS.md).

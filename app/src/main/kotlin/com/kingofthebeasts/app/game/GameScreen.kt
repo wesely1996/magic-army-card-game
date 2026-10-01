@@ -66,6 +66,11 @@ import com.kingofthebeasts.app.ui.SketchButton
 import com.kingofthebeasts.app.ui.brushUnderline
 import com.kingofthebeasts.app.ui.sketchBorder
 import com.kingofthebeasts.app.ui.theme.Ink
+import com.kingofthebeasts.app.audio.GameAudio
+import com.kingofthebeasts.app.audio.Music
+import com.kingofthebeasts.app.audio.Sfx
+import com.kingofthebeasts.app.ui.SettingsPanel
+import androidx.compose.ui.window.DialogProperties
 import com.kingofthebeasts.app.ui.watercolor
 import com.kingofthebeasts.core.game.Action
 import com.kingofthebeasts.core.game.CardInstance
@@ -140,6 +145,25 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
         announcement = null
     }
 
+    // Sounds that belong to the screen rather than the board: your turn, picking a card, the result.
+    LaunchedEffect(s.turnNumber, s.activePlayer, s.phase) {
+        if (s.phase == Phase.BATTLE && s.activePlayer == vm.human && s.stack.isEmpty()) GameAudio.play(Sfx.TURN)
+    }
+    LaunchedEffect(vm.selection) {
+        if (vm.selection is Selection.Card) GameAudio.play(Sfx.CARD_PICK)
+    }
+    LaunchedEffect(s.phase == Phase.GAME_OVER) {
+        if (s.phase != Phase.GAME_OVER) return@LaunchedEffect
+        GameAudio.music(
+            when {
+                s.isDraw -> null
+                s.winner == vm.human -> Music.VICTORY
+                else -> Music.DEFEAT
+            },
+        )
+    }
+    var showSettings by remember { mutableStateOf(false) }
+
     // The right-hand drawer: a slim rail with the action queue, pulled out for the full story.
     var drawerOpen by remember { mutableStateOf(false) }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
@@ -156,6 +180,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
                 BoardControls(
                     rotated = (((angle.value % 360f) + 360f) % 360f).let { it > 1f && it < 359f },
                     onMenu = { confirmExit = true },
+                    onSettings = { showSettings = true },
                     onRotateLeft = { rotateBy(-90f) },
                     onRotateRight = { rotateBy(90f) },
                     onReset = { scope.launch { angle.animateTo((angle.value / 360f).roundToInt() * 360f, tween(450)) } },
@@ -213,6 +238,14 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
             CardInspectDialog(def, onDismiss = { detail = null }, unit = unitId?.let { s.unit(it) }, state = s)
         }
         if (showLog) LogDialog(s.log) { showLog = false }
+        if (showSettings) {
+            PaperDialog(onDismiss = { showSettings = false }) {
+                Text("Settings", style = MaterialTheme.typography.titleLarge)
+                SettingsPanel(Modifier.width(420.dp).heightIn(max = 300.dp).verticalScroll(rememberScrollState()))
+                Spacer(Modifier.height(8.dp))
+                SketchButton("Close", { showSettings = false }, small = true, color = Ink.PaperDeep)
+            }
+        }
         if (confirmExit) {
             PaperDialog(onDismiss = { confirmExit = false }) {
                 Text("Leave the battle?", style = MaterialTheme.typography.titleLarge)
@@ -235,6 +268,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onF
 private fun BoardControls(
     rotated: Boolean,
     onMenu: () -> Unit,
+    onSettings: () -> Unit,
     onRotateLeft: () -> Unit,
     onRotateRight: () -> Unit,
     onReset: () -> Unit,
@@ -242,6 +276,7 @@ private fun BoardControls(
 ) {
     Row(modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         SketchButton("☰", onMenu, small = true, color = Ink.PaperDeep)
+        SketchButton("⚙", onSettings, small = true, color = Ink.PaperDeep)
         SketchButton("⟲", onRotateLeft, small = true, color = Ink.PaperDeep)
         SketchButton("⟳", onRotateRight, small = true, color = Ink.PaperDeep)
         if (rotated) SketchButton("Reset view", onReset, small = true, color = Ink.Gold)
@@ -489,85 +524,90 @@ private fun StatusDrawer(
 ) {
     val s = vm.state
     val (headline, detail) = explanation(vm)
+    // Wide enough to read comfortably: 80% of the screen, in two columns.
     Column(
         Modifier
-            .width(340.dp)
+            .fillMaxWidth(0.8f)
             .fillMaxHeight()
             .background(Ink.Paper)
             .sketchBorder(seed = 77)
             .pointerInput(Unit) { detectHorizontalDragGestures { _, dx -> if (dx > 12f) onClose() } }
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("What's going on", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            SketchButton("Full battle log", onLog, small = true, color = Ink.PaperDeep)
+            Spacer(Modifier.width(8.dp))
             SketchButton("▶", onClose, small = true, color = Ink.PaperDeep)
         }
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(headline, style = MaterialTheme.typography.titleMedium, color = statusLine(vm).second)
-            Text(detail, style = MaterialTheme.typography.bodySmall)
-            PrimaryButton(vm, actions)
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(headline, style = MaterialTheme.typography.titleMedium, color = statusLine(vm).second)
+                Text(detail, style = MaterialTheme.typography.bodyMedium)
+                PrimaryButton(vm, actions)
 
-            if (s.stack.isNotEmpty()) {
-                DrawerSection("Action queue — resolves from the top")
-                s.stack.asReversed().forEachIndexed { i, item ->
-                    val color = if (item.controller == vm.human) Ink.You else Ink.Enemy
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .watercolor(color, item.id, 0.6f)
-                            .sketchBorder(seed = item.id)
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    ) {
-                        Text(
-                            "${ordinal(i + 1)} · ${s.players[item.controller].name}",
-                            style = MaterialTheme.typography.labelSmall, color = color,
-                        )
-                        Text(shortLabel(s, item, verbose = true), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        chainDetail(s, item).takeIf { it.isNotEmpty() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                        if (item.countered) Text("Countered — it will fizzle.", style = MaterialTheme.typography.labelSmall, color = Ink.Enemy)
+                if (s.stack.isNotEmpty()) {
+                    DrawerSection("Action queue — resolves from the top")
+                    s.stack.asReversed().forEachIndexed { i, item ->
+                        val color = if (item.controller == vm.human) Ink.You else Ink.Enemy
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .watercolor(color, item.id, 0.6f)
+                                .sketchBorder(seed = item.id)
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                        ) {
+                            Text(
+                                "${ordinal(i + 1)} · ${s.players[item.controller].name}",
+                                style = MaterialTheme.typography.labelSmall, color = color,
+                            )
+                            Text(shortLabel(s, item, verbose = true), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                            chainDetail(s, item).takeIf { it.isNotEmpty() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                            if (item.countered) Text("Countered — it will fizzle.", style = MaterialTheme.typography.labelSmall, color = Ink.Enemy)
+                        }
                     }
                 }
-            }
 
-            if (vm.selection != Selection.None) {
-                DrawerSection("Selected")
-                SelectionPanel(vm, actions, onInspect)
-            }
-
-            DrawerSection("Armies")
-            for (p in listOf(vm.human, 1 - vm.human)) {
-                val player = s.players[p]
-                val king = s.king(p)
-                Text(
-                    if (p == vm.human) "You" else "Opponent (${vm.difficulty.displayName})",
-                    style = MaterialTheme.typography.labelLarge, color = if (p == vm.human) Ink.You else Ink.Enemy,
-                )
-                Text(
-                    (king?.let { "♛ ${it.tag} ${it.hp}/${it.maxHp} health · " } ?: "") +
-                        "${s.unitsOf(p).size} units in ${GameEngine.usedSlots(s, p)}/${GameEngine.unitCap(s, p)} slots · " +
-                        "${player.hand.size} in hand · ${player.deck.size} in deck · ${player.discard.size} discarded · ${player.exhausted.size} exhausted",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                player.trait?.let { t ->
-                    Text("Racial trait — ${t.displayName}: ${t.description}", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                if (vm.selection != Selection.None) {
+                    DrawerSection("Selected")
+                    SelectionPanel(vm, actions, onInspect)
                 }
             }
-
-            if (s.fields.isNotEmpty()) {
-                DrawerSection("Field")
-                for (f in s.fields) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                DrawerSection("Armies")
+                for (p in listOf(vm.human, 1 - vm.human)) {
+                    val player = s.players[p]
+                    val king = s.king(p)
                     Text(
-                        "⚑ ${f.rule.displayName} (${if (f.owner == vm.human) "yours" else "opponent's"}, until another Strategy replaces it)",
-                        style = MaterialTheme.typography.labelMedium, color = if (f.owner == vm.human) Ink.You else Ink.Enemy,
+                        if (p == vm.human) "You" else "Opponent (${vm.difficulty.displayName})",
+                        style = MaterialTheme.typography.labelLarge, color = if (p == vm.human) Ink.You else Ink.Enemy,
                     )
-                    Text(f.rule.description, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        (king?.let { "♛ ${it.tag} ${it.hp}/${it.maxHp} health · " } ?: "") +
+                            "${s.unitsOf(p).size} units in ${GameEngine.usedSlots(s, p)}/${GameEngine.unitCap(s, p)} slots · " +
+                            "${player.hand.size} in hand · ${player.deck.size} in deck · ${player.discard.size} discarded · ${player.exhausted.size} exhausted",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    player.trait?.let { t ->
+                        Text("Racial trait — ${t.displayName}: ${t.description}", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    }
                 }
-            }
 
-            DrawerSection("Recent events")
-            s.log.takeLast(8).asReversed().forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = Ink.Faded) }
+                if (s.fields.isNotEmpty()) {
+                    DrawerSection("Field")
+                    for (f in s.fields) {
+                        Text(
+                            "⚑ ${f.rule.displayName} (${if (f.owner == vm.human) "yours" else "opponent's"}, until another Strategy replaces it)",
+                            style = MaterialTheme.typography.labelMedium, color = if (f.owner == vm.human) Ink.You else Ink.Enemy,
+                        )
+                        Text(f.rule.description, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+
+                DrawerSection("Recent events")
+                s.log.takeLast(25).asReversed().forEach { LogLine(it) }
+            }
         }
-        SketchButton("Full battle log", onLog, Modifier.fillMaxWidth().padding(top = 6.dp), small = true, color = Ink.PaperDeep)
     }
 }
 
@@ -814,21 +854,38 @@ fun PaperDialog(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 
 @Composable
 private fun LogDialog(log: List<String>, onDismiss: () -> Unit) {
-    PaperDialog(onDismiss) {
-        Text("Battle log", style = MaterialTheme.typography.titleLarge)
-        LazyColumn(Modifier.heightIn(max = 420.dp).fillMaxWidth()) {
-            items(log.asReversed()) { line ->
-                Text(
-                    line,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = if (line.startsWith("—")) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier.padding(vertical = 1.dp),
-                )
+    // Covers most of the screen so the whole story is easy to read.
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(
+            Modifier
+                .fillMaxWidth(0.8f)
+                .fillMaxHeight(0.88f)
+                .background(Ink.Paper, RoundedCornerShape(18.dp))
+                .sketchBorder(seed = 78, corner = 18.dp)
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Battle log — newest first", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                SketchButton("Close", onDismiss, small = true, color = Ink.PaperDeep)
+            }
+            LazyColumn(Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp)) {
+                items(log.asReversed()) { line -> LogLine(line) }
             }
         }
-        Spacer(Modifier.height(8.dp))
-        SketchButton("Close", onDismiss, small = true, color = Ink.PaperDeep)
     }
+}
+
+/** One battle log line; turn headers stand out. */
+@Composable
+private fun LogLine(line: String) {
+    val header = line.startsWith("—")
+    Text(
+        line,
+        style = if (header) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+        color = if (header) Ink.Line else Ink.Faded,
+        fontWeight = if (header) FontWeight.Bold else FontWeight.Normal,
+        modifier = Modifier.padding(top = if (header) 6.dp else 1.dp, bottom = 1.dp),
+    )
 }
 
 @Composable

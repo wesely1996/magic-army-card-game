@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kingofthebeasts.app.R
+import com.kingofthebeasts.app.audio.GameAudio
+import com.kingofthebeasts.app.audio.Sfx
 import com.kingofthebeasts.app.ui.theme.Ink
 import kotlin.math.PI
 import kotlin.math.cos
@@ -163,7 +165,10 @@ fun SketchButton(
             .alpha(if (enabled) 1f else 0.4f)
             .watercolor(color, seed, 1.3f)
             .sketchBorder(Ink.Line, 1.6.dp, 12.dp, seed)
-            .clickable(interaction, indication = null, enabled = enabled, onClick = onClick)
+            .clickable(interaction, indication = null, enabled = enabled) {
+                GameAudio.play(if (text == "←") Sfx.BACK else Sfx.CLICK)
+                onClick()
+            }
             .padding(horizontal = if (small) 12.dp else 20.dp, vertical = if (small) 6.dp else 10.dp),
         contentAlignment = Alignment.Center,
     ) {

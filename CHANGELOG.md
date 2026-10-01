@@ -3,6 +3,21 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.6.0 — Music, sound, settings and a new menu
+
+- **Background music:** medieval themes for the menus and battles, plus victory and defeat themes, with
+  smooth crossfades. Music pauses when the app is in the background.
+- **Sound effects** for every action, timed with the animations: sword strikes, arrows, hits, blocks,
+  falling units, spells that harm, heal or control, equipment, Strategy fields, cards, moves and your turn.
+- **Settings** (⚙ wheel in the top corner of the main menu, or during a battle): music and sound volume,
+  animation speed (Slow / Normal / Fast, also paces the AI) and keeping the screen on during battles.
+- **New main menu:** Play, Deck Builder and How to Play. **Play** opens Continue, New game, With friends
+  (coming in 0.7.0) and Back.
+- **Bigger battle drawer:** Details now covers 80% of the screen in two columns with larger text, and the
+  full battle log opens nearly full screen.
+- **Credits:** in Settings and in CREDITS.md — the creator, every game-icons.net artist behind the card art,
+  and the music, sound and font authors.
+
 ## 0.5.0 — More Champions, animations, resume, painless updates
 
 - **A second Champion for every race:** Midnight Fang, Quakeback Bear, Storm Griffin, Stone-Eyed Gorgon,
