@@ -5,7 +5,7 @@ plugins {
 }
 
 // Version code from the version name (1.2.3 -> 10203), so every new version installs as an update.
-val appVersion = (project.findProperty("versionName") as String?) ?: "0.11.0"
+val appVersion = (project.findProperty("versionName") as String?) ?: "0.11.1"
 fun versionCodeOf(name: String): Int {
     val (major, minor, patch) = (name.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     return major * 10_000 + minor * 100 + patch

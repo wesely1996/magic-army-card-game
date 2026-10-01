@@ -238,6 +238,7 @@ fun GameScreen(
                 vm.lesson?.let { lesson ->
                     TutorialCoach(
                         lesson, vm.tutorialStep, onGotIt = vm::acknowledgeLesson,
+                        choosing = vm.selection != Selection.None,
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
                     )
                 }
@@ -607,29 +608,48 @@ private fun ReconnectingBanner(friend: String, onLeaveForNow: () -> Unit, modifi
 
 /** The tutorial's coach note: the current lesson, and "Got it" for explanations. */
 @Composable
-private fun TutorialCoach(lesson: TutorialStep, index: Int, onGotIt: () -> Unit, modifier: Modifier = Modifier) {
-    // Tap the note to fold it away (e.g. to see the far rows); each new lesson opens it again.
+private fun TutorialCoach(
+    lesson: TutorialStep, index: Int, onGotIt: () -> Unit,
+    /** Something is selected on the board: fold the note so the squares are easy to see. */
+    choosing: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    // Each new lesson opens the note; Hide (or picking a card or unit) folds it into a small tab.
     var folded by remember(index) { mutableStateOf(false) }
+    LaunchedEffect(choosing) { if (choosing) folded = true }
+    val shape = RoundedCornerShape(14.dp)
+    if (folded) {
+        Row(
+            modifier
+                .background(Ink.Paper.copy(alpha = 0.94f), shape)
+                .watercolor(Ink.Gold, 300 + index, 0.7f)
+                .sketchBorder(seed = 300 + index, corner = 14.dp)
+                .clickable { folded = false }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🎓 ${index + 1}/${Tutorial.steps.size} · ${lesson.title}", style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.width(10.dp))
+            Text("▼ Show", style = MaterialTheme.typography.labelMedium, color = Ink.You)
+        }
+        return
+    }
     Column(
         modifier
             .widthIn(max = 440.dp)
-            .background(Ink.Paper.copy(alpha = 0.94f), RoundedCornerShape(14.dp))
+            .background(Ink.Paper.copy(alpha = 0.94f), shape)
             .watercolor(Ink.Gold, 300 + index, 0.7f)
             .sketchBorder(seed = 300 + index, corner = 14.dp)
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
-        Row(
-            Modifier.clickable(remember { MutableInteractionSource() }, indication = null) { folded = !folded },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text("🎓 ${lesson.title}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
             Spacer(Modifier.width(10.dp))
-            Text(
-                "${index + 1}/${Tutorial.steps.size}  ${if (folded) "▼" else "▲"}",
-                style = MaterialTheme.typography.labelSmall, color = Ink.Faded,
-            )
+            Text("${index + 1}/${Tutorial.steps.size}", style = MaterialTheme.typography.labelSmall, color = Ink.Faded)
+            Spacer(Modifier.weight(1f))
+            SketchButton("▲ Hide", { folded = true }, small = true, color = Ink.PaperDeep)
         }
-        if (!folded) Text(lesson.text, style = MaterialTheme.typography.bodyMedium)
+        Text(lesson.text, style = MaterialTheme.typography.bodyMedium)
         if (lesson.info) {
             SketchButton("Got it", onGotIt, Modifier.align(Alignment.End).padding(top = 6.dp), small = true, color = Ink.Deploy)
         }

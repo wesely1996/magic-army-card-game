@@ -3,6 +3,12 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.11.1 — Collapsible tutorial notes
+
+- The tutorial's instruction note has a **▲ Hide** button that folds it into a small tab
+  ("🎓 6/12 · Move ▼ Show") at the top of the board, so you can see the whole board while you follow the
+  instruction. It also folds by itself when you pick a card or unit, and opens again for each new lesson.
+
 ## 0.11.0 — 30 new cards, gentler Beginner and Pro
 
 - **30 new cards, 5 per race, each race with its own focus:**
