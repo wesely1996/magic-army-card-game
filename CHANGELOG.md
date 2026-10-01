@@ -11,6 +11,9 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
   offers **Resume battle**; **Forfeit** ends it.
 - **Updates install over the old version**: all builds share one signing key and version codes always
   increase (0.5.0 → 500).
+- **36 new cards:** 3 Magic and 3 Equipment for every race.
+- **Starter decks can be viewed** read-only (View), or copied to edit. Your own decks open for editing with a
+  tap; decks saved before a card was renamed or removed no longer fail to open.
 - BALANCE_PLACEHOLDER
 
 ## 0.4.0 — Champions, star ranks and field Strategies

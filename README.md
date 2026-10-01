@@ -39,6 +39,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Displacement spells** | Every race has one Magic card that moves or swaps units: **Pack Relay** (Wolf: send an ally back into your deck, a random unit from your deck takes its square), **Mighty Shove** (Bear: push an enemy 2 squares away from your nearest unit, 2 damage if something stops it), **Gale Force** (Hawk: blow an enemy up to 3 squares back toward its own side), **Mirage** (Serpent: send an enemy back into its owner's deck, a random unit from that deck takes its square), **Rally to the King** (Lion: an ally moves next to your King) and **Rat Run** (Vermin: an enemy swaps squares with your nearest unit). |
 | **Keywords** | **Hidden**: can only be attacked or targeted from a square next to it. **Backstab**: +2 attack when attacking from behind (from the target's own side). **Brood**: a Swarm Rat pops out next to it at the start of your next 2 turns. **Arrival**: happens when the unit is played (e.g. two Swarm Rats appear). **Immovable**: can't be pushed, swapped or replaced. **Champions** (★★★): two per race, the strongest units — 3 unit slots, 1 copy per deck. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
+| **Decks** | Build and save your own decks, and edit them any time (tap a deck). Starter decks can be opened read-only with **View**, or copied to edit with **Copy**. |
 | **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. The rail on the right shows whose move it is, the action queue (the interrupt chain, next to resolve on top) and the buttons you need now; tap **◀ Details** or swipe it left to pull out a drawer that explains what is going on, what each queued action will do, both armies, active battlefield rules and recent events. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
 | **Resume** | Battles are saved after every move. Leave a battle (or close the app) and the main menu offers **Resume battle**; **Forfeit** ends it for good. |
@@ -73,7 +74,7 @@ docs/        Design notes and plan.
 * **2.5D board** (`app/.../game/BoardView.kt`): a perspective projection of the board plane. The watercolor
   board texture is mapped with a homography, units are upright card standees sorted by depth, and taps
   are mapped back through the inverse projection.
-* **Cards** (`core/.../data/CardDatabase.kt`): all 126 cards are data. New cards are usually one line,
+* **Cards** (`core/.../data/CardDatabase.kt`): all 174 cards are data. New cards are usually one line,
   built from the effect primitives in `model/Cards.kt`.
 
 ## Balance
