@@ -317,6 +317,8 @@ fun RulesScreen(onBack: () -> Unit) {
             "left (or swipe it right) to bring it back. ⟲ and ⟳ turn the board, a two-finger twist turns it freely, and " +
             "Reset view puts your side back at the bottom. The rail on the right shows the action queue; tap Details " +
             "or swipe it left for a full explanation of what's going on.",
+        "Resume" to "Your battle is saved after every move. If you leave it (or close the app), the main menu offers " +
+            "Resume battle. Forfeit ends it for good, and starting a new battle replaces it.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",
         "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
             "(up to 2), the Moon Howler feeds on every kill, " +

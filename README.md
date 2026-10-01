@@ -37,10 +37,11 @@ The art is hand-drawn ink over watercolor washes.
 | **Exhaustion** | From turn 120 each King loses health at the start of its owner's turn (1, +1 every 20 turns) and can't be healed, so every battle ends. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
 | **Displacement spells** | Every race has one Magic card that moves or swaps units: **Pack Relay** (Wolf: send an ally back into your deck, a random unit from your deck takes its square), **Mighty Shove** (Bear: push an enemy 2 squares away from your nearest unit, 2 damage if something stops it), **Gale Force** (Hawk: blow an enemy up to 3 squares back toward its own side), **Mirage** (Serpent: send an enemy back into its owner's deck, a random unit from that deck takes its square), **Rally to the King** (Lion: an ally moves next to your King) and **Rat Run** (Vermin: an enemy swaps squares with your nearest unit). |
-| **Keywords** | **Hidden**: can only be attacked or targeted from a square next to it. **Backstab**: +2 attack when attacking from behind (from the target's own side). **Brood**: a Swarm Rat pops out next to it at the start of your next 2 turns. **Arrival**: happens when the unit is played (e.g. two Swarm Rats appear). **Immovable**: can't be pushed, swapped or replaced. **Champions** (★★★): one per race, the strongest units — 3 unit slots, 1 copy per deck. |
+| **Keywords** | **Hidden**: can only be attacked or targeted from a square next to it. **Backstab**: +2 attack when attacking from behind (from the target's own side). **Brood**: a Swarm Rat pops out next to it at the start of your next 2 turns. **Arrival**: happens when the unit is played (e.g. two Swarm Rats appear). **Immovable**: can't be pushed, swapped or replaced. **Champions** (★★★): two per race, the strongest units — 3 unit slots, 1 copy per deck. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
 | **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. The rail on the right shows whose move it is, the action queue (the interrupt chain, next to resolve on top) and the buttons you need now; tap **◀ Details** or swipe it left to pull out a drawer that explains what is going on, what each queued action will do, both armies, active battlefield rules and recent events. |
 | **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
+| **Resume** | Battles are saved after every move. Leave a battle (or close the app) and the main menu offers **Resume battle**; **Forfeit** ends it for good. |
 
 ### Races, racial traits and Kings
 
@@ -89,6 +90,17 @@ See [docs/BALANCING.md](docs/BALANCING.md) for the method and changelog, and
 ./gradlew :core:balanceReport -Pgames=4000   # regenerate docs/BALANCE.md
 ```
 
+## Champions
+
+| Race | Champion 1 | Champion 2 |
+|---|---|---|
+| 🐺 Wolf Pack | **Ironjaw Packlord** 6/10 – arrives with two Wolf Pups | **Midnight Fang** 5/9, 4 moves – Hidden, Backstab |
+| 🐻 Bear Clan | **Ancient Cave Bear** 6/14 – Armored, Immovable, Regenerate | **Quakeback Bear** 5/12 – Armored; Ground Slam hits every adjacent enemy for 2 |
+| 🦅 Hawk Aerie | **Thunderbird** 4/10, range 3 – Flying; Thunderclap stuns | **Storm Griffin** 6/10 – Flying, Armored |
+| 🐍 Serpent Coil | **Great Hydra** 5/12 – Poisonous, Regenerate; Many Heads | **Stone-Eyed Gorgon** 4/10, range 2 – Poisonous; Stony Glare stuns 2 turns |
+| 🦁 Lion Pride | **Sunmane Paragon** 7/12 – Armored, Retaliate; Golden Roar | **Sunfire Chimera** 6/10 – Retaliate; Fire Breath |
+| 🐀 Vermin Horde | **Blightspawn Colossus** 6/11 – arrives with two Swarm Rats | **Warren Matriarch** 3/12 – Brood, Regenerate; arrives with three Swarm Rats |
+
 ## Building
 
 Requirements: JDK 17+ and the Android SDK (API 35).
@@ -97,6 +109,10 @@ Requirements: JDK 17+ and the Android SDK (API 35).
 ./gradlew :core:test            # rules engine tests (incl. AI-vs-AI soak test)
 ./gradlew :app:assembleDebug    # APK at app/build/outputs/apk/debug/KingOfTheBeasts-<version>-dev.apk
 ```
+
+Every build is signed with the fixed test key in `app/signing/debug.keystore` (unless CI has a private release
+key in its secrets), and the version code comes from the version name (0.5.0 → 500). So a newer APK always
+installs as an update over an older one — no need to uninstall.
 
 ## CI/CD (GitHub Actions)
 

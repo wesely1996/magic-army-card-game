@@ -3,6 +3,16 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.5.0 — More Champions, resume, painless updates
+
+- **A second Champion for every race:** Midnight Fang, Quakeback Bear, Storm Griffin, Stone-Eyed Gorgon,
+  Sunfire Chimera and Warren Matriarch.
+- **Resume battles:** the battle is saved after every move. Leave it (or close the app) and the main menu
+  offers **Resume battle**; **Forfeit** ends it.
+- **Updates install over the old version**: all builds share one signing key and version codes always
+  increase (0.5.0 → 500).
+- BALANCE_PLACEHOLDER
+
 ## 0.4.0 — Champions, star ranks and field Strategies
 
 - **Champions** (★★★): one mighty unit per race — Ironjaw Packlord, Ancient Cave Bear, Thunderbird,
