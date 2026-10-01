@@ -58,10 +58,26 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 | Vermin | Rat King | Call the Mischief: two Swarm Rats appear next to him |
 | Vermin | Blight Seer | Hidden; Blight Bolt damages the target and everything next to it |
 
-## Next steps
-- Online play over the internet. Same-Wi-Fi play (0.7.0) already relays `Action`s peer to peer through a
-  `Link`; an internet `Link` (e.g. WebRTC with invite codes) can slot in. Hidden information (hands, deck
-  order) is known to both apps in peer-to-peer play; hiding it needs a trusted server.
-- Real painted art: drop `art_<id>.webp` files in `app/src/main/res/drawable-nodpi/`.
-- Balance passes using AI-vs-AI statistics run every version. Basic battle animations are in (0.5.0).
-- Sound, richer animations, tutorial.
+## Roadmap to 1.0
+Agreed with the product owner. Every version also gets a **balance pass**: AI-vs-AI simulations keep every
+race, King and starter deck between 44% and 55% wins, and new cards or rules are re-checked before release.
+
+1. **0.8.0 — Tutorial battle.** A guided first battle against a scripted opponent that teaches deployment,
+   moving, attacking, playing Magic, answering an interrupt, Strategy fields, inspecting cards and the
+   battle drawer, ending with defeating the enemy King. Offered on first launch and from How to Play.
+2. **0.9.0 — Rejoin dropped online games.** If the Wi-Fi connection drops, either player can reconnect and
+   both phones catch up from the shared move list instead of the battle ending.
+3. **0.10.0 — Hard AI.** Deeper search and smarter interrupts, for players who have outgrown Medium.
+4. **0.11.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
+   with invite codes) next to same-Wi-Fi play. Peer-to-peer play shares hidden information (hands, deck order)
+   between the two apps; truly hiding it would need a trusted server.
+5. **1.0.0 — Play Store readiness (final step).** A private upload/signing key kept out of the repository, an
+   Android App Bundle build, store listing text and screenshots, a privacy policy (the app uses the network),
+   content rating, and a last full balance and device test pass.
+
+Ongoing, any time: custom painted card art (drop `art_<id>.webp` files in
+`app/src/main/res/drawable-nodpi/`), richer animations, accessibility (text size, colour-blind-friendly
+team colours, screen reader labels).
+
+Done: landscape 2.5D board and drawer (0.2), Vermin and racial traits (0.3), Champions and fields (0.4),
+animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7).
