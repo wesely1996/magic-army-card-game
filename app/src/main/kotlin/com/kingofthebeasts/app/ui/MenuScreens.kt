@@ -246,7 +246,8 @@ fun PlaySetupScreen(decks: List<Deck>, onBack: () -> Unit, onStart: (Deck, Deck?
 fun RulesScreen(onBack: () -> Unit) {
     val sections = listOf(
         "Goal" to "Defeat the enemy King. If your King falls, you lose.",
-        "Decks" to "Build a 40-card deck from up to 3 of the 6 races. It must contain exactly one King. At most 3 copies of any other card.",
+        "Decks" to "Build a deck of 40 cards plus one King, from up to 3 of the 6 races. Copies per card follow its stars: " +
+            "★ cards up to 3, ★★ up to 2, ★★★ just 1. At most 3 Strategy cards.",
         "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter " +
             "and +1 movement. Bear — Thick Fur: +1 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged " +
             "units get +1 range. Serpent — Venom Blood: all units are Poisonous, but units with 3+ attack get −1 attack. " +
@@ -254,11 +255,13 @@ fun RulesScreen(onBack: () -> Unit) {
             "Vermin — Endless Horde: 24 unit slots instead of 16.",
         "Kings are special" to "Kings take no damage from Magic cards or abilities — only attacks (and Exhaustion) can bring them " +
             "down. They are Immovable: nothing can push, swap or replace them. And they don't take a unit slot.",
-        "Used cards" to "Unit cards, equipment and spells that deal damage or summon units are exhausted: once used they are " +
-            "out of the game. Strategy cards and other Magic cards go to your discard pile; when your deck runs out, the discard " +
+        "Used cards" to "Unit cards, equipment, Strategy cards and spells that deal damage or summon units are exhausted: once used " +
+            "they are out of the game. Other Magic cards go to your discard pile; when your deck runs out, the discard " +
             "pile is shuffled into a new deck.",
-        "Card types" to "Units put a piece on the board. Magic cards buff, heal, damage or cancel — and can be played as interrupts. " +
-            "Strategy cards change the rules of the battlefield for a few turns. Equipment permanently upgrades one of your units.",
+        "Card types" to "Units put a piece on the board: ★ normal units, ★★ Elite units and ★★★ Champions. Magic cards (★ to ★★★) " +
+            "buff, heal, damage, move or cancel — and can be played as interrupts. Strategy cards are powerful fields: only " +
+            "one field is on the battlefield at a time, and it stays until any Strategy card replaces it. Equipment " +
+            "permanently upgrades one of your units.",
         "Displacement spells" to "Each race has one Magic card that moves or swaps units. Pack Relay (Wolf) sends an ally back " +
             "into your deck and a random unit from your deck takes its square. Mighty Shove (Bear) pushes an enemy 2 squares away " +
             "from your nearest unit, with 2 damage if something stops it. Gale Force (Hawk) blows an enemy up to 3 squares back toward " +
@@ -267,7 +270,7 @@ fun RulesScreen(onBack: () -> Unit) {
         "Keywords" to "Hidden: can only be attacked or targeted from a square next to it. Backstab: +2 attack when attacking " +
             "from behind (from the target's own side of the board). Brood: a Swarm Rat pops out next to it at the start of your " +
             "next 2 turns. Arrival: happens when the unit is played. Immovable: can't be pushed, swapped or replaced. " +
-            "Elite (★): takes 2 unit slots.",
+            "Elite (★★): takes 2 unit slots. Champion (★★★): takes 3.",
         "Deployment" to "A coin flip decides who starts. Players take turns placing one unit at a time in their first 3 rows, " +
             "up to 5 units each. Your King must be the first unit you place. You choose from all unit cards in your deck. " +
             "Afterwards everyone shuffles and draws 5 cards.",
@@ -279,7 +282,7 @@ fun RulesScreen(onBack: () -> Unit) {
             "and can no longer be healed, so every battle reaches an ending.",
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
             "that is at least 2 squares away from every enemy. Each side has 16 unit slots (24 with the Endless Horde): " +
-            "Elite units take 2 slots, other units 1 and the King none. Summoned and enthralled units count too.",
+            "Champions take 3 slots, Elite units 2, other units 1 and the King none. Summoned and enthralled units count too.",
         "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ quick ability — " +
             "and they may respond to that, and so on. Then everything resolves from the last response back to the first. " +
             "An action that no longer makes sense (a stunned unit's attack, a target that died) fizzles.",

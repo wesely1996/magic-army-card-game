@@ -32,10 +32,13 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.
 - "+X for 1 turn" effects applied during the unit owner's own turn last through their next turn.
 - Exhaustion: from turn 120 each King loses 1 health (+1 every 20 turns) at the start of its owner's turn and can't be healed.
-- Unit slots: 16 per side (24 with the Endless Horde trait). Elite units take 2, other units 1, Kings 0.
+- Decks: 40 cards plus the King. Stars set the copy limit: ★ 3, ★★ 2, ★★★ 1. At most 3 Strategy cards.
+- Unit tiers: ★ normal (1 slot), ★★ Elite (2 slots), ★★★ Champion (3 slots). Magic ranked ★ to ★★★.
+- Strategy cards are fields: one on the battlefield at a time, until any Strategy card replaces it; exhausted after use.
+- Unit slots: 16 per side (24 with the Endless Horde trait). Kings take none.
 - Kings take no damage from Magic cards or abilities and are Immovable (can't be pushed, swapped or replaced).
 - Racial trait: the race of the deck's King gives the army a bonus (sometimes with a drawback).
-- Used cards: units, equipment, damage and summoning spells are exhausted (out of the game); Strategy and other
+- Used cards: units, equipment, Strategy cards, damage and summoning spells are exhausted (out of the game); other
   Magic cards go to the discard pile, which becomes the new deck when the deck runs out.
 - King death loses. Both at once is a draw. 200-turn limit is a draw (practically unreachable with Exhaustion).
 

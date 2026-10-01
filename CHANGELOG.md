@@ -3,6 +3,18 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.4.0 — Champions, star ranks and field Strategies
+
+- **Champions** (★★★): one mighty unit per race — Ironjaw Packlord, Ancient Cave Bear, Thunderbird,
+  Great Hydra, Sunmane Paragon, Blightspawn Colossus. They take 3 unit slots, 1 copy per deck.
+- **Star tiers**: units are ★ normal, ★★ Elite or ★★★ Champion; Magic cards are ranked ★ to ★★★. Copies
+  per deck: 3 / 2 / 1. The ★★★ spells got stronger (Savage Bite 4, Bear Hug stuns 2 turns, Sky Strike 3,
+  Sunfire 3, Blightfire 4).
+- **Strategy cards are fields**: one field on the battlefield, lasting until any Strategy card replaces it.
+  They are exhausted after use, at most 3 per deck, and several fields got stronger.
+- **Decks are 40 cards plus the King.** Starter decks rebuilt (each now has its race's Champion).
+- BALANCE_PLACEHOLDER
+
 ## 0.3.0 — The Vermin Horde, racial traits and new card rules
 
 - **New race: Vermin Horde** (inspired by mutant rat-folk). Hidden units, Backstab, Brood (a Swarm Rat
