@@ -74,6 +74,27 @@ fun FriendsScreen(lobby: FriendsLobby, decks: List<Deck>, onBack: () -> Unit) {
 
 @Composable
 private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
+    val saved = lobby.saved
+    if (saved != null && lobby.session == null) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+                .watercolor(Ink.Gold, 77, 0.8f)
+                .sketchBorder(seed = 77)
+                .padding(12.dp),
+        ) {
+            Text("Unfinished battle with ${saved.peerName}", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "${saved.acts.size} moves played. Tap Rejoin on both phones (on the same Wi-Fi) to carry on.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 6.dp)) {
+                SketchButton("▶  Rejoin", { lobby.rejoin() }, small = true, color = Ink.Deploy)
+                SketchButton("Abandon", { lobby.abandon() }, small = true, color = Ink.PaperDeep)
+            }
+        }
+    }
     when (val step = lobby.step) {
         FriendsLobby.Step.Idle, is FriendsLobby.Step.Failed -> {
             Text("Play a friend on the same Wi-Fi", style = MaterialTheme.typography.titleLarge)

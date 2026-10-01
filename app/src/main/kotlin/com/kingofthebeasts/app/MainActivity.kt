@@ -166,6 +166,7 @@ private fun App() {
             playMenu = playMenu,
             onPlayMenu = { playMenu = it },
             onFriends = { screen = Screen.Friends },
+            friendsLabel = lobby.saved?.let { "Unfinished battle with ${it.peerName}" },
             onTutorial = ::startTutorial,
             offerTutorial = !AppSettings.tutorialOffered,
             onTutorialOffered = AppSettings::markTutorialOffered,
@@ -233,9 +234,10 @@ private fun App() {
             } else {
                 val status by s.status.collectAsState()
                 val rematch by s.rematch.collectAsState()
-                val vm: GameViewModel = viewModel(key = "online-${g.start.game}-${g.start.seed}") {
+                // A rejoined battle replays the saved moves first; each session gets fresh screens.
+                val vm: GameViewModel = viewModel(key = "online-${System.identityHashCode(s)}-${g.start.game}") {
                     GameViewModel(
-                        g.start.hostDeck, g.start.guestDeck, Difficulty.EASY, g.start.seed,
+                        g.start.hostDeck, g.start.guestDeck, Difficulty.EASY, g.start.seed, resume = g.replay,
                         remote = g, human = g.human, names = listOf(g.start.hostName, g.start.guestName),
                     )
                 }
@@ -248,6 +250,12 @@ private fun App() {
                         ended = (status as? OnlineSession.Status.Ended)?.reason,
                         rematchMine = rematch.mine,
                         rematchTheirs = rematch.theirs,
+                        reconnecting = status == OnlineSession.Status.Reconnecting,
+                        onLeaveForNow = {
+                            lobby.leaveForNow()
+                            playMenu = true
+                            screen = Screen.Menu
+                        },
                     ),
                 )
             }

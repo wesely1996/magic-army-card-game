@@ -97,6 +97,10 @@ data class OnlineInfo(
     val ended: String? = null,
     val rematchMine: Boolean = false,
     val rematchTheirs: Boolean = false,
+    /** The connection dropped and is being restored; the battle goes on when it is. */
+    val reconnecting: Boolean = false,
+    /** Leave but keep the battle saved, to rejoin later. */
+    val onLeaveForNow: () -> Unit = {},
 )
 
 @Composable
@@ -225,6 +229,12 @@ fun GameScreen(
                             .padding(horizontal = 24.dp, vertical = 10.dp),
                     )
                 }
+                if (online?.reconnecting == true && s.phase != Phase.GAME_OVER) {
+                    ReconnectingBanner(
+                        vm.opponentLabel, online.onLeaveForNow,
+                        Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
+                    )
+                }
                 vm.lesson?.let { lesson ->
                     TutorialCoach(
                         lesson, vm.tutorialStep, onGotIt = vm::acknowledgeLesson,
@@ -298,7 +308,8 @@ fun GameScreen(
                 Text(
                     when {
                         vm.tutorial -> "You can replay the tutorial any time from Play or How to Play."
-                        vm.online -> "Online battles can't be resumed: leaving ends it and ${vm.opponentLabel} wins."
+                        vm.online -> "Leave for now keeps the battle: you can both rejoin it later from With friends. " +
+                            "Forfeit ends it and ${vm.opponentLabel} wins."
                         else -> "It's saved — resume it from the main menu. Forfeit ends it for good."
                     },
                     style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
@@ -309,7 +320,8 @@ fun GameScreen(
                     if (vm.tutorial) {
                         SketchButton("Leave", onExit, color = Ink.Gold)
                     } else if (vm.online) {
-                        SketchButton("Leave", onForfeit, color = Ink.Enemy)
+                        SketchButton("Leave for now", { online?.onLeaveForNow?.invoke() }, color = Ink.Gold)
+                        SketchButton("Forfeit", onForfeit, color = Ink.Enemy)
                     } else {
                         SketchButton("Leave", onExit, color = Ink.Gold)
                         SketchButton("Forfeit", onForfeit, color = Ink.Enemy)
@@ -566,6 +578,30 @@ private fun explanation(vm: GameViewModel): Pair<String, String> {
         else -> "Your turn: take one action." to
             "Move a unit, attack, use an ability or play a card. Tap one of your units to see where it can move and what it can attack, " +
             "or pick a card from your hand. Your opponent may interrupt before your action resolves."
+    }
+}
+
+/** Shown while an online battle's connection is being restored. */
+@Composable
+private fun ReconnectingBanner(friend: String, onLeaveForNow: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier
+            .widthIn(max = 460.dp)
+            .background(Ink.Paper.copy(alpha = 0.95f), RoundedCornerShape(14.dp))
+            .watercolor(Ink.Enemy, 404, 0.6f)
+            .sketchBorder(seed = 404, corner = 14.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("📡 Connection lost — reconnecting…", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "Waiting for $friend. Nothing is lost: moves are sent as soon as you're connected again.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        SketchButton("Leave for now", onLeaveForNow, small = true, color = Ink.PaperDeep)
     }
 }
 

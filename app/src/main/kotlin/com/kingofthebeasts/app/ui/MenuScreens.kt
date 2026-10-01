@@ -86,6 +86,8 @@ fun MenuScreen(
     playMenu: Boolean = false,
     onPlayMenu: (Boolean) -> Unit = {},
     onTutorial: () -> Unit = {},
+    /** Shown under With friends, e.g. an unfinished online battle. */
+    friendsLabel: String? = null,
     /** Offer the tutorial once, on first launch. */
     offerTutorial: Boolean = false,
     onTutorialOffered: () -> Unit = {},
@@ -125,7 +127,7 @@ fun MenuScreen(
                     SketchButton("🎓  Tutorial", onTutorial, wide, color = Ink.Gold)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("🤝  With friends", { onFriends?.invoke() }, wide, color = Ink.You, enabled = onFriends != null)
-                    Text(if (onFriends == null) "Online play — coming soon" else "Online, on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    Text(friendsLabel ?: if (onFriends == null) "Online play — coming soon" else "Online, on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("←  Back", { onPlayMenu(false) }, wide, color = Ink.PaperDeep)
                 }
@@ -369,8 +371,9 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
         "With friends" to "Play a friend on the same Wi-Fi. Pick your name and army, then one of you taps Host a game " +
             "and the other Join a game: hosted games show up in a list, or join by the address the host's screen shows. " +
             "You both need the same version of the game. Each phone runs the battle and only moves are sent, checked " +
-            "against each other after every action. Online battles can't be resumed; leaving one hands your friend the win, " +
-            "and after a battle you can both tap Rematch.",
+            "against each other after every action. If the connection drops the battle waits and reconnects by itself. " +
+            "Leave for now keeps it saved: tap Rejoin on both phones under With friends to carry on, even after closing the app. " +
+            "Forfeit hands your friend the win, and after a battle you can both tap Rematch.",
         "Battle log" to "Tap Details (or swipe the rail left) for the drawer: it covers most of the screen and explains " +
             "what is going on, the action queue, both armies, the field and recent events. Full battle log shows everything.",
         "Opponents" to "Easy plays on instinct and sometimes slips. Medium thinks 3 moves ahead: its move, your best reply, and its follow-up.",

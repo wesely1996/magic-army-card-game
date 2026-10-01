@@ -3,6 +3,19 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.9.0 — Rejoin dropped online games
+
+- **Dropped connections no longer end online battles.** The battle shows "Reconnecting…" and keeps going
+  once the phones find each other again: the host reopens the game on the Wi-Fi and the guest keeps trying
+  the host's last address, or finds the game again by name if the address changed.
+- **Nothing is lost:** moves made while disconnected are sent as soon as the connection is back, and each
+  side resends whatever the other missed. Checksums still confirm both copies match.
+- **Leave for now / Rejoin:** online battles are saved after every move. Leave for now (or closing the app)
+  keeps the battle; under **With friends** both players tap **Rejoin** to carry on. **Abandon** discards it,
+  and **Forfeit** still hands your friend the win.
+- The Play menu reminds you of an unfinished battle with a friend.
+- Network protocol version 2: 0.9.0 can't play online against 0.7.0 or 0.8.0 — update both phones.
+
 ## 0.8.0 — Tutorial battle
 
 - **Tutorial battle:** a guided first battle as the Pride King against a scripted rival Moon Howler.

@@ -126,6 +126,7 @@ class GameViewModel(
     private fun record(action: Action) {
         history += ActionCodec.encode(action)
         updateLesson()
+        if (state.phase == Phase.GAME_OVER) remote?.finished()
         // Online games (and the tutorial) can't be resumed: the friend's app would have moved on.
         if (remote == null && !tutorial) onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
     }

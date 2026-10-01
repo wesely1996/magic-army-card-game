@@ -16,16 +16,23 @@ import kotlinx.serialization.json.Json
  */
 @Serializable
 sealed interface NetMessage {
-    /** First message from both sides. Games only start when [protocol] and [cards] match. */
+    /**
+     * First message from both sides on every connection. Games only start when [protocol] and [cards]
+     * match. [rejoin] is set when the sender already has a battle with this friend and wants to go on.
+     */
     @Serializable @SerialName("hello")
-    data class Hello(val protocol: Int, val appVersion: String, val cards: Long, val name: String, val deck: Deck) : NetMessage
+    data class Hello(
+        val protocol: Int, val appVersion: String, val cards: Long, val name: String, val deck: Deck,
+        val rejoin: Rejoin? = null,
+    ) : NetMessage
 
-    /** Host → guest: a new game. [game] counts games in this session (rematches). */
+    /** Host → guest: a new game. [game] counts games in this [session] (rematches). */
     @Serializable @SerialName("start")
     data class Start(
         val game: Int, val seed: Long,
         val hostName: String, val guestName: String,
         val hostDeck: Deck, val guestDeck: Deck,
+        val session: Long = 0L,
     ) : NetMessage
 
     /** One action, encoded with ActionCodec. [index] is its place in the game's action list. */
@@ -49,9 +56,37 @@ sealed interface NetMessage {
     data class Reject(val reason: String) : NetMessage
 }
 
+/** "I have [have] actions of game [game] in session [session]": the other side sends what's missing. */
+@Serializable
+data class Rejoin(val session: Long, val game: Int, val have: Int)
+
+/**
+ * An online battle saved on this phone after every action, so it can be rejoined after a dropped
+ * connection or a restart. [acts] are all actions so far, both players', in order.
+ */
+@Serializable
+data class OnlineSave(
+    val isHost: Boolean,
+    val start: NetMessage.Start,
+    val acts: List<NetMessage.Act>,
+    /** Where the host was last reached (guest only), to reconnect. */
+    val hostAddress: String? = null,
+    val hostPort: Int = 0,
+) {
+    val peerName: String get() = if (isHost) start.guestName else start.hostName
+    val myName: String get() = if (isHost) start.hostName else start.guestName
+
+    fun encode(): String = json.encodeToString(serializer(), this)
+
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true; classDiscriminator = "t" }
+        fun decode(text: String): OnlineSave? = runCatching { json.decodeFromString(serializer(), text) }.getOrNull()
+    }
+}
+
 object NetProtocol {
     /** Bump whenever messages or game rules change in a way older versions can't follow. */
-    const val VERSION = 1
+    const val VERSION = 2
 
     /** Service type used to find games on the local network. */
     const val SERVICE_TYPE = "_kingbeasts._tcp."

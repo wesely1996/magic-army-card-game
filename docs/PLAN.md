@@ -65,7 +65,7 @@ race, King and starter deck between 44% and 55% wins, and new cards or rules are
 1. **0.8.0 — Tutorial battle.** *(done)* A guided first battle against a scripted opponent that teaches deployment,
    moving, attacking, playing Magic, answering an interrupt, Strategy fields, inspecting cards and the
    battle drawer, ending with defeating the enemy King. Offered on first launch and from How to Play.
-2. **0.9.0 — Rejoin dropped online games.** If the Wi-Fi connection drops, either player can reconnect and
+2. **0.9.0 — Rejoin dropped online games.** *(done)* If the Wi-Fi connection drops, either player can reconnect and
    both phones catch up from the shared move list instead of the battle ending.
 3. **0.10.0 — Hard AI.** Deeper search and smarter interrupts, for players who have outgrown Medium.
 4. **0.11.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
@@ -80,4 +80,4 @@ Ongoing, any time: custom painted card art (drop `art_<id>.webp` files in
 team colours, screen reader labels).
 
 Done: landscape 2.5D board and drawer (0.2), Vermin and racial traits (0.3), Champions and fields (0.4),
-animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8).
+animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8), rejoining dropped online games (0.9).

@@ -8,6 +8,8 @@ import com.kingofthebeasts.core.game.DecisionKind
 import com.kingofthebeasts.core.game.GameEngine
 import com.kingofthebeasts.core.net.NetMessage
 import com.kingofthebeasts.core.net.NetProtocol
+import com.kingofthebeasts.core.net.OnlineSave
+import com.kingofthebeasts.core.net.Rejoin
 import com.kingofthebeasts.core.net.checksum
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,7 +23,8 @@ class NetProtocolTest {
         val deck = StarterDecks.all[0]
         val messages = listOf(
             NetMessage.Hello(NetProtocol.VERSION, "0.7.0", NetProtocol.cardFingerprint, "Ana", deck),
-            NetMessage.Start(1, 42L, "Ana", "Ben", deck, StarterDecks.all[1]),
+            NetMessage.Hello(NetProtocol.VERSION, "0.9.0", NetProtocol.cardFingerprint, "Ana", deck, Rejoin(7L, 2, 31)),
+            NetMessage.Start(1, 42L, "Ana", "Ben", deck, StarterDecks.all[1], session = 7L),
             NetMessage.Act(1, 0, "D:5:3:0", 123L),
             NetMessage.Rematch(1),
             NetMessage.Leave,
@@ -34,6 +37,9 @@ class NetProtocolTest {
             assertEquals(m, NetProtocol.decode(line))
         }
         assertNull(NetProtocol.decode("not json"))
+        val save = OnlineSave(false, NetMessage.Start(1, 42L, "Ana", "Ben", deck, deck, 7L), listOf(NetMessage.Act(1, 0, "E", 5L)), "10.0.0.2", 47474)
+        assertEquals(save, OnlineSave.decode(save.encode()))
+        assertEquals("Ana", save.peerName)
     }
 
     @Test
