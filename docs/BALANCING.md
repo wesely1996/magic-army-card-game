@@ -1,6 +1,18 @@
 # How the game is balanced
 
-Target set by the product owner: **no race (clan) above a 55% win rate.**
+Target set by the product owner: **every race and every King wins between 44% and 55% of its games.**
+
+### v0.3.0 (6 races, racial traits, King immunity, unit slots, exhausted/discarded cards)
+
+| | First simulation after the v0.3 changes | After the balance pass |
+|---|---|---|
+| Race win rates | 44.7% – 67.1% | **49.7% – 54.0%** |
+| King win rates | 35.7% – 77.5% | **46.4% – 53.4%** |
+| Draws | 0% | **0%** |
+| First player wins | 51.6% | 54.0% |
+| Starter decks (overall) | 13.3% – 81.1% | **STARTERS** |
+
+### v0.2.0 (5 races)
 
 | | Before balancing | After |
 |---|---|---|
@@ -61,7 +73,35 @@ for that player. Human play will differ somewhat; the tools make it cheap to re-
 * **Removal spells (Savage Bite, Sunfire, Sky Strike) are the most powerful cards in a deck.** Moving
   two or three copies between starter decks swings a matchup by 20+ points.
 
-## Rule changes
+## v0.3.0 balance pass
+
+Four rounds of 4000 simulated games each, plus starter-deck round robins.
+
+* **What changed the picture.** Kings now only die to attacks, so a King's *effective health* (its health
+  plus its racial trait) decides most of its strength. The first simulation had the Bear Kings at 75–77%
+  (Thick Fur's +2 health on every unit) and the Pride King at 63% (Royal Pride's +3 King health), while the
+  Storm Eagle (5 effective health, and Tempest can no longer hit Kings) fell to 36%.
+* **Recycling favours defence.** Damage spells are exhausted, but heals, shields and Strategy cards come back
+  through the discard pile. Bear, the defensive race, gained the most from that, so its recyclable defence
+  was trimmed.
+* **Racial traits** were toned down to: Pack Tactics (Pack Hunter and +1 movement), Thick Fur (+1 health,
+  −1 movement for fast units), Eagle Eyes (+1 range for ranged units), Venom Blood (Poisonous, −1 attack
+  only for units with 3+ attack), Royal Pride (King +1 health and +1 attack, others −1 health), Endless Horde
+  (24 unit slots).
+* **Card changes:** Bear units −2 health in total (minimum 2), Thick Hide shield 3 → 2, Hibernate heal 4 → 3,
+  Den Fortress and Salmon Run last 3 turns, Bark Armor +2 health, Spirit Bear's ward cooldown 3; Wolf units
+  +1 health and +1 attack; Serpent units +1 health and +1 attack for 1-attack units; Crow Trickster's
+  counter cooldown 6; Grey Heron and Vulture −1 health; Rat King's Call the Mischief cooldown 2.
+* **King health** (base, before traits): Alpha Wolf 11, Moon Howler 8, Elder Bear 7, Cave Warden 7,
+  Sky Sovereign 10, Storm Eagle 8, Naga Queen 11, Basilisk 10, Pride King 10, Lioness Queen 8, Rat King 13,
+  Blight Seer 8.
+* **Starter decks:** Pack & Pride is led by the Alpha Wolf, Venom & Wings by the Naga Queen with fewer damage
+  spells, Mountain Clans swapped Bear Cubs for Kodiaks, Warren Horde is led by the Blight Seer with more
+  Shadow Blades, Night Skulkers and Mutant Brutes.
+
+## v0.2.0 rule changes
+
+
 
 * "+X for 1 turn" effects applied during the unit owner's own turn last through their next turn.
 * Exhaustion: from turn 120, each King loses 1 health (+1 every 20 turns) at the start of its owner's
@@ -70,7 +110,7 @@ for that player. Human play will differ somewhat; the tools make it cheap to re-
 * Commander (Pride King) reaches allies within 3 squares (was 2).
 * Call the Pack (Alpha Wolf) is a passive: a Wolf Pup token at the start of each of your turns, at most 2.
 
-## Card changes
+## v0.2.0 card changes
 
 | Card | Before | After |
 |---|---|---|
@@ -119,7 +159,7 @@ solver (20 Elo per point of King health) suggested +2 HP for him and −2 for th
 Wolf; he got +2, and the other two −1 each (half steps, as full steps overshot before). After that the
 Kings sit between 45.9% and 51.9% (Pride King back to 45.9%) and races between 48.7% and 53.6%.
 
-## Starter decks
+## v0.2.0 starter decks
 
 * **Pack & Pride:** −1 Savage Bite, +1 Lion Cub.
 * **Venom & Wings:** led by the Basilisk instead of the Naga Queen. 3 Falcons and 2 Murky Swamps were
