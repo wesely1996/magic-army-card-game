@@ -213,9 +213,9 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 12, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
-        add(king("l_king_queen", "Lioness Queen", LION, 4, 9, 2, 1, setOf(PACK_HUNTER, ARMORED),
+        add(king("l_king_queen", "Lioness Queen", LION, 4, 10, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 4), 2, effects = listOf(EffectOp.Pounce)),
             flavor = "You never see the first strike."))
@@ -257,7 +257,7 @@ object CardDatabase {
             ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
-        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 8, 2, 2, setOf(HIDDEN),
+        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 7, 2, 2, setOf(HIDDEN),
             ability("Blight Bolt", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1)))),
