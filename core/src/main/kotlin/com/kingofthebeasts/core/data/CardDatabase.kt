@@ -69,7 +69,7 @@ object CardDatabase {
         add(unit("w_runner", "Howling Runner", WOLF, 3, 4, 4, 1, setOf(PACK_HUNTER)))
         add(unit("w_ghost", "Ghost Wolf", WOLF, 4, 4, 3, 1, setOf(HIDDEN)))
         add(unit("w_ravager", "Pack Ravager", WOLF, 5, 6, 2, 1, setOf(PACK_HUNTER, RETALIATE), elite = true))
-        add(unit("w_packlord", "Ironjaw Packlord", WOLF, 6, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
+        add(unit("w_packlord", "Ironjaw Packlord", WOLF, 5, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
             arrival = summons("w_pup", 2), text = "Arrival: two Wolf Pups appear next to him.", champion = true))
         add(unit("w_midnight", "Midnight Fang", WOLF, 5, 8, 3, 1, setOf(HIDDEN, BACKSTAB), champion = true))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
@@ -141,7 +141,7 @@ object CardDatabase {
             TargetRule.ENEMY, Damage(2), Stun(1), rank = 2))
         add(magic("b_winter", "Long Winter's Rest", BEAR, "Heal an allied unit and allies next to it by 2.",
             TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Heal(2)), rank = 2))
-        add(equipment("b_harness", "War Harness", BEAR, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))
+        add(equipment("b_harness", "War Harness", BEAR, "+1 attack and +1 health.", Buff(attack = 1, health = 1)))
         add(equipment("b_coat", "Winter Coat", BEAR, "Regenerate.", GrantKeyword(REGENERATE)))
         add(equipment("b_totem", "Stone Totem", BEAR, "Immovable and +2 health.", GrantKeyword(IMMOVABLE), Buff(health = 2)))
         add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY))
@@ -150,7 +150,7 @@ object CardDatabase {
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 11, 3, 2, setOf(FLYING),
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 12, 3, 2, setOf(FLYING),
             ability("Change of Winds", "Swap places with any allied unit.", TargetRule.FRIENDLY, 2,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
@@ -193,7 +193,7 @@ object CardDatabase {
             TargetRule.ENEMY, Area(1, Side.ENEMY, includeCenter = true, op = Stun(1)), rank = 2))
         add(magic("h_eagleeye", "Eagle Eye", HAWK, "An allied unit gets +1 range for 2 turns. Draw a card.",
             TargetRule.FRIENDLY, Buff(range = 1, turns = 2), EffectOp.Draw(1)))
-        add(equipment("h_plume", "Storm Plume", HAWK, "Flying and +1 movement.", GrantKeyword(FLYING), Buff(move = 1)))
+        add(equipment("h_plume", "Storm Plume", HAWK, "Flying, +1 attack and +1 movement.", GrantKeyword(FLYING), Buff(attack = 1, move = 1)))
         add(equipment("h_hood", "Falconer's Hood", HAWK, "Retaliate and +1 health.", GrantKeyword(RETALIATE), Buff(health = 1)))
         add(equipment("h_steel", "Steel Feathers", HAWK, "Armored.", GrantKeyword(ARMORED)))
         add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND))
@@ -259,7 +259,7 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 12, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
         add(king("l_king_queen", "Lioness Queen", LION, 4, 10, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
@@ -361,13 +361,13 @@ object CardDatabase {
         add(magic("v_rot", "Creeping Rot", VERMIN, "An enemy unit gets −2 attack and −1 movement for 2 turns.",
             TargetRule.ENEMY, Buff(attack = -2, move = -1, turns = 2), rank = 2))
         add(equipment("v_blades", "Rusty Blades", VERMIN, "+2 attack.", Buff(attack = 2)))
-        add(equipment("v_mask", "Plague Mask", VERMIN, "Poisonous and Regenerate.", GrantKeyword(POISONOUS), GrantKeyword(REGENERATE)))
-        add(equipment("v_rags", "Tattered Hood", VERMIN, "Hidden.", GrantKeyword(HIDDEN)))
+        add(equipment("v_mask", "Plague Mask", VERMIN, "Poisonous, Regenerate and +1 health.", GrantKeyword(POISONOUS), GrantKeyword(REGENERATE), Buff(health = 1)))
+        add(equipment("v_rags", "Tattered Hood", VERMIN, "Hidden and +1 attack.", GrantKeyword(HIDDEN), Buff(attack = 1)))
         add(strategy("v_tunnels", "Warren Tunnels", VERMIN, FieldRule.TUNNELS))
         add(strategy("v_plague", "Creeping Plague", VERMIN, FieldRule.PLAGUE))
         add(equipment("v_grafts", "Mutant Grafts", VERMIN, "+2 attack and +2 health, but −1 movement.",
             Buff(attack = 2, health = 2, move = -1)))
-        add(equipment("v_cloak", "Shadow Cloak", VERMIN, "Hidden and Backstab.", GrantKeyword(HIDDEN), GrantKeyword(BACKSTAB)))
+        add(equipment("v_cloak", "Shadow Cloak", VERMIN, "Hidden, Backstab and +1 movement.", GrantKeyword(HIDDEN), GrantKeyword(BACKSTAB), Buff(move = 1)))
     }
 
     @Volatile private var current: List<CardDef> = base
