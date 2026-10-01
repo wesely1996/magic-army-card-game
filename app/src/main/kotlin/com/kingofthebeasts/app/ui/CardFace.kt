@@ -84,32 +84,33 @@ private fun Modifier.cardFrame(def: CardDef): Modifier = drawWithContent {
         Ink.Line.copy(alpha = 0.55f), Offset(i, i), Size(size.width - 2 * i, size.height - 2 * i),
         CornerRadius(r * 0.7f), style = Stroke(s * 0.009f),
     )
-    val corners = listOf(Offset(t * 1.6f, t * 1.6f), Offset(size.width - t * 1.6f, t * 1.6f),
-        Offset(t * 1.6f, size.height - t * 1.6f), Offset(size.width - t * 1.6f, size.height - t * 1.6f))
+    // Corner ornaments sit on the band so they stay clear of the name banner.
+    val k = t * 1.1f
+    val corners = listOf(Offset(k, k), Offset(size.width - k, k), Offset(k, size.height - k), Offset(size.width - k, size.height - k))
     when (def.type) {
         CardType.UNIT -> corners.forEach { c ->
             // Square shield studs.
-            val h = t * 0.75f
+            val h = t * 0.6f
             drawRect(band, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h))
             drawRect(Ink.Line, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h), style = Stroke(s * 0.008f))
         }
         CardType.MAGIC -> corners.forEach { c ->
             // Four-point stars with a soft glow.
-            drawCircle(band.copy(alpha = 0.35f), t * 1.3f, c)
-            drawPath(star(c, t * 1.25f, t * 0.35f), band)
-            drawPath(star(c, t * 1.25f, t * 0.35f), Ink.Line, style = Stroke(s * 0.006f))
+            drawCircle(band.copy(alpha = 0.35f), t * 1.1f, c)
+            drawPath(star(c, t * 1.0f, t * 0.3f), band)
+            drawPath(star(c, t * 1.0f, t * 0.3f), Ink.Line, style = Stroke(s * 0.006f))
         }
         CardType.STRATEGY -> {
-            // A dashed "map" line and a pennant at the top.
-            val d = t * 1.9f
+            // A dashed "map" line just inside the band, and a pennant at the top.
+            val d = t * 1.2f
             drawRoundRect(
                 band.copy(alpha = 0.9f), Offset(d, d), Size(size.width - 2 * d, size.height - 2 * d), CornerRadius(r * 0.5f),
                 style = Stroke(s * 0.012f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(s * 0.04f, s * 0.025f))),
             )
             val cx = size.width / 2
             val flag = Path().apply {
-                moveTo(cx - t * 1.4f, 0f); lineTo(cx + t * 1.4f, 0f); lineTo(cx + t * 1.4f, t * 2.4f)
-                lineTo(cx, t * 1.6f); lineTo(cx - t * 1.4f, t * 2.4f); close()
+                moveTo(cx - t * 1.2f, 0f); lineTo(cx + t * 1.2f, 0f); lineTo(cx + t * 1.2f, t * 1.8f)
+                lineTo(cx, t * 1.25f); lineTo(cx - t * 1.2f, t * 1.8f); close()
             }
             drawPath(flag, band)
             drawPath(flag, Ink.Line, style = Stroke(s * 0.008f))
@@ -200,7 +201,8 @@ fun CardFace(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(w * 0.04f)
+                    // Clear of the type frame (band, corner ornaments and the Strategy pennant).
+                    .padding(start = w * 0.07f, end = w * 0.07f, top = w * 0.1f, bottom = w * 0.02f)
                     .watercolor(raceColor, seed, 1.4f)
                     .sketchBorder(Ink.Line, w * 0.012f, w * 0.05f, seed)
                     .padding(horizontal = w * 0.05f, vertical = w * 0.01f),
@@ -237,7 +239,7 @@ fun CardFace(
             // Base stats, each in its own field
             def.unit?.let { st ->
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = w * 0.04f),
+                    Modifier.fillMaxWidth().padding(horizontal = w * 0.065f),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     StatField("ATK", st.attack, Ink.Attack, w, seed + 2)
@@ -252,7 +254,8 @@ fun CardFace(
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(if (full) 1.55f else 2.3f)
-                    .padding(w * 0.04f)
+                    // Inside the type frame and its corner ornaments.
+                    .padding(start = w * 0.075f, end = w * 0.075f, top = w * 0.02f, bottom = w * 0.075f)
                     .background(Ink.Paper.copy(alpha = 0.88f), RoundedCornerShape(w * 0.04f))
                     .sketchBorder(Ink.Line, w * 0.01f, w * 0.04f, seed + 6)
                     .padding(horizontal = w * 0.05f, vertical = w * 0.025f),
