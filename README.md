@@ -46,11 +46,11 @@ The art is hand-drawn ink over watercolor washes.
 
 | Race | Style | Racial trait (army led by this race's King) | King 1 | King 2 |
 |---|---|---|---|---|
-| 🐺 Wolf Pack | speed, pack attacks | **Pack Tactics**: all your units have Pack Hunter | **Alpha Wolf** – *Call the Pack*: a Wolf Pup joins at the start of each of your turns (up to 2) | **Moon Howler** – *Bloodthirst*: every enemy death heals it and adds +1 attack |
-| 🐻 Bear Clan | toughness, regeneration | **Thick Fur**: +2 health, but units with 3+ movement get −1 movement | **Elder Bear** – *Unstoppable*: can't be stunned, takes ≤3 per hit; *Earthshaker Roar* | **Cave Warden** – *Guardian*: adjacent allies take 1 less damage; regenerates |
-| 🦅 Hawk Aerie | flying, range | **Eagle Eyes**: ranged units +1 range, but all units −1 health | **Sky Sovereign** – *Change of Winds*: instantly swap places with any ally (interrupt!) | **Storm Eagle** – *Tempest* zaps a random non-King enemy within 3 squares every turn; *Lightning Strike* stun |
-| 🐍 Serpent Coil | poison, denial | **Venom Blood**: all units Poisonous, but −1 attack | **Naga Queen** – *Enthrall*: steal a weakened enemy unit | **Basilisk** – *Petrifying Gaze*: everything it bites is stunned |
-| 🦁 Lion Pride | leadership, buffs | **Royal Pride**: King +3 health and +1 attack, other units −1 health | **Pride King** – *Commander*: allies within 3 get +1 attack | **Lioness Queen** – *Pounce*: leap across the board and strike |
+| 🐺 Wolf Pack | speed, pack attacks | **Pack Tactics**: all your units have Pack Hunter and +1 movement | **Alpha Wolf** – *Call the Pack*: a Wolf Pup joins at the start of each of your turns (up to 2) | **Moon Howler** – *Bloodthirst*: every enemy death heals it and adds +1 attack |
+| 🐻 Bear Clan | toughness, regeneration | **Thick Fur**: +1 health, but units with 3+ movement get −1 movement | **Elder Bear** – *Unstoppable*: can't be stunned, takes ≤3 per hit; *Earthshaker Roar* | **Cave Warden** – *Guardian*: adjacent allies take 1 less damage; regenerates |
+| 🦅 Hawk Aerie | flying, range | **Eagle Eyes**: ranged units (range 2+) get +1 range | **Sky Sovereign** – *Change of Winds*: instantly swap places with any ally (interrupt!) | **Storm Eagle** – *Tempest* zaps a random non-King enemy within 3 squares every turn; *Lightning Strike* stun |
+| 🐍 Serpent Coil | poison, denial | **Venom Blood**: all units Poisonous, but units with 3+ attack get −1 attack | **Naga Queen** – *Enthrall*: steal a weakened enemy unit | **Basilisk** – *Petrifying Gaze*: everything it bites is stunned |
+| 🦁 Lion Pride | leadership, buffs | **Royal Pride**: King +1 health and +1 attack, other units −1 health | **Pride King** – *Commander*: allies within 3 get +1 attack | **Lioness Queen** – *Pounce*: leap across the board and strike |
 | 🐀 Vermin Horde | hiding, backstabs, swarms | **Endless Horde**: 24 unit slots instead of 16 | **Rat King** – *Call the Mischief*: two Swarm Rats appear next to him | **Blight Seer** – Hidden; *Blight Bolt* hurts the target and everything around it, friend or foe |
 
 ## Project layout

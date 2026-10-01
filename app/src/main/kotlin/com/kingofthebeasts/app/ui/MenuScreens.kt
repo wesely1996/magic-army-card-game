@@ -247,10 +247,11 @@ fun RulesScreen(onBack: () -> Unit) {
     val sections = listOf(
         "Goal" to "Defeat the enemy King. If your King falls, you lose.",
         "Decks" to "Build a 40-card deck from up to 3 of the 6 races. It must contain exactly one King. At most 3 copies of any other card.",
-        "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter. " +
-            "Bear — Thick Fur: +2 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged units +1 range, " +
-            "but all units −1 health. Serpent — Venom Blood: all units are Poisonous, but −1 attack. Lion — Royal Pride: your King " +
-            "gets +3 health and +1 attack, other units −1 health. Vermin — Endless Horde: 24 unit slots instead of 16.",
+        "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter " +
+            "and +1 movement. Bear — Thick Fur: +1 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged " +
+            "units get +1 range. Serpent — Venom Blood: all units are Poisonous, but units with 3+ attack get −1 attack. " +
+            "Lion — Royal Pride: your King gets +1 health and +1 attack, other units −1 health. " +
+            "Vermin — Endless Horde: 24 unit slots instead of 16.",
         "Kings are special" to "Kings take no damage from Magic cards or abilities — only attacks (and Exhaustion) can bring them " +
             "down. They are Immovable: nothing can push, swap or replace them. And they don't take a unit slot.",
         "Used cards" to "Unit cards, equipment and spells that deal damage or summon units are exhausted: once used they are " +

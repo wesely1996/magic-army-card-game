@@ -19,7 +19,9 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **5 new units** for each of the five original races, all with new watercolor art.
 - New keywords: Hidden, Backstab, Brood, Immovable; arrival effects.
 - APKs are named `KingOfTheBeasts-<version>.apk`.
-- BALANCE_PLACEHOLDER
+- **Rebalanced** for the new target of 44–55% for every race and every King: races 49.7–54.0%,
+  Kings 46.4–53.4%, starter decks 44.9–54.9%. Racial traits, King health and many cards were tuned; see
+  [docs/BALANCING.md](docs/BALANCING.md).
 
 ## 0.2.0 — Landscape, balance and displacement spells
 

@@ -10,7 +10,7 @@ Target set by the product owner: **every race and every King wins between 44% an
 | King win rates | 35.7% – 77.5% | **46.4% – 53.4%** |
 | Draws | 0% | **0%** |
 | First player wins | 51.6% | 54.0% |
-| Starter decks (overall) | 13.3% – 81.1% | **STARTERS** |
+| Starter decks (overall) | 13.3% – 81.1% | **44.9% – 54.9%** |
 
 ### v0.2.0 (5 races)
 

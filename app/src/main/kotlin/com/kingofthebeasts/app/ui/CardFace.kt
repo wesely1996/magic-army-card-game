@@ -38,8 +38,10 @@ import androidx.compose.ui.unit.em
 import com.kingofthebeasts.app.ui.theme.BrushFont
 import com.kingofthebeasts.app.ui.theme.HandFont
 import com.kingofthebeasts.app.ui.theme.Ink
+import com.kingofthebeasts.core.data.CardDatabase
 import com.kingofthebeasts.core.model.CardDef
 import com.kingofthebeasts.core.model.CardType
+import com.kingofthebeasts.core.model.EffectOp
 
 const val CARD_ASPECT = 5f / 7f
 
@@ -50,6 +52,10 @@ fun cardText(def: CardDef, full: Boolean): String {
     return buildList {
         u.keywords.forEach { add(it.displayName) }
         u.abilities.forEach { add(it.name + if (it.quick) " ⚡" else "") }
+        // e.g. "Arrival: +2 Swarm Rat"
+        u.arrival.filterIsInstance<EffectOp.Summon>().groupBy { it.cardId }.forEach { (id, list) ->
+            add("Arrival: +${list.size} ${CardDatabase.get(id).name}")
+        }
     }.joinToString(" · ").ifEmpty { if (u.isKing) "King" else "" }
 }
 
