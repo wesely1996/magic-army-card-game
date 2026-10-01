@@ -11,6 +11,7 @@ class DeckRepository(context: Context) {
 
     fun load(): List<Deck> = runCatching { if (file.exists()) DeckCodec.decode(file.readText()) else emptyList() }
         .getOrDefault(emptyList())
+        .map { it.withoutUnknownCards() }
 
     fun save(decks: List<Deck>) {
         val tmp = File(file.parentFile, "decks.json.tmp")

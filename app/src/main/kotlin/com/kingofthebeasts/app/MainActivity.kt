@@ -18,6 +18,7 @@ import com.kingofthebeasts.app.game.GameScreen
 import com.kingofthebeasts.app.game.GameViewModel
 import com.kingofthebeasts.app.ui.DeckBuilderScreen
 import com.kingofthebeasts.app.ui.DeckListScreen
+import com.kingofthebeasts.app.ui.DeckViewScreen
 import com.kingofthebeasts.app.ui.MenuScreen
 import com.kingofthebeasts.app.ui.PlaySetupScreen
 import com.kingofthebeasts.app.ui.RulesScreen
@@ -39,6 +40,8 @@ private sealed interface Screen {
     data object Menu : Screen
     data object Decks : Screen
     data class Builder(val deck: Deck?) : Screen
+    /** A starter deck, read-only. */
+    data class ViewDeck(val deck: Deck) : Screen
     data object Setup : Screen
     data class Battle(
         val player: Deck,
@@ -78,7 +81,7 @@ private fun App() {
     }
 
     BackHandler(enabled = screen != Screen.Menu && screen !is Screen.Battle) {
-        screen = if (screen is Screen.Builder) Screen.Decks else Screen.Menu
+        screen = if (screen is Screen.Builder || screen is Screen.ViewDeck) Screen.Decks else Screen.Menu
     }
 
     when (val s = screen) {
@@ -98,6 +101,12 @@ private fun App() {
             onBack = { screen = Screen.Menu },
             onEdit = { screen = Screen.Builder(it) },
             onDelete = { d -> saveDecks(decks.filter { it.name != d.name }) },
+            onView = { screen = Screen.ViewDeck(it) },
+        )
+        is Screen.ViewDeck -> DeckViewScreen(
+            deck = s.deck,
+            onBack = { screen = Screen.Decks },
+            onCopy = { screen = Screen.Builder(s.deck.copy(name = s.deck.name + " (copy)")) },
         )
         is Screen.Builder -> DeckBuilderScreen(
             initial = s.deck,

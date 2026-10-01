@@ -24,6 +24,9 @@ data class Deck(
 
     fun cardIds(): List<String> = cards.flatMap { (id, n) -> List(n) { id } }
 
+    /** Drops cards that no longer exist (removed or renamed in an update), so old decks still open. */
+    fun withoutUnknownCards(): Deck = copy(cards = cards.filterKeys { CardDatabase.find(it) != null })
+
     fun withCount(cardId: String, count: Int): Deck =
         copy(cards = if (count <= 0) cards - cardId else cards + (cardId to count))
 }

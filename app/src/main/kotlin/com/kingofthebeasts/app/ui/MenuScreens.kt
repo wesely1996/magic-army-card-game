@@ -138,6 +138,8 @@ fun DeckListScreen(
     onBack: () -> Unit,
     onEdit: (Deck?) -> Unit,
     onDelete: (Deck) -> Unit,
+    /** Opens a starter deck read-only. */
+    onView: (Deck) -> Unit = {},
 ) {
     var confirmDelete by remember { mutableStateOf<Deck?>(null) }
     PaperBackground {
@@ -151,7 +153,7 @@ fun DeckListScreen(
                     )
                 }
                 items(decks, key = { "mine-" + it.name }) { d ->
-                    DeckRow(d) {
+                    DeckRow(d, onClick = { onEdit(d) }) {
                         SketchButton("Edit", { onEdit(d) }, small = true, color = Ink.You)
                         Spacer(Modifier.width(6.dp))
                         SketchButton("✕", { confirmDelete = d }, small = true, color = Ink.Enemy)
@@ -159,7 +161,11 @@ fun DeckListScreen(
                 }
                 item { Text("Starter decks", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp)) }
                 items(StarterDecks.all, key = { "starter-" + it.name }) { d ->
-                    DeckRow(d) { SketchButton("Copy", { onEdit(d.copy(name = d.name + " (copy)")) }, small = true, color = Ink.Gold) }
+                    DeckRow(d, onClick = { onView(d) }) {
+                        SketchButton("View", { onView(d) }, small = true, color = Ink.You)
+                        Spacer(Modifier.width(6.dp))
+                        SketchButton("Copy", { onEdit(d.copy(name = d.name + " (copy)")) }, small = true, color = Ink.Gold)
+                    }
                 }
                 item { Spacer(Modifier.height(24.dp)) }
             }

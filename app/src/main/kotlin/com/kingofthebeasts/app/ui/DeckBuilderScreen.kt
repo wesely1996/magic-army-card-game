@@ -54,7 +54,7 @@ fun DeckBuilderScreen(
     onBack: () -> Unit,
     onSave: (Deck) -> Unit,
 ) {
-    var deck by remember { mutableStateOf(initial ?: Deck("", emptyList(), emptyMap())) }
+    var deck by remember { mutableStateOf(initial?.withoutUnknownCards() ?: Deck("", emptyList(), emptyMap())) }
     var filter by remember { mutableStateOf<CardType?>(null) }
     var preview by remember { mutableStateOf<CardDef?>(null) }
     val errors = DeckRules.validate(deck)
@@ -62,7 +62,7 @@ fun DeckBuilderScreen(
 
     fun toggleRace(r: Race) {
         deck = if (r in deck.races) {
-            deck.copy(races = deck.races - r, cards = deck.cards.filterKeys { CardDatabase.get(it).race != r })
+            deck.copy(races = deck.races - r, cards = deck.cards.filterKeys { CardDatabase.find(it)?.race != r })
         } else if (deck.races.size < DeckRules.MAX_RACES) {
             deck.copy(races = deck.races + r)
         } else deck
@@ -138,7 +138,7 @@ fun DeckBuilderScreen(
                         }
                     }
                     Spacer(Modifier.height(10.dp))
-                    val king = deck.cards.keys.map { CardDatabase.get(it) }.filter { it.isKing }
+                    val king = deck.cards.keys.mapNotNull { CardDatabase.find(it) }.filter { it.isKing }
                     Text(
                         "Cards ${deck.mainSize}/${DeckRules.DECK_SIZE} + King: ${king.joinToString { it.name }.ifEmpty { "none yet" }}  ·  " +
                             "Strategy ${deck.strategyCount}/${DeckRules.MAX_STRATEGY}",
@@ -180,7 +180,7 @@ fun DeckBuilderScreen(
                                     SketchButton(
                                         "+", { deck = deck.withCount(def.id, count + 1) }, small = true, color = Ink.Deploy,
                                         enabled = count < def.maxCopies && when {
-                                            def.isKing -> deck.cards.keys.none { CardDatabase.get(it).isKing }
+                                            def.isKing -> deck.cards.keys.none { CardDatabase.find(it)?.isKing == true }
                                             def.type == CardType.STRATEGY -> deck.mainSize < DeckRules.DECK_SIZE && deck.strategyCount < DeckRules.MAX_STRATEGY
                                             else -> deck.mainSize < DeckRules.DECK_SIZE
                                         },
