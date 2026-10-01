@@ -47,7 +47,7 @@ object CardDatabase {
 
     private val base: List<CardDef> = buildList {
         // ------------------------------------------------------------------ WOLF
-        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 11, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
+        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 10, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
         add(king("w_king_moon", "Moon Howler", WOLF, 2, 8, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
@@ -150,7 +150,7 @@ object CardDatabase {
             ability("Talon Dive", "Deal 2 damage to an enemy within 2.", TargetRule(TargetKind.ENEMY_UNIT, 2), 3,
                 effects = listOf(Damage(2)))))
         add(unit("h_vulture", "Vulture", HAWK, 2, 3, 2, 1, setOf(FLYING, REGENERATE), elite = true))
-        add(unit("h_thunderbird", "Thunderbird", HAWK, 4, 9, 3, 3, setOf(FLYING),
+        add(unit("h_thunderbird", "Thunderbird", HAWK, 4, 10, 3, 3, setOf(FLYING),
             ability("Thunderclap", "Deal 2 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3, effects = listOf(Damage(2), Stun(1))),
             champion = true))
@@ -213,9 +213,9 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 10, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
-        add(king("l_king_queen", "Lioness Queen", LION, 4, 8, 2, 1, setOf(PACK_HUNTER, ARMORED),
+        add(king("l_king_queen", "Lioness Queen", LION, 4, 9, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 4), 2, effects = listOf(EffectOp.Pounce)),
             flavor = "You never see the first strike."))
@@ -234,7 +234,7 @@ object CardDatabase {
         add(unit("l_stalker", "Savanna Stalker", LION, 3, 4, 3, 1, setOf(HIDDEN)))
         add(unit("l_cheetah", "Cheetah Outrider", LION, 3, 3, 5, 1, setOf(PACK_HUNTER)))
         add(unit("l_champion", "Pride Champion", LION, 5, 7, 2, 1, setOf(RETALIATE), elite = true))
-        add(unit("l_paragon", "Sunmane Paragon", LION, 6, 11, 2, 1, setOf(ARMORED, RETALIATE),
+        add(unit("l_paragon", "Sunmane Paragon", LION, 7, 12, 2, 1, setOf(ARMORED, RETALIATE),
             ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
             champion = true))
@@ -253,8 +253,8 @@ object CardDatabase {
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
         // ---------------------------------------------------------------- VERMIN
-        add(king("v_king_rat", "Rat King", VERMIN, 3, 13, 2, 1, emptySet(),
-            ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 2,
+        add(king("v_king_rat", "Rat King", VERMIN, 3, 12, 2, 1, emptySet(),
+            ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
         add(king("v_king_seer", "Blight Seer", VERMIN, 2, 8, 2, 2, setOf(HIDDEN),
@@ -280,7 +280,7 @@ object CardDatabase {
             ability("Blight Spark", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
-        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 7, 12, 1, 1, setOf(RETALIATE, REGENERATE),
+        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 6, 11, 1, 1, setOf(RETALIATE, REGENERATE),
             arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
         add(magic("v_blightfire", "Blightfire", VERMIN,
             "Deal 4 damage to an enemy unit and 1 damage to every other unit next to it, friend or foe.",

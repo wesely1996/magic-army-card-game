@@ -30,7 +30,7 @@ object GameEngine {
      */
     const val MAX_UNITS_ON_FIELD = 16
     /** Unit slots for an army with the Endless Horde trait (Vermin King). */
-    const val HORDE_UNITS_ON_FIELD = 24
+    const val HORDE_UNITS_ON_FIELD = 22
     /** Extra attack for Backstab when attacking from behind. */
     const val BACKSTAB_BONUS = 2
     /** Turns a Brood unit keeps spawning Swarm Rats. */
@@ -159,6 +159,7 @@ object GameEngine {
     fun moveOf(s: GameState, u: UnitState): Int {
         var m = u.move + u.mods.sumOf { it.move }
         if (s.fieldActive(u.owner, FieldRule.TAILWIND)) m += 1
+        if (s.fieldActive(u.owner, FieldRule.WAR_DRUMS)) m += 1
         if (s.fieldActive(1 - u.owner, FieldRule.SWAMP)) m -= 1
         return max(0, m)
     }
@@ -769,7 +770,7 @@ object GameEngine {
             RacialTrait.ROYAL_PRIDE -> if (u.isKing) {
                 health(+1)
                 u.attack += 1
-            } else health(-1)
+            }
             RacialTrait.ENDLESS_HORDE, null -> {}
         }
     }

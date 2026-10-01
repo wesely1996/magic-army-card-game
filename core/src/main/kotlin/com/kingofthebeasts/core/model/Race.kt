@@ -30,8 +30,8 @@ enum class RacialTrait(val displayName: String, val description: String) {
     THICK_FUR("Thick Fur", "Your units have +1 health, but units with 3 or more movement get −1 movement."),
     EAGLE_EYES("Eagle Eyes", "Your ranged units (range 2+) get +1 range."),
     VENOM_BLOOD("Venom Blood", "All your units are Poisonous, but units with 3 or more attack get −1 attack."),
-    ROYAL_PRIDE("Royal Pride", "Your King has +1 health and +1 attack, but your other units have −1 health (never below 1)."),
-    ENDLESS_HORDE("Endless Horde", "You have 24 unit slots instead of 16."),
+    ROYAL_PRIDE("Royal Pride", "Your King has +1 health and +1 attack."),
+    ENDLESS_HORDE("Endless Horde", "You have 22 unit slots instead of 16."),
 }
 
 /**

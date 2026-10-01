@@ -251,8 +251,8 @@ fun RulesScreen(onBack: () -> Unit) {
         "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter " +
             "and +1 movement. Bear — Thick Fur: +1 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged " +
             "units get +1 range. Serpent — Venom Blood: all units are Poisonous, but units with 3+ attack get −1 attack. " +
-            "Lion — Royal Pride: your King gets +1 health and +1 attack, other units −1 health. " +
-            "Vermin — Endless Horde: 24 unit slots instead of 16.",
+            "Lion — Royal Pride: your King gets +1 health and +1 attack. " +
+            "Vermin — Endless Horde: 22 unit slots instead of 16.",
         "Kings are special" to "Kings take no damage from Magic cards or abilities — only attacks (and Exhaustion) can bring them " +
             "down. They are Immovable: nothing can push, swap or replace them. And they don't take a unit slot.",
         "Used cards" to "Unit cards, equipment, Strategy cards and spells that deal damage or summon units are exhausted: once used " +
@@ -281,7 +281,7 @@ fun RulesScreen(onBack: () -> Unit) {
         "Exhaustion" to "From turn 120 on, each King loses health at the start of its owner's turn (1, rising by 1 every 20 turns) " +
             "and can no longer be healed, so every battle reaches an ending.",
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
-            "that is at least 2 squares away from every enemy. Each side has 16 unit slots (24 with the Endless Horde): " +
+            "that is at least 2 squares away from every enemy. Each side has 16 unit slots (22 with the Endless Horde): " +
             "Champions take 3 slots, Elite units 2, other units 1 and the King none. Summoned and enthralled units count too.",
         "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ quick ability — " +
             "and they may respond to that, and so on. Then everything resolves from the last response back to the first. " +

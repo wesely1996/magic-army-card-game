@@ -184,7 +184,7 @@ enum class FieldRule(val displayName: String, val description: String) {
     TAILWIND("Tailwind", "Your units get +1 movement and Flying."),
     SWAMP("Swamp", "Enemy units get −1 movement and −1 attack (never below 1)."),
     SILENCE("Silence", "Your opponent can't interrupt your actions."),
-    WAR_DRUMS("War Drums", "Your units get +1 attack."),
+    WAR_DRUMS("War Drums", "Your units get +1 attack and +1 movement."),
     AMBUSH("Ambush", "You may play units anywhere in your half of the board (still 2+ squares from enemies)."),
     TUNNELS("Warren Tunnels", "Your units are Hidden."),
     PLAGUE("Creeping Plague", "At the start of your turn, every enemy unit next to one of your units takes 1 damage (not Kings)."),

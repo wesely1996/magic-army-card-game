@@ -35,7 +35,7 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Decks: 40 cards plus the King. Stars set the copy limit: ★ 3, ★★ 2, ★★★ 1. At most 3 Strategy cards.
 - Unit tiers: ★ normal (1 slot), ★★ Elite (2 slots), ★★★ Champion (3 slots). Magic ranked ★ to ★★★.
 - Strategy cards are fields: one on the battlefield at a time, until any Strategy card replaces it; exhausted after use.
-- Unit slots: 16 per side (24 with the Endless Horde trait). Kings take none.
+- Unit slots: 16 per side (22 with the Endless Horde trait). Kings take none.
 - Kings take no damage from Magic cards or abilities and are Immovable (can't be pushed, swapped or replaced).
 - Racial trait: the race of the deck's King gives the army a bonus (sometimes with a drawback).
 - Used cards: units, equipment, Strategy cards, damage and summoning spells are exhausted (out of the game); other
