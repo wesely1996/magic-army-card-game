@@ -3,6 +3,28 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.11.0 — 30 new cards, gentler Beginner and Pro
+
+- **30 new cards, 5 per race, each race with its own focus:**
+  - **Wolf Pack — units:** a third Champion, **Fenrir the Devourer** (6/10, Bloodthirst, Retaliate), and three
+    Elites: **Rimefang Alpha** (Frost Bite stuns), **Warg Rider** (4 movement) and **Howling Elder** (War Howl
+    boosts allies within 2); plus **Moonlit Pursuit**.
+  - **Bear Clan — equipment:** Horned Helm, Stone Gauntlets, Bearhide Plate, Clan Standard (Guardian) and the
+    spell Tremor.
+  - **Hawk Aerie — magic:** Lightning Jolt, Wind Shear, Keen Sight (draw 2), Rain of Feathers and the Windrider
+    Harness.
+  - **Serpent Coil — magic:** Paralytic Bite, Acid Spit, Molting, Serpent's Patience and the field Hypnotic Haze.
+  - **Lion Pride — Strategy:** three new fields — Royal Decree, Golden Dawn, Pride Formation — plus Roar of the
+    Pride and the Sun Scepter (Commander).
+  - **Vermin Horde — a mix:** Tail Blade, Glowshard Charm, Plague Bomb, Gorge and the field Rat Tide.
+- **Five new fields:** Royal Decree (your King +2 attack; units next to it take 1 less damage), Golden Dawn (draw
+  an extra card each turn), Pride Formation (+1 attack next to an ally), Hypnotic Haze (enemy ranged units −1
+  range and −1 attack), Rat Tide (a Swarm Rat appears next to your King each turn).
+- **Pro** now thinks 2 moves ahead instead of 3 (its move and your best reply) and thinks one move past an
+  interrupt before answering. **Beginner** takes its best-looking move only half the time and otherwise one of
+  its next four. Pro still beats Beginner in 27 of 32 test games.
+- BALANCE_PLACEHOLDER
+
 ## 0.10.0 — Master AI
 
 - **New difficulty, Master:** searches as far ahead as its thinking time allows (about 1.5 seconds per move),

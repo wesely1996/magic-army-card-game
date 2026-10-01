@@ -37,11 +37,11 @@ The art is hand-drawn ink over watercolor washes.
 | **Exhaustion** | From turn 120 each King loses health at the start of its owner's turn (1, +1 every 20 turns) and can't be healed, so every battle ends. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ quick ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
 | **Displacement spells** | Every race has one Magic card that moves or swaps units: **Pack Relay** (Wolf: send an ally back into your deck, a random unit from your deck takes its square), **Mighty Shove** (Bear: push an enemy 2 squares away from your nearest unit, 2 damage if something stops it), **Gale Force** (Hawk: blow an enemy up to 3 squares back toward its own side), **Mirage** (Serpent: send an enemy back into its owner's deck, a random unit from that deck takes its square), **Rally to the King** (Lion: an ally moves next to your King) and **Rat Run** (Vermin: an enemy swaps squares with your nearest unit). |
-| **Keywords** | **Hidden**: can only be attacked or targeted from a square next to it. **Backstab**: +2 attack when attacking from behind (from the target's own side). **Brood**: a Swarm Rat pops out next to it at the start of your next 2 turns. **Arrival**: happens when the unit is played (e.g. two Swarm Rats appear). **Immovable**: can't be pushed, swapped or replaced. **Champions** (★★★): two per race, the strongest units — 3 unit slots, 1 copy per deck. |
+| **Keywords** | **Hidden**: can only be attacked or targeted from a square next to it. **Backstab**: +2 attack when attacking from behind (from the target's own side). **Brood**: a Swarm Rat pops out next to it at the start of your next 2 turns. **Arrival**: happens when the unit is played (e.g. two Swarm Rats appear). **Immovable**: can't be pushed, swapped or replaced. **Champions** (★★★): two per race (three for the unit-focused Wolf Pack), the strongest units — 3 unit slots, 1 copy per deck. |
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
 | **Decks** | Build and save your own decks, and edit them any time (tap a deck). Starter decks can be opened read-only with **View**, or copied to edit with **Copy**. |
 | **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. The rail on the right shows whose move it is, the action queue (the interrupt chain, next to resolve on top) and the buttons you need now; tap **◀ Details** or swipe it left to pull out a drawer that explains what is going on, what each queued action will do, both armies, active battlefield rules and recent events. |
-| **Opponents** | **Beginner** plays on instinct and sometimes misses chances to interrupt. **Pro** thinks 3 moves ahead: its move, your best reply, and its follow-up. **Master** searches as deep as its thinking time allows (about 1.5 s per move) and looks ahead before interrupting; in testing it beat Pro in 62% of 48 games. None of them peek at your hand. |
+| **Opponents** | **Beginner** plays on instinct: it takes its best-looking move only half the time and otherwise one of its next four, and often misses chances to interrupt. **Pro** thinks 2 moves ahead (its move and your best reply) and thinks one move past an interrupt before answering. **Master** searches as deep as its thinking time allows (about 1.5 s per move) and looks ahead before interrupting; in testing it beat Pro in 62% of 48 games. None of them peek at your hand. |
 | **Animations** | Every action plays out on the board: melee units lunge at their target, archers loose arrows, spells and abilities fly as glowing orbs and burst on impact (orange harms, green helps, violet controls), hit units shake and flash red, fallen units topple and fade, played cards fly in from their owner's side, new units drop onto the board, and Strategy cards wash the whole board in their colour. |
 | **Tutorial** | A guided first battle (offered on first launch, and under **Play** and **How to Play**). A coach note teaches one thing at a time — deploying, moving, answering an attack with a Magic card, the action queue, Magic, attacking, Strategy fields — and only the move being taught lights up, until you defeat the rival's King. Tap the note to fold it away. |
 | **Menu** | **Play** opens the play options: **Continue** (your battle in progress), **New game** (against the AI), **Tutorial** and **With friends** (online), with **Back** to the main menu. The **⚙** wheel in the top corner opens Settings. |
@@ -77,7 +77,7 @@ docs/        Design notes and plan.
   its own actions with a checksum of the whole game state, and the other side checks the move is legal and
   the checksums match. The transport is a small `Link` interface, so an internet connection can be added.
 * **AI** (`core/.../ai`): positions are scored on material, King safety, next-turn threats and board advance.
-  *Beginner* picks the best-looking action one step ahead, with some noise. *Pro* runs a 3-ply alpha-beta
+  *Beginner* picks the best-looking action one step ahead, with some noise. *Pro* runs a 2-ply
   search (its action → your reply → its action) over the most promising candidates at each level. It
   doesn't peek at your hand: when predicting your reply it only considers board actions. Both interrupt
   only when it clearly pays off. *Master* deepens the same search one ply at a time (wider beams, best moves
@@ -86,7 +86,7 @@ docs/        Design notes and plan.
 * **2.5D board** (`app/.../game/BoardView.kt`): a perspective projection of the board plane. The watercolor
   board texture is mapped with a homography, units are upright card standees sorted by depth, and taps
   are mapped back through the inverse projection.
-* **Cards** (`core/.../data/CardDatabase.kt`): all 174 cards are data. New cards are usually one line,
+* **Cards** (`core/.../data/CardDatabase.kt`): all 204 cards are data. New cards are usually one line,
   built from the effect primitives in `model/Cards.kt`.
 
 ## Balance
@@ -107,7 +107,7 @@ See [docs/BALANCING.md](docs/BALANCING.md) for the method and changelog, and
 
 | Race | Champion 1 | Champion 2 |
 |---|---|---|
-| 🐺 Wolf Pack | **Ironjaw Packlord** 5/10 – arrives with two Wolf Pups | **Midnight Fang** 5/8 – Hidden, Backstab |
+| 🐺 Wolf Pack | **Ironjaw Packlord** 5/10 – arrives with two Wolf Pups | **Midnight Fang** 5/8 – Hidden, Backstab; and **Fenrir the Devourer** 6/10 – Bloodthirst, Retaliate |
 | 🐻 Bear Clan | **Ancient Cave Bear** 6/14 – Armored, Immovable, Regenerate | **Quakeback Bear** 5/12 – Armored; Ground Slam hits every adjacent enemy for 2 |
 | 🦅 Hawk Aerie | **Thunderbird** 4/10, range 3 – Flying; Thunderclap stuns | **Storm Griffin** 6/10 – Flying, Armored |
 | 🐍 Serpent Coil | **Great Hydra** 5/12 – Poisonous, Regenerate; Many Heads | **Stone-Eyed Gorgon** 5/11, range 2 – Poisonous; Stony Glare stuns 2 turns |

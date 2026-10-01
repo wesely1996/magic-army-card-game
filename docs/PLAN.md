@@ -12,7 +12,7 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - CI/CD runs on GitHub Actions.
 - The game is called **King of the Beasts** (app id `com.kingofthebeasts.app`).
 - Press-and-hold opens any card (or a unit on the board) large, with every rule written out.
-- Three AI levels: **Beginner** (greedy, one step ahead), **Pro** (3-ply alpha-beta search) and **Master**
+- Three AI levels: **Beginner** (one step ahead, picks among its top five), **Pro** (2-ply search) and **Master**
   (iterative deepening within a time budget).
 - Landscape only, for a bigger board. The hand comes to the front when you choose a card and moves to a
   strip at the side when you choose where to play it; it can be hidden and shown by hand. The board can be
@@ -69,10 +69,13 @@ race, King and starter deck between 44% and 55% wins, and new cards or rules are
 2. **0.9.0 — Rejoin dropped online games.** *(done)* If the Wi-Fi connection drops, either player can reconnect and
    both phones catch up from the shared move list instead of the battle ending.
 3. **0.10.0 — Master AI (Hard).** *(done; levels renamed Beginner / Pro / Master)* Deeper search and smarter interrupts, for players who have outgrown Medium.
-4. **0.11.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
+4. **0.11.0 — 30 new cards and gentler AI levels.** *(done)* Five new cards per race with a race focus
+   (Wolf units, Bear equipment, Hawk and Serpent magic, Lion Strategy, Vermin a mix), five new fields, Pro down
+   to 2 moves ahead, Beginner picking among its top five moves.
+5. **0.12.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
    with invite codes) next to same-Wi-Fi play. Peer-to-peer play shares hidden information (hands, deck order)
    between the two apps; truly hiding it would need a trusted server.
-5. **1.0.0 — Play Store readiness (final step).** A private upload/signing key kept out of the repository, an
+6. **1.0.0 — Play Store readiness (final step).** A private upload/signing key kept out of the repository, an
    Android App Bundle build, store listing text and screenshots, a privacy policy (the app uses the network),
    content rating, and a last full balance and device test pass.
 

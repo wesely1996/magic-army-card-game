@@ -383,8 +383,8 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
             "Forfeit hands your friend the win, and after a battle you can both tap Rematch.",
         "Battle log" to "Tap Details (or swipe the rail left) for the drawer: it covers most of the screen and explains " +
             "what is going on, the action queue, both armies, the field and recent events. Full battle log shows everything.",
-        "Opponents" to "Beginner plays on instinct and sometimes slips. Pro thinks 3 moves ahead: its move, your best reply, " +
-            "and its follow-up. Master thinks as far ahead as about a second and a half allows, and looks ahead before " +
+        "Opponents" to "Beginner plays on instinct: half the time it takes its best-looking move, otherwise one of the next few. " +
+            "Pro thinks 2 moves ahead: its move and your best reply. Master thinks as far ahead as about a second and a half allows, and looks ahead before " +
             "deciding whether to interrupt you. None of them peek at your hand.",
         "Kings" to "Every race has two Kings with a signature trick: the Alpha Wolf calls a pup at the start of each of your turns " +
             "(up to 2), the Moon Howler feeds on every kill, " +

@@ -216,7 +216,7 @@ object CardDatabase {
         add(equipment("h_hood", "Falconer's Hood", HAWK, "Retaliate and +1 health.", GrantKeyword(RETALIATE), Buff(health = 1)))
         add(equipment("h_steel", "Steel Feathers", HAWK, "Armored.", GrantKeyword(ARMORED)))
         // 0.11: the Hawk Aerie leans on magic.
-        add(magic("h_thunderclap", "Thunderclap", HAWK, "Deal 1 damage to an enemy unit and stun it for 1 turn.",
+        add(magic("h_thunderclap", "Lightning Jolt", HAWK, "Deal 1 damage to an enemy unit and stun it for 1 turn.",
             TargetRule.ENEMY, Damage(1), Stun(1)))
         add(magic("h_shear", "Wind Shear", HAWK, "An enemy unit gets −1 attack and −1 range for 2 turns.",
             TargetRule.ENEMY, Buff(attack = -1, range = -1, turns = 2)))
