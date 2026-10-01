@@ -71,7 +71,15 @@ fun RaceEmblem(race: Race, size: androidx.compose.ui.unit.Dp = 44.dp, selected: 
 }
 
 @Composable
-fun MenuScreen(onPlay: () -> Unit, onDecks: () -> Unit, onRules: () -> Unit) {
+fun MenuScreen(
+    onPlay: () -> Unit,
+    onDecks: () -> Unit,
+    onRules: () -> Unit,
+    /** A short description of the saved battle in progress, if any (e.g. "Turn 14 vs Venom & Wings"). */
+    resumeLabel: String? = null,
+    onResume: () -> Unit = {},
+) {
+    var confirmNew by remember { mutableStateOf(false) }
     PaperBackground {
         Row(
             Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
@@ -89,7 +97,12 @@ fun MenuScreen(onPlay: () -> Unit, onDecks: () -> Unit, onRules: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Race.entries.forEach { RaceEmblem(it, 52.dp) } }
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                SketchButton("⚔  Battle", onPlay, Modifier.width(240.dp), color = Ink.Enemy)
+                if (resumeLabel != null) {
+                    SketchButton("▶  Resume battle", onResume, Modifier.width(240.dp), color = Ink.Deploy)
+                    Text(resumeLabel, style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    Spacer(Modifier.height(10.dp))
+                }
+                SketchButton("⚔  Battle", { if (resumeLabel != null) confirmNew = true else onPlay() }, Modifier.width(240.dp), color = Ink.Enemy)
                 Spacer(Modifier.height(14.dp))
                 SketchButton("🂠  Deck Builder", onDecks, Modifier.width(240.dp), color = Ink.You)
                 Spacer(Modifier.height(14.dp))
@@ -103,6 +116,17 @@ fun MenuScreen(onPlay: () -> Unit, onDecks: () -> Unit, onRules: () -> Unit) {
                     "Illustrations built from game-icons.net (CC BY 3.0)",
                     style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
                 )
+            }
+        }
+        if (confirmNew) {
+            com.kingofthebeasts.app.game.PaperDialog(onDismiss = { confirmNew = false }) {
+                Text("You have a battle in progress", style = MaterialTheme.typography.titleLarge)
+                Text("Starting a new battle ends it for good.", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SketchButton("Resume it", { confirmNew = false; onResume() }, color = Ink.Deploy)
+                    SketchButton("New battle", { confirmNew = false; onPlay() }, color = Ink.Enemy)
+                }
             }
         }
     }

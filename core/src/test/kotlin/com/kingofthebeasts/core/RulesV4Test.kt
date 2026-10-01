@@ -34,9 +34,9 @@ class RulesV4Test {
     }
 
     @Test
-    fun everyRaceHasAChampion() {
+    fun everyRaceHasTwoChampions() {
         for (race in com.kingofthebeasts.core.model.Race.entries) {
-            assertTrue(CardDatabase.ofRace(race).any { it.unit?.isChampion == true }, race.name)
+            assertEquals(2, CardDatabase.ofRace(race).count { it.unit?.isChampion == true }, race.name)
         }
     }
 

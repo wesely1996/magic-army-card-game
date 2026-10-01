@@ -10,6 +10,7 @@ import com.kingofthebeasts.core.ai.AiPlayer
 import com.kingofthebeasts.core.ai.Difficulty
 import com.kingofthebeasts.core.deck.Deck
 import com.kingofthebeasts.core.game.Action
+import com.kingofthebeasts.core.game.ActionCodec
 import com.kingofthebeasts.core.game.CardInstance
 import com.kingofthebeasts.core.game.Decision
 import com.kingofthebeasts.core.game.DecisionKind
@@ -17,6 +18,7 @@ import com.kingofthebeasts.core.game.GameEngine
 import com.kingofthebeasts.core.game.GameState
 import com.kingofthebeasts.core.game.Phase
 import com.kingofthebeasts.core.game.Pos
+import com.kingofthebeasts.core.game.SavedBattle
 import com.kingofthebeasts.core.game.Target
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,11 +45,26 @@ data class Highlights(
  * the AI is player 1. The AI thinks off the main thread; the game state is
  * only ever mutated on the main thread.
  */
-class GameViewModel(val playerDeck: Deck, val aiDeck: Deck, val difficulty: Difficulty, seed: Long) : ViewModel() {
+class GameViewModel(
+    val playerDeck: Deck,
+    val aiDeck: Deck,
+    val difficulty: Difficulty,
+    private val seed: Long,
+    /** Actions of a saved battle to replay (resume), encoded with [ActionCodec]. */
+    resume: List<String> = emptyList(),
+    /** Called after every action with the battle to save, or null once it is over. */
+    private val onSave: (SavedBattle?) -> Unit = {},
+) : ViewModel() {
     val human = 0
     val state: GameState = GameEngine.newGame(playerDeck, aiDeck, listOf("You", "Opponent"), seed)
-    private val ai = AiPlayer(difficulty, seed * 31 + 7)
+    private val ai = AiPlayer(difficulty, seed * 31 + 7 + resume.size)
     private var aiJob: Job? = null
+
+    /** Every action taken so far (encoded), for saving and resuming. */
+    private val history = mutableListOf<String>()
+
+    /** Events up to this sequence number happened before a resume and shouldn't be animated again. */
+    val resumedEventSeq: Int
 
     /** Bumped after every state change so Compose re-reads the (mutable) game state. */
     var version by mutableIntStateOf(0)
@@ -57,7 +74,21 @@ class GameViewModel(val playerDeck: Deck, val aiDeck: Deck, val difficulty: Diff
         private set
 
     init {
+        for (code in resume) {
+            val a = ActionCodec.decode(code)
+            GameEngine.apply(state, a)
+            history += code
+        }
+        resumedEventSeq = if (resume.isEmpty()) 0 else state.eventSeq
         runAi()
+    }
+
+    /** The battle as it stands, for [onSave]. */
+    fun snapshot(): SavedBattle = SavedBattle(playerDeck, aiDeck, difficulty.name, seed, history.toList(), state.turnNumber)
+
+    private fun record(action: Action) {
+        history += ActionCodec.encode(action)
+        onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
     }
 
     val decision: Decision get() = GameEngine.decision(state)
@@ -68,6 +99,7 @@ class GameViewModel(val playerDeck: Deck, val aiDeck: Deck, val difficulty: Diff
     fun perform(action: Action) {
         if (!humanToAct || !GameEngine.isLegal(state, action)) return
         GameEngine.apply(state, action)
+        record(action)
         selection = Selection.None
         version++
         runAi()
@@ -86,6 +118,7 @@ class GameViewModel(val playerDeck: Deck, val aiDeck: Deck, val difficulty: Diff
                 val minPause = if (d.kind == DecisionKind.DEPLOY) 450L else 850L
                 delay((minPause - (System.currentTimeMillis() - started)).coerceAtLeast(0L))
                 GameEngine.apply(state, action)
+                record(action)
                 version++
             }
             aiThinking = false

@@ -187,7 +187,8 @@ fun BoardView(
 
     val positions = remember { HashMap<Int, Animatable<Offset, AnimationVector2D>>() }
     val popups = remember { mutableStateListOf<Popup>() }
-    var lastSeq by remember { mutableIntStateOf(0) }
+    // After a resume, don't replay the popups of everything that happened before.
+    var lastSeq by remember { mutableIntStateOf(vm.resumedEventSeq) }
 
     LaunchedEffect(version) {
         val alive = state.units.map { it.id }.toSet()

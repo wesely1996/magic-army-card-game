@@ -134,5 +134,11 @@
   "h_thunderbird":   {"icon": "eagle-emblem", "accent": "focused-lightning"},
   "s_hydra":         {"icon": "hydra"},
   "l_paragon":       {"icon": "lion", "accent": "heraldic-sun"},
-  "v_colossus":      {"icon": "troll", "accent": "biohazard"}
+  "v_colossus":      {"icon": "troll", "accent": "biohazard"},
+  "w_midnight":      {"icon": "wolf-howl", "accent": "ghost"},
+  "b_quake":         {"icon": "bear-head", "accent": "quake-stomp"},
+  "h_griffin":       {"icon": "griffin-symbol"},
+  "s_gorgon":        {"icon": "medusa-head"},
+  "l_chimera":       {"icon": "dragon-head", "accent": "sun-radiations"},
+  "v_matriarch":     {"icon": "rat", "accent": "queen-crown"}
 }

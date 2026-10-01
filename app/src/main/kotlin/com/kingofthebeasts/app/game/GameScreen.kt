@@ -84,7 +84,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
+fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, onForfeit: () -> Unit = onExit) {
     @Suppress("UNUSED_VARIABLE") val version = vm.version // recompose on every state change
     val s = vm.state
     val actions = vm.legalActions()
@@ -126,7 +126,7 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
 
     // Big announcements (coin flip, battle start) fade in over the board.
     var announcement by remember { mutableStateOf<GameEvent.Announce?>(null) }
-    var announcedSeq by remember { mutableIntStateOf(0) }
+    var announcedSeq by remember { mutableIntStateOf(vm.resumedEventSeq) }
     LaunchedEffect(vm.version) {
         val next = s.events.filterIsInstance<GameEvent.Announce>().lastOrNull { it.seq > announcedSeq } ?: return@LaunchedEffect
         announcedSeq = next.seq
@@ -216,10 +216,15 @@ fun GameScreen(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit) {
         if (confirmExit) {
             PaperDialog(onDismiss = { confirmExit = false }) {
                 Text("Leave the battle?", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "It's saved — resume it from the main menu. Forfeit ends it for good.",
+                    style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+                )
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SketchButton("Stay", { confirmExit = false }, color = Ink.Move)
-                    SketchButton("Leave", onExit, color = Ink.Enemy)
+                    SketchButton("Leave", onExit, color = Ink.Gold)
+                    SketchButton("Forfeit", onForfeit, color = Ink.Enemy)
                 }
             }
         }

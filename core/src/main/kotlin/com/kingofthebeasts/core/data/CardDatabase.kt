@@ -71,6 +71,7 @@ object CardDatabase {
         add(unit("w_ravager", "Pack Ravager", WOLF, 5, 6, 2, 1, setOf(PACK_HUNTER, RETALIATE), elite = true))
         add(unit("w_packlord", "Ironjaw Packlord", WOLF, 6, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
             arrival = summons("w_pup", 2), text = "Arrival: two Wolf Pups appear next to him.", champion = true))
+        add(unit("w_midnight", "Midnight Fang", WOLF, 5, 9, 4, 1, setOf(HIDDEN, BACKSTAB), champion = true))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
             TargetRule.FRIENDLY, Buff(attack = 2, turns = 1)))
         add(magic("w_bite", "Savage Bite", WOLF, "Deal 4 damage to an enemy unit.", TargetRule.ENEMY, Damage(4), rank = 3))
@@ -113,6 +114,10 @@ object CardDatabase {
             ability("Ancestral Ward", "Give an ally within 2 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 2), 3,
                 quick = true, effects = listOf(Shield(2)))))
         add(unit("b_ancient", "Ancient Cave Bear", BEAR, 6, 14, 1, 1, setOf(ARMORED, IMMOVABLE, REGENERATE), champion = true))
+        add(unit("b_quake", "Quakeback Bear", BEAR, 5, 12, 1, 1, setOf(ARMORED),
+            ability("Ground Slam", "Deal 2 damage to every enemy next to it.", TargetRule.SELF, 3,
+                effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Damage(2)))),
+            champion = true))
         add(magic("b_hide", "Thick Hide", BEAR, "Give an allied unit a 2-point shield.", TargetRule.FRIENDLY, Shield(2)))
         add(magic("b_hibernate", "Hibernate", BEAR, "Heal an allied unit by 3 and remove stun and poison.",
             TargetRule.FRIENDLY, Heal(3), EffectOp.Cleanse, rank = 2))
@@ -154,6 +159,7 @@ object CardDatabase {
             ability("Thunderclap", "Deal 2 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3, effects = listOf(Damage(2), Stun(1))),
             champion = true))
+        add(unit("h_griffin", "Storm Griffin", HAWK, 6, 10, 3, 1, setOf(FLYING, ARMORED), champion = true))
         add(magic("h_gust", "Gust", HAWK, "Interrupt only. Cancel the action you are responding to.",
             TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("h_tailwind", "Tailwind", HAWK, "An allied unit gets +2 movement and Flying for 1 turn.",
@@ -198,6 +204,10 @@ object CardDatabase {
             ability("Many Heads", "Deal 1 damage to every enemy next to it.", TargetRule.SELF, 2,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)))),
             champion = true))
+        add(unit("s_gorgon", "Stone-Eyed Gorgon", SERPENT, 4, 10, 2, 2, setOf(POISONOUS),
+            ability("Stony Glare", "Stun an enemy within 3 for 2 turns.", TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
+                effects = listOf(Stun(2))),
+            champion = true))
         add(magic("s_hiss", "Hiss of Denial", SERPENT, "Interrupt only. Cancel the action you are responding to.",
             TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("s_venom", "Venom Surge", SERPENT, "Poison an enemy unit: 2 damage per turn for 2 turns.",
@@ -237,6 +247,11 @@ object CardDatabase {
         add(unit("l_paragon", "Sunmane Paragon", LION, 7, 12, 2, 1, setOf(ARMORED, RETALIATE),
             ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
+            champion = true))
+        add(unit("l_chimera", "Sunfire Chimera", LION, 6, 10, 2, 1, setOf(RETALIATE),
+            ability("Fire Breath", "Deal 2 damage to an enemy within 2 and 1 damage to enemies next to it.",
+                TargetRule(TargetKind.ENEMY_UNIT, 2), 3,
+                effects = listOf(Damage(2), Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)))),
             champion = true))
         add(magic("l_charge", "Glorious Charge", LION, "An allied unit gets +2 attack and +1 movement for 1 turn.",
             TargetRule.FRIENDLY, Buff(attack = 2, move = 1, turns = 1), rank = 2))
@@ -282,6 +297,8 @@ object CardDatabase {
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
         add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 6, 11, 1, 1, setOf(RETALIATE, REGENERATE),
             arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
+        add(unit("v_matriarch", "Warren Matriarch", VERMIN, 3, 12, 1, 1, setOf(BROOD, REGENERATE),
+            arrival = summons("v_rat", 3), text = "Arrival: three Swarm Rats appear next to her.", champion = true))
         add(magic("v_blightfire", "Blightfire", VERMIN,
             "Deal 4 damage to an enemy unit and 1 damage to every other unit next to it, friend or foe.",
             TargetRule.ENEMY, Damage(4), Area(1, Side.ALL, includeCenter = false, op = Damage(1)), rank = 3))

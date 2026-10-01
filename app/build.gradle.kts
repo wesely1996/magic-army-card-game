@@ -4,6 +4,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Version code from the version name (1.2.3 -> 10203), so every new version installs as an update.
+val appVersion = (project.findProperty("versionName") as String?) ?: "0.5.0"
+fun versionCodeOf(name: String): Int {
+    val (major, minor, patch) = (name.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
+    return major * 10_000 + minor * 100 + patch
+}
+
 android {
     namespace = "com.kingofthebeasts.app"
     compileSdk = 35
@@ -12,12 +19,19 @@ android {
         applicationId = "com.kingofthebeasts.app"
         minSdk = 24
         targetSdk = 35
-        // CI passes the build number so every pipeline run produces an installable upgrade.
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 4
-        versionName = (project.findProperty("versionName") as String?) ?: "0.4.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: versionCodeOf(appVersion)
+        versionName = appVersion
     }
 
     signingConfigs {
+        // A fixed key committed to the repo, so test builds from any machine or CI run install as updates
+        // over each other. Real store releases use the private key from the CI secrets instead.
+        getByName("debug") {
+            storeFile = file("signing/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             val keystore = System.getenv("ANDROID_KEYSTORE_PATH")
             if (keystore != null) {
