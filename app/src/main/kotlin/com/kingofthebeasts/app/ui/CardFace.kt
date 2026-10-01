@@ -85,20 +85,20 @@ private fun Modifier.cardFrame(def: CardDef): Modifier = drawWithContent {
         CornerRadius(r * 0.7f), style = Stroke(s * 0.009f),
     )
     // Corner ornaments sit on the band so they stay clear of the name banner.
-    val k = t * 1.1f
+    val k = t * 1.0f
     val corners = listOf(Offset(k, k), Offset(size.width - k, k), Offset(k, size.height - k), Offset(size.width - k, size.height - k))
     when (def.type) {
         CardType.UNIT -> corners.forEach { c ->
             // Square shield studs.
-            val h = t * 0.6f
+            val h = t * 0.75f
             drawRect(band, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h))
             drawRect(Ink.Line, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h), style = Stroke(s * 0.008f))
         }
         CardType.MAGIC -> corners.forEach { c ->
             // Four-point stars with a soft glow.
-            drawCircle(band.copy(alpha = 0.35f), t * 1.1f, c)
-            drawPath(star(c, t * 1.0f, t * 0.3f), band)
-            drawPath(star(c, t * 1.0f, t * 0.3f), Ink.Line, style = Stroke(s * 0.006f))
+            drawCircle(band.copy(alpha = 0.35f), t * 1.3f, c)
+            drawPath(star(c, t * 1.25f, t * 0.35f), band)
+            drawPath(star(c, t * 1.25f, t * 0.35f), Ink.Line, style = Stroke(s * 0.006f))
         }
         CardType.STRATEGY -> {
             // A dashed "map" line just inside the band, and a pennant at the top.
