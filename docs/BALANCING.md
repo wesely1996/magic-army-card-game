@@ -2,6 +2,18 @@
 
 Target set by the product owner: **every race and every King wins between 44% and 55% of its games.**
 
+### v0.11.0 (30 new cards: Wolf units, Bear equipment, Hawk and Serpent magic, Lion Strategy, Vermin mix)
+
+| | After adding the cards |
+|---|---|
+| Race win rates | **46.7% – 51.5%** |
+| King win rates | **45.9% – 54.4%** |
+| Starter decks (overall) | **45.4% – 53.3%** |
+
+Everything landed inside 44–55% on the first 4,000-game run, so no card was changed. The new cards sit between
++2.2 and −2.3 points of their race's average; the weakest new Strategy, Royal Decree, is worth a look if Lion
+playtests feel slow.
+
 ### v0.5.0 (second Champions, 3 Magic + 3 Equipment per race)
 
 | | First simulation after the v0.5 changes | After the balance pass |

@@ -23,7 +23,8 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **Pro** now thinks 2 moves ahead instead of 3 (its move and your best reply) and thinks one move past an
   interrupt before answering. **Beginner** takes its best-looking move only half the time and otherwise one of
   its next four. Pro still beats Beginner in 27 of 32 test games.
-- BALANCE_PLACEHOLDER
+- **Balance:** every race wins 46.7–51.5%, every King 45.9–54.4% and every starter deck 45.4–53.3% with the
+  new cards in the pool (target 44–55%); no changes were needed.
 
 ## 0.10.0 — Master AI
 
