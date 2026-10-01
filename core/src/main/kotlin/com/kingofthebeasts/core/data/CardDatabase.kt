@@ -80,6 +80,15 @@ object CardDatabase {
         add(magic("w_relay", "Pack Relay", WOLF,
             "Shuffle an allied unit (not your King) into your deck. A random unit from your deck takes its square.",
             TargetRule.FRIENDLY, EffectOp.Replace, rank = 2))
+        add(magic("w_howl", "Rallying Howl", WOLF, "An allied unit and allies next to it get +1 attack for 1 turn.",
+            TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Buff(attack = 1, turns = 1))))
+        add(magic("w_hamstring", "Hamstring", WOLF, "An enemy unit gets −2 movement for 2 turns.",
+            TargetRule.ENEMY, Buff(move = -2, turns = 2)))
+        add(magic("w_bloodmoon", "Blood Moon", WOLF, "Heal an allied unit by 2. It gets +1 attack and Pack Hunter for 2 turns.",
+            TargetRule.FRIENDLY, Heal(2), Buff(attack = 1, turns = 2), GrantKeyword(PACK_HUNTER, 2), rank = 2))
+        add(equipment("w_pelt", "Thick Pelt", WOLF, "+2 health.", Buff(health = 2)))
+        add(equipment("w_necklace", "Alpha Fang Necklace", WOLF, "+2 attack, but −1 movement.", Buff(attack = 2, move = -1)))
+        add(equipment("w_tracker", "Tracker's Collar", WOLF, "Pack Hunter and +1 movement.", GrantKeyword(PACK_HUNTER), Buff(move = 1)))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
         add(strategy("w_moonlit", "Moonlit Hunt", WOLF, FieldRule.HUNTING_GROUNDS))
         add(equipment("w_collar", "Spiked Collar", WOLF, "+1 attack and Retaliate.",
@@ -126,6 +135,15 @@ object CardDatabase {
         add(magic("b_shove", "Mighty Shove", BEAR,
             "Push an enemy unit 2 squares directly away from your nearest unit. If a unit or the edge stops it, it takes 2 damage.",
             TargetRule.ENEMY, EffectOp.Push(2, PushFrom.NEAREST_ALLY, impactDamage = 2), rank = 2))
+        add(magic("b_roar", "Intimidating Roar", BEAR, "Enemies next to an allied unit get −1 attack for 2 turns.",
+            TargetRule.FRIENDLY, Area(1, Side.ENEMY, includeCenter = false, op = Buff(attack = -1, turns = 2))))
+        add(magic("b_maul", "Crushing Maul", BEAR, "Deal 2 damage to an enemy unit and stun it for 1 turn.",
+            TargetRule.ENEMY, Damage(2), Stun(1), rank = 2))
+        add(magic("b_winter", "Long Winter's Rest", BEAR, "Heal an allied unit and allies next to it by 2.",
+            TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Heal(2)), rank = 2))
+        add(equipment("b_harness", "War Harness", BEAR, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))
+        add(equipment("b_coat", "Winter Coat", BEAR, "Regenerate.", GrantKeyword(REGENERATE)))
+        add(equipment("b_totem", "Stone Totem", BEAR, "Immovable and +2 health.", GrantKeyword(IMMOVABLE), Buff(health = 2)))
         add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY))
         add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY))
         add(equipment("b_bark", "Bark Armor", BEAR, "+2 health.", Buff(health = 2)))
@@ -169,6 +187,15 @@ object CardDatabase {
         add(magic("h_gale", "Gale Force", HAWK,
             "Blow an enemy unit up to 3 squares straight back toward its own side of the board.",
             TargetRule.ENEMY, EffectOp.Push(3, PushFrom.OWNER_SIDE), rank = 2))
+        add(magic("h_dive", "Diving Strike", HAWK, "An allied unit gets +2 attack and Flying for 1 turn.",
+            TargetRule.FRIENDLY, Buff(attack = 2, turns = 1), GrantKeyword(FLYING, 1)))
+        add(magic("h_feathers", "Storm of Feathers", HAWK, "Stun an enemy unit and enemies next to it for 1 turn.",
+            TargetRule.ENEMY, Area(1, Side.ENEMY, includeCenter = true, op = Stun(1)), rank = 2))
+        add(magic("h_eagleeye", "Eagle Eye", HAWK, "An allied unit gets +1 range for 2 turns. Draw a card.",
+            TargetRule.FRIENDLY, Buff(range = 1, turns = 2), EffectOp.Draw(1)))
+        add(equipment("h_plume", "Storm Plume", HAWK, "Flying and +1 movement.", GrantKeyword(FLYING), Buff(move = 1)))
+        add(equipment("h_hood", "Falconer's Hood", HAWK, "Retaliate and +1 health.", GrantKeyword(RETALIATE), Buff(health = 1)))
+        add(equipment("h_steel", "Steel Feathers", HAWK, "Armored.", GrantKeyword(ARMORED)))
         add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND))
         add(strategy("h_winds", "Favorable Winds", HAWK, FieldRule.TAILWIND))
         add(equipment("h_talons", "Razor Talons", HAWK, "+1 attack and +1 range.", Buff(attack = 1, range = 1)))
@@ -217,6 +244,15 @@ object CardDatabase {
         add(magic("s_mirage", "Mirage", SERPENT,
             "Shuffle an enemy unit (not a King) into its owner's deck. A random unit from that deck takes its square.",
             TargetRule.ENEMY, EffectOp.Replace, rank = 3))
+        add(magic("s_coil", "Tightening Coil", SERPENT, "An enemy unit gets −2 movement and −1 attack for 2 turns.",
+            TargetRule.ENEMY, Buff(attack = -1, move = -2, turns = 2)))
+        add(magic("s_toxic", "Toxic Cloud", SERPENT, "Poison an enemy unit and enemies next to it: 1 damage per turn for 2 turns.",
+            TargetRule.ENEMY, Area(1, Side.ENEMY, includeCenter = true, op = Poison(1, 2)), rank = 2))
+        add(magic("s_charm", "Serpent's Charm", SERPENT, "Take control of an enemy unit (not a King) with 2 or less health.",
+            TargetRule.ENEMY, EffectOp.Enthrall(2), rank = 2))
+        add(equipment("s_slick", "Slick Scales", SERPENT, "+2 health.", Buff(health = 2)))
+        add(equipment("s_cobrahood", "Cobra Hood", SERPENT, "Retaliate and Poisonous.", GrantKeyword(RETALIATE), GrantKeyword(POISONOUS)))
+        add(equipment("s_eye", "Hypnotic Eye", SERPENT, "+1 range.", Buff(range = 1)))
         add(strategy("s_swamp", "Murky Swamp", SERPENT, FieldRule.SWAMP))
         add(strategy("s_trance", "Hypnotic Trance", SERPENT, FieldRule.SILENCE))
         add(equipment("s_fangs", "Venom Fangs", SERPENT, "+1 attack and Poisonous.", Buff(attack = 1), GrantKeyword(POISONOUS)))
@@ -262,6 +298,15 @@ object CardDatabase {
         add(magic("l_rally", "Rally to the King", LION,
             "An allied unit moves to the empty square next to your King that is nearest to it.",
             TargetRule.FRIENDLY, EffectOp.RallyToKing))
+        add(magic("l_courage", "Pride's Courage", LION, "Give an allied unit and allies next to it a 2-point shield.",
+            TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Shield(2)), rank = 2))
+        add(magic("l_sunbeam", "Sunbeam", LION, "Heal an allied unit by 2. It gets +1 movement for 1 turn.",
+            TargetRule.FRIENDLY, Heal(2), Buff(move = 1, turns = 1)))
+        add(magic("l_gaze", "Lion's Gaze", LION, "Stun an enemy unit for 1 turn. It gets −1 attack for 2 turns.",
+            TargetRule.ENEMY, Stun(1), Buff(attack = -1, turns = 2), rank = 2))
+        add(equipment("l_laurel", "Laurel Crown", LION, "+1 attack and +1 health.", Buff(attack = 1, health = 1)))
+        add(equipment("l_spear", "Hunter's Spear", LION, "+2 attack.", Buff(attack = 2)))
+        add(equipment("l_claws", "Golden Claws", LION, "Pack Hunter and +1 attack.", GrantKeyword(PACK_HUNTER), Buff(attack = 1)))
         add(strategy("l_banner", "War Banner", LION, FieldRule.WAR_DRUMS))
         add(strategy("l_grass", "Tall Grass", LION, FieldRule.AMBUSH))
         add(equipment("l_mane", "Golden Mane", LION, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))
@@ -309,6 +354,15 @@ object CardDatabase {
         add(magic("v_ratrun", "Rat Run", VERMIN,
             "An enemy unit swaps squares with your unit nearest to it (Immovable units can't be swapped).",
             TargetRule.ENEMY, EffectOp.SwapWithNearestAlly, rank = 2))
+        add(magic("v_gnaw", "Gnaw", VERMIN, "Deal 1 damage to an enemy unit and poison it: 1 damage per turn for 2 turns.",
+            TargetRule.ENEMY, Damage(1), Poison(1, 2)))
+        add(magic("v_mutate", "Unstable Mutation", VERMIN, "An allied unit gets +2 attack and +2 health for good, but takes 1 damage.",
+            TargetRule.FRIENDLY, Buff(attack = 2, health = 2), Damage(1), rank = 2))
+        add(magic("v_rot", "Creeping Rot", VERMIN, "An enemy unit gets −2 attack and −1 movement for 2 turns.",
+            TargetRule.ENEMY, Buff(attack = -2, move = -1, turns = 2), rank = 2))
+        add(equipment("v_blades", "Rusty Blades", VERMIN, "+2 attack.", Buff(attack = 2)))
+        add(equipment("v_mask", "Plague Mask", VERMIN, "Poisonous and Regenerate.", GrantKeyword(POISONOUS), GrantKeyword(REGENERATE)))
+        add(equipment("v_rags", "Tattered Hood", VERMIN, "Hidden.", GrantKeyword(HIDDEN)))
         add(strategy("v_tunnels", "Warren Tunnels", VERMIN, FieldRule.TUNNELS))
         add(strategy("v_plague", "Creeping Plague", VERMIN, FieldRule.PLAGUE))
         add(equipment("v_grafts", "Mutant Grafts", VERMIN, "+2 attack and +2 health, but −1 movement.",

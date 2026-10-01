@@ -231,6 +231,7 @@ object GameEngine {
         for (op in effects) when (op) {
             EffectOp.Replace -> if (t == null || t.isKing || t.has(Keyword.IMMOVABLE)) return false
             EffectOp.RallyToKing -> if (t == null || rallySquare(s, t) == null) return false
+            is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, p, slotsOf(t.def))) return false
             EffectOp.SwapWithNearestAlly -> if (t == null || t.has(Keyword.IMMOVABLE) || nearestMovableAlly(s, p, t) == null) return false
             is EffectOp.Summon -> if (t == null || !hasRoomForUnit(s, t.owner, slotsOf(CardDatabase.get(op.cardId))) ||
                 t.pos.neighbors().none { s.unitAt(it) == null }

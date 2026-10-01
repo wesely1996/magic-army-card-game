@@ -72,7 +72,8 @@ sealed interface EffectOp {
 /** Damage (now or over time) and summons make a spell exhausting: it is used once, then gone. */
 val EffectOp.exhausting: Boolean
     get() = when (this) {
-        is EffectOp.Damage, is EffectOp.Poison, is EffectOp.Summon -> true
+        // Damage, summons and stealing units make a spell single-use.
+        is EffectOp.Damage, is EffectOp.Poison, is EffectOp.Summon, is EffectOp.Enthrall -> true
         is EffectOp.Push -> impactDamage > 0
         is EffectOp.Area -> op.exhausting
         else -> false
