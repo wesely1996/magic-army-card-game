@@ -95,12 +95,12 @@ See [docs/BALANCING.md](docs/BALANCING.md) for the method and changelog, and
 
 | Race | Champion 1 | Champion 2 |
 |---|---|---|
-| 🐺 Wolf Pack | **Ironjaw Packlord** 6/10 – arrives with two Wolf Pups | **Midnight Fang** 5/9, 4 moves – Hidden, Backstab |
+| 🐺 Wolf Pack | **Ironjaw Packlord** 6/10 – arrives with two Wolf Pups | **Midnight Fang** 5/8 – Hidden, Backstab |
 | 🐻 Bear Clan | **Ancient Cave Bear** 6/14 – Armored, Immovable, Regenerate | **Quakeback Bear** 5/12 – Armored; Ground Slam hits every adjacent enemy for 2 |
 | 🦅 Hawk Aerie | **Thunderbird** 4/10, range 3 – Flying; Thunderclap stuns | **Storm Griffin** 6/10 – Flying, Armored |
-| 🐍 Serpent Coil | **Great Hydra** 5/12 – Poisonous, Regenerate; Many Heads | **Stone-Eyed Gorgon** 4/10, range 2 – Poisonous; Stony Glare stuns 2 turns |
+| 🐍 Serpent Coil | **Great Hydra** 5/12 – Poisonous, Regenerate; Many Heads | **Stone-Eyed Gorgon** 5/11, range 2 – Poisonous; Stony Glare stuns 2 turns |
 | 🦁 Lion Pride | **Sunmane Paragon** 7/12 – Armored, Retaliate; Golden Roar | **Sunfire Chimera** 6/10 – Retaliate; Fire Breath |
-| 🐀 Vermin Horde | **Blightspawn Colossus** 6/11 – arrives with two Swarm Rats | **Warren Matriarch** 3/12 – Brood, Regenerate; arrives with three Swarm Rats |
+| 🐀 Vermin Horde | **Blightspawn Colossus** 6/11 – arrives with two Swarm Rats | **Warren Matriarch** 4/12 – Brood, Regenerate; arrives with three Swarm Rats |
 
 ## Building
 

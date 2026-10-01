@@ -47,9 +47,9 @@ object CardDatabase {
 
     private val base: List<CardDef> = buildList {
         // ------------------------------------------------------------------ WOLF
-        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 10, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
+        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 9, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
-        add(king("w_king_moon", "Moon Howler", WOLF, 2, 8, 2, 1, setOf(Keyword.BLOODTHIRST),
+        add(king("w_king_moon", "Moon Howler", WOLF, 2, 7, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
@@ -71,7 +71,7 @@ object CardDatabase {
         add(unit("w_ravager", "Pack Ravager", WOLF, 5, 6, 2, 1, setOf(PACK_HUNTER, RETALIATE), elite = true))
         add(unit("w_packlord", "Ironjaw Packlord", WOLF, 6, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
             arrival = summons("w_pup", 2), text = "Arrival: two Wolf Pups appear next to him.", champion = true))
-        add(unit("w_midnight", "Midnight Fang", WOLF, 5, 9, 4, 1, setOf(HIDDEN, BACKSTAB), champion = true))
+        add(unit("w_midnight", "Midnight Fang", WOLF, 5, 8, 3, 1, setOf(HIDDEN, BACKSTAB), champion = true))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
             TargetRule.FRIENDLY, Buff(attack = 2, turns = 1)))
         add(magic("w_bite", "Savage Bite", WOLF, "Deal 4 damage to an enemy unit.", TargetRule.ENEMY, Damage(4), rank = 3))
@@ -150,11 +150,11 @@ object CardDatabase {
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 10, 3, 2, setOf(FLYING),
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 11, 3, 2, setOf(FLYING),
             ability("Change of Winds", "Swap places with any allied unit.", TargetRule.FRIENDLY, 2,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
-        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 8, 2, 2, setOf(FLYING, Keyword.TEMPEST),
+        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 9, 2, 2, setOf(FLYING, Keyword.TEMPEST),
             ability("Lightning Strike", "Deal 1 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 4, quick = true, effects = listOf(Damage(1), Stun(1))),
             flavor = "Thunder is just her wings."))
@@ -202,7 +202,7 @@ object CardDatabase {
         add(equipment("h_amulet", "Eagle Eye Amulet", HAWK, "+1 health and +1 range.", Buff(health = 1, range = 1)))
 
         // --------------------------------------------------------------- SERPENT
-        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 11, 2, 2, setOf(POISONOUS),
+        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 12, 2, 2, setOf(POISONOUS),
             ability("Enthrall", "Take control of a non-King enemy within 2 that has 3 or less health.",
                 TargetRule(TargetKind.ENEMY_UNIT, 2), 3, effects = listOf(EffectOp.Enthrall(3))),
             flavor = "Look into her eyes. Now fight for her."))
@@ -231,8 +231,8 @@ object CardDatabase {
             ability("Many Heads", "Deal 1 damage to every enemy next to it.", TargetRule.SELF, 2,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)))),
             champion = true))
-        add(unit("s_gorgon", "Stone-Eyed Gorgon", SERPENT, 4, 10, 2, 2, setOf(POISONOUS),
-            ability("Stony Glare", "Stun an enemy within 3 for 2 turns.", TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
+        add(unit("s_gorgon", "Stone-Eyed Gorgon", SERPENT, 5, 11, 2, 2, setOf(POISONOUS),
+            ability("Stony Glare", "Stun an enemy within 3 for 2 turns.", TargetRule(TargetKind.ENEMY_UNIT, 3), 2,
                 effects = listOf(Stun(2))),
             champion = true))
         add(magic("s_hiss", "Hiss of Denial", SERPENT, "Interrupt only. Cancel the action you are responding to.",
@@ -259,7 +259,7 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 12, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 11, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
         add(king("l_king_queen", "Lioness Queen", LION, 4, 10, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
@@ -317,7 +317,7 @@ object CardDatabase {
             ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
-        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 7, 2, 2, setOf(HIDDEN),
+        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 8, 2, 2, setOf(HIDDEN),
             ability("Blight Bolt", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1)))),
@@ -342,7 +342,7 @@ object CardDatabase {
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
         add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 6, 11, 1, 1, setOf(RETALIATE, REGENERATE),
             arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
-        add(unit("v_matriarch", "Warren Matriarch", VERMIN, 3, 12, 1, 1, setOf(BROOD, REGENERATE),
+        add(unit("v_matriarch", "Warren Matriarch", VERMIN, 4, 12, 1, 1, setOf(BROOD, REGENERATE),
             arrival = summons("v_rat", 3), text = "Arrival: three Swarm Rats appear next to her.", champion = true))
         add(magic("v_blightfire", "Blightfire", VERMIN,
             "Deal 4 damage to an enemy unit and 1 damage to every other unit next to it, friend or foe.",
