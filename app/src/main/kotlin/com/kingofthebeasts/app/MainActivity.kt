@@ -82,6 +82,8 @@ private sealed interface Screen {
     data object Friends : Screen
     /** The current game of the online session. */
     data object Online : Screen
+    /** The guided tutorial battle; [run] keeps each attempt fresh. */
+    data class Tutorial(val run: Long) : Screen
 }
 
 @Composable
@@ -111,6 +113,11 @@ private fun App() {
     LaunchedEffect(onlineGame) {
         if (onlineGame != null) screen = Screen.Online
     }
+    fun startTutorial() {
+        AppSettings.markTutorialOffered()
+        screen = Screen.Tutorial(System.nanoTime())
+    }
+
     fun leaveOnline() {
         lobby.reset()
         playMenu = true
@@ -129,7 +136,8 @@ private fun App() {
     }
 
     // Menu music everywhere except in battle; each new battle starts its theme from the top.
-    val battleKey = (screen as? Screen.Battle)?.seed ?: onlineGame?.start?.seed?.takeIf { screen == Screen.Online }
+    val battleKey = (screen as? Screen.Battle)?.seed ?: (screen as? Screen.Tutorial)?.run
+        ?: onlineGame?.start?.seed?.takeIf { screen == Screen.Online }
     LaunchedEffect(battleKey) {
         if (battleKey == null) GameAudio.music(Music.MENU) else {
             GameAudio.music(null)
@@ -144,7 +152,7 @@ private fun App() {
         onDispose { view.keepScreenOn = false }
     }
 
-    BackHandler(enabled = screen != Screen.Menu && screen !is Screen.Battle && screen != Screen.Online) {
+    BackHandler(enabled = screen != Screen.Menu && screen !is Screen.Battle && screen != Screen.Online && screen !is Screen.Tutorial) {
         if (screen == Screen.Friends) lobby.reset()
         screen = if (screen is Screen.Builder || screen is Screen.ViewDeck) Screen.Decks else Screen.Menu
     }
@@ -158,6 +166,9 @@ private fun App() {
             playMenu = playMenu,
             onPlayMenu = { playMenu = it },
             onFriends = { screen = Screen.Friends },
+            onTutorial = ::startTutorial,
+            offerTutorial = !AppSettings.tutorialOffered,
+            onTutorialOffered = AppSettings::markTutorialOffered,
             resumeLabel = saved?.let { "Turn ${it.turn} vs ${it.opponent.name} (${Difficulty.valueOf(it.difficulty).displayName})" },
             onResume = {
                 saved?.let { b ->
@@ -202,7 +213,16 @@ private fun App() {
                 },
             )
         }
-        Screen.Rules -> RulesScreen(onBack = { screen = Screen.Menu })
+        Screen.Rules -> RulesScreen(onBack = { screen = Screen.Menu }, onTutorial = ::startTutorial)
+        is Screen.Tutorial -> {
+            val vm: GameViewModel = viewModel(key = "tutorial-${s.run}") {
+                GameViewModel(
+                    com.kingofthebeasts.core.tutorial.Tutorial.playerDeck, com.kingofthebeasts.core.tutorial.Tutorial.rivalDeck,
+                    Difficulty.EASY, 0L, tutorial = true,
+                )
+            }
+            GameScreen(vm, onExit = { screen = Screen.Menu }, onRematch = ::startTutorial)
+        }
         Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Menu })
         Screen.Friends -> FriendsScreen(lobby, decks, onBack = { screen = Screen.Menu })
         Screen.Online -> {

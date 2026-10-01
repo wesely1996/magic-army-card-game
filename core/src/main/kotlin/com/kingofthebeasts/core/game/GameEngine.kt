@@ -54,19 +54,30 @@ object GameEngine {
 
     // ------------------------------------------------------------------ setup
 
-    fun newGame(deck0: Deck, deck1: Deck, names: List<String>, seed: Long): GameState {
+    /**
+     * A new game in the deployment phase. [shuffle] = false keeps both decks in the order given and
+     * [firstPlayer] skips the coin flip; the tutorial uses both to script its battle.
+     */
+    fun newGame(
+        deck0: Deck, deck1: Deck, names: List<String>, seed: Long,
+        shuffle: Boolean = true, firstPlayer: Int? = null,
+    ): GameState {
         val rng = Rng(seed)
         var uid = 1
         val players = listOf(deck0, deck1).mapIndexed { i, d ->
             val cards = d.cardIds().mapTo(mutableListOf()) { CardInstance(uid++, it) }
-            rng.shuffle(cards)
+            if (shuffle) rng.shuffle(cards)
             val king = d.cards.keys.mapNotNull { CardDatabase.find(it) }.firstOrNull { it.isKing }
             PlayerState(i, names[i], cards, trait = king?.race?.trait)
         }
-        val first = rng.nextInt(2)
-        val s = GameState(players, mutableListOf(), Phase.DEPLOY, first, first, nextId = uid, rng = rng)
-        s.log("Coin flip won by ${players[first].name}. Deployment begins.")
-        s.event { GameEvent.Announce(it, first, "${players[first].name} won the coin flip") }
+        val first = firstPlayer ?: rng.nextInt(2)
+        val s = GameState(players, mutableListOf(), Phase.DEPLOY, first, first, nextId = uid, rng = rng, shuffleDecks = shuffle)
+        if (firstPlayer == null) {
+            s.log("Coin flip won by ${players[first].name}. Deployment begins.")
+            s.event { GameEvent.Announce(it, first, "${players[first].name} won the coin flip") }
+        } else {
+            s.log("${players[first].name} go first. Deployment begins.")
+        }
         return s
     }
 
@@ -413,7 +424,7 @@ object GameEngine {
     private fun startBattle(s: GameState) {
         s.phase = Phase.BATTLE
         for (ps in s.players) {
-            s.rng.shuffle(ps.deck)
+            if (s.shuffleDecks) s.rng.shuffle(ps.deck)
             repeat(OPENING_HAND) { drawCard(s, ps.index) }
         }
         s.activePlayer = s.firstPlayer

@@ -9,6 +9,8 @@ import com.kingofthebeasts.app.net.RemoteSide
 import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.core.net.NetMessage
 import com.kingofthebeasts.core.net.checksum
+import com.kingofthebeasts.core.tutorial.Tutorial
+import com.kingofthebeasts.core.tutorial.TutorialStep
 import androidx.lifecycle.viewModelScope
 import com.kingofthebeasts.core.ai.AiPlayer
 import com.kingofthebeasts.core.ai.Difficulty
@@ -64,11 +66,30 @@ class GameViewModel(
     /** Which engine player is on this phone. */
     val human: Int = 0,
     names: List<String> = listOf("You", "Opponent"),
+    /** The guided tutorial battle: a fixed setup, a scripted rival and lessons that limit your moves. */
+    val tutorial: Boolean = false,
 ) : ViewModel() {
-    val state: GameState = GameEngine.newGame(deck0, deck1, names, seed)
+    val state: GameState = if (tutorial) Tutorial.newGame() else GameEngine.newGame(deck0, deck1, names, seed)
+
+    /** The current tutorial lesson (index into [Tutorial.steps]). */
+    var tutorialStep by mutableIntStateOf(0)
+        private set
+    val lesson: TutorialStep? get() = if (tutorial) Tutorial.steps[tutorialStep] else null
+
+    /** "Got it" on an explanation-only lesson. */
+    fun acknowledgeLesson() {
+        val step = lesson ?: return
+        if (!step.info) return
+        tutorialStep = Tutorial.advance(state, (tutorialStep + 1).coerceAtMost(Tutorial.steps.size - 1))
+    }
+
+    private fun updateLesson() {
+        if (tutorial) tutorialStep = Tutorial.advance(state, tutorialStep)
+    }
     val online: Boolean get() = remote != null
     /** How the opponent is called on screen. */
-    val opponentLabel: String get() = remote?.opponentName ?: "Opponent (${difficulty.displayName})"
+    val opponentLabel: String
+        get() = remote?.opponentName ?: if (tutorial) "Rival" else "Opponent (${difficulty.displayName})"
 
     /** The two copies of an online game disagree (or the friend sent something impossible). */
     var desynced by mutableStateOf(false)
@@ -104,18 +125,23 @@ class GameViewModel(
 
     private fun record(action: Action) {
         history += ActionCodec.encode(action)
-        // Online games can't be resumed: the friend's app would have moved on.
-        if (remote == null) onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
+        updateLesson()
+        // Online games (and the tutorial) can't be resumed: the friend's app would have moved on.
+        if (remote == null && !tutorial) onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())
     }
 
     val decision: Decision get() = GameEngine.decision(state)
     val humanToAct: Boolean
         get() = decision.player == human && decision.kind != DecisionKind.NONE && !aiThinking && !desynced
 
-    fun legalActions(): List<Action> = if (humanToAct) GameEngine.legalActions(state) else emptyList()
+    fun legalActions(): List<Action> = when {
+        !humanToAct -> emptyList()
+        tutorial -> GameEngine.legalActions(state).filter { Tutorial.allowed(lesson!!, state, it) }
+        else -> GameEngine.legalActions(state)
+    }
 
     fun perform(action: Action) {
-        if (!humanToAct || !GameEngine.isLegal(state, action)) return
+        if (!humanToAct || action !in legalActions()) return
         GameEngine.apply(state, action)
         record(action)
         remote?.send(history.size - 1, history.last(), state.checksum())
@@ -149,7 +175,7 @@ class GameViewModel(
                 if (d.kind == DecisionKind.NONE || d.player == human) break
                 aiThinking = true
                 val started = System.currentTimeMillis()
-                val action = withContext(Dispatchers.Default) { ai.choose(state) }
+                val action = if (tutorial) Tutorial.rivalAction(state) else withContext(Dispatchers.Default) { ai.choose(state) }
                 // Keep a readable pace even when the AI decides instantly.
                 val minPause = if (d.kind == DecisionKind.DEPLOY) 600L else 1000L
                 val pause = (minPause / AppSettings.animationSpeed.factor).toLong()

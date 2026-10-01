@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -83,6 +84,8 @@ import com.kingofthebeasts.core.game.StackItem
 import com.kingofthebeasts.core.game.Target
 import com.kingofthebeasts.core.game.UnitState
 import com.kingofthebeasts.core.model.CardDef
+import com.kingofthebeasts.core.tutorial.Tutorial
+import com.kingofthebeasts.core.tutorial.TutorialStep
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
@@ -222,6 +225,12 @@ fun GameScreen(
                             .padding(horizontal = 24.dp, vertical = 10.dp),
                     )
                 }
+                vm.lesson?.let { lesson ->
+                    TutorialCoach(
+                        lesson, vm.tutorialStep, onGotIt = vm::acknowledgeLesson,
+                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
+                    )
+                }
                 HandOverlay(
                     vm, actions,
                     expanded = handExpanded,
@@ -287,14 +296,19 @@ fun GameScreen(
             PaperDialog(onDismiss = { confirmExit = false }) {
                 Text("Leave the battle?", style = MaterialTheme.typography.titleLarge)
                 Text(
-                    if (vm.online) "Online battles can't be resumed: leaving ends it and ${vm.opponentLabel} wins."
-                    else "It's saved — resume it from the main menu. Forfeit ends it for good.",
+                    when {
+                        vm.tutorial -> "You can replay the tutorial any time from Play or How to Play."
+                        vm.online -> "Online battles can't be resumed: leaving ends it and ${vm.opponentLabel} wins."
+                        else -> "It's saved — resume it from the main menu. Forfeit ends it for good."
+                    },
                     style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
                 )
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SketchButton("Stay", { confirmExit = false }, color = Ink.Move)
-                    if (vm.online) {
+                    if (vm.tutorial) {
+                        SketchButton("Leave", onExit, color = Ink.Gold)
+                    } else if (vm.online) {
                         SketchButton("Leave", onForfeit, color = Ink.Enemy)
                     } else {
                         SketchButton("Leave", onExit, color = Ink.Gold)
@@ -451,9 +465,9 @@ private fun PrimaryButton(vm: GameViewModel, actions: List<Action>, modifier: Mo
     when {
         d.kind == DecisionKind.DEPLOY && Action.EndDeploy in actions ->
             SketchButton("Done", { vm.perform(Action.EndDeploy) }, modifier, small = true, color = Ink.Deploy)
-        d.kind == DecisionKind.RESPOND && vm.humanToAct ->
+        d.kind == DecisionKind.RESPOND && Action.Pass in actions ->
             SketchButton("Pass", { vm.perform(Action.Pass) }, modifier, small = true, color = Ink.Gold)
-        d.kind == DecisionKind.MAIN && vm.humanToAct ->
+        d.kind == DecisionKind.MAIN && Action.Pass in actions ->
             SketchButton("Skip turn", { vm.perform(Action.Pass) }, modifier, small = true, color = Ink.PaperDeep)
     }
 }
@@ -552,6 +566,37 @@ private fun explanation(vm: GameViewModel): Pair<String, String> {
         else -> "Your turn: take one action." to
             "Move a unit, attack, use an ability or play a card. Tap one of your units to see where it can move and what it can attack, " +
             "or pick a card from your hand. Your opponent may interrupt before your action resolves."
+    }
+}
+
+/** The tutorial's coach note: the current lesson, and "Got it" for explanations. */
+@Composable
+private fun TutorialCoach(lesson: TutorialStep, index: Int, onGotIt: () -> Unit, modifier: Modifier = Modifier) {
+    // Tap the note to fold it away (e.g. to see the far rows); each new lesson opens it again.
+    var folded by remember(index) { mutableStateOf(false) }
+    Column(
+        modifier
+            .widthIn(max = 440.dp)
+            .background(Ink.Paper.copy(alpha = 0.94f), RoundedCornerShape(14.dp))
+            .watercolor(Ink.Gold, 300 + index, 0.7f)
+            .sketchBorder(seed = 300 + index, corner = 14.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+    ) {
+        Row(
+            Modifier.clickable(remember { MutableInteractionSource() }, indication = null) { folded = !folded },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🎓 ${lesson.title}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false))
+            Spacer(Modifier.width(10.dp))
+            Text(
+                "${index + 1}/${Tutorial.steps.size}  ${if (folded) "▼" else "▲"}",
+                style = MaterialTheme.typography.labelSmall, color = Ink.Faded,
+            )
+        }
+        if (!folded) Text(lesson.text, style = MaterialTheme.typography.bodyMedium)
+        if (lesson.info) {
+            SketchButton("Got it", onGotIt, Modifier.align(Alignment.End).padding(top = 6.dp), small = true, color = Ink.Deploy)
+        }
     }
 }
 
@@ -933,6 +978,19 @@ private fun LogLine(line: String) {
 @Composable
 private fun GameOverDialog(vm: GameViewModel, onExit: () -> Unit, onRematch: () -> Unit, online: OnlineInfo?) {
     val s = vm.state
+    if (vm.tutorial) {
+        PaperDialog(onDismiss = {}) {
+            Text("Tutorial complete!", style = MaterialTheme.typography.displaySmall, color = Ink.You)
+            Text(
+                "You know the basics: deploy, move, attack, answer interrupts, Magic and Strategy cards. " +
+                    "How to Play explains every rule. Ready for a real battle?",
+                style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(16.dp))
+            SketchButton("To the menu", onExit, color = Ink.Deploy)
+        }
+        return
+    }
     val (title, color) = when {
         s.isDraw -> "Draw" to Ink.Gold
         s.winner == vm.human -> "Victory!" to Ink.You

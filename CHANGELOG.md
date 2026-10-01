@@ -3,6 +3,15 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.8.0 — Tutorial battle
+
+- **Tutorial battle:** a guided first battle as the Pride King against a scripted rival Moon Howler.
+  Twelve short lessons teach deploying your King and army, inspecting cards, moving, answering the
+  rival's attack with a Magic card, the action queue, playing Magic, attacking, Strategy fields, and
+  finally defeating the enemy King. Each lesson lights up only the move it teaches.
+- Offered once on first launch, and always available under **Play → Tutorial** and in **How to Play**.
+- The coach note can be folded away with a tap; buttons the lesson doesn't allow are hidden.
+
 ## 0.7.0 — Play with friends (same Wi-Fi)
 
 - **With friends:** peer-to-peer online battles between two phones on the same Wi-Fi — no server, no

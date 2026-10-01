@@ -62,7 +62,7 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 Agreed with the product owner. Every version also gets a **balance pass**: AI-vs-AI simulations keep every
 race, King and starter deck between 44% and 55% wins, and new cards or rules are re-checked before release.
 
-1. **0.8.0 — Tutorial battle.** A guided first battle against a scripted opponent that teaches deployment,
+1. **0.8.0 — Tutorial battle.** *(done)* A guided first battle against a scripted opponent that teaches deployment,
    moving, attacking, playing Magic, answering an interrupt, Strategy fields, inspecting cards and the
    battle drawer, ending with defeating the enemy King. Offered on first launch and from How to Play.
 2. **0.9.0 — Rejoin dropped online games.** If the Wi-Fi connection drops, either player can reconnect and
@@ -80,4 +80,4 @@ Ongoing, any time: custom painted card art (drop `art_<id>.webp` files in
 team colours, screen reader labels).
 
 Done: landscape 2.5D board and drawer (0.2), Vermin and racial traits (0.3), Champions and fields (0.4),
-animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7).
+animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8).

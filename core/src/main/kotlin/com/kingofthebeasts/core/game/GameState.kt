@@ -189,6 +189,8 @@ class GameState(
     var eventSeq: Int = 0,
     /** True for throwaway copies used by the AI: logging and events are skipped. */
     val simulation: Boolean = false,
+    /** False keeps decks in their given order when the battle starts (scripted tutorial). */
+    val shuffleDecks: Boolean = true,
 ) {
     fun unit(id: Int): UnitState? = units.firstOrNull { it.id == id && it.alive }
     fun unitAt(p: Pos): UnitState? = units.firstOrNull { it.pos == p && it.alive }
@@ -222,5 +224,6 @@ class GameState(
         rng = Rng(rng.seed),
         eventSeq = eventSeq,
         simulation = true,
+        shuffleDecks = shuffleDecks,
     )
 }

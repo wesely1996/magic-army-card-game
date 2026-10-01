@@ -85,6 +85,10 @@ fun MenuScreen(
     /** Whether the play options behind "Play" are showing instead of the basic menu. */
     playMenu: Boolean = false,
     onPlayMenu: (Boolean) -> Unit = {},
+    onTutorial: () -> Unit = {},
+    /** Offer the tutorial once, on first launch. */
+    offerTutorial: Boolean = false,
+    onTutorialOffered: () -> Unit = {},
 ) {
     var confirmNew by remember { mutableStateOf(false) }
     BackHandler(enabled = playMenu) { onPlayMenu(false) }
@@ -118,6 +122,8 @@ fun MenuScreen(
                     Spacer(Modifier.height(10.dp))
                     SketchButton("⚔  New game", { if (resumeLabel != null) confirmNew = true else onPlay() }, wide, color = Ink.Enemy)
                     Spacer(Modifier.height(14.dp))
+                    SketchButton("🎓  Tutorial", onTutorial, wide, color = Ink.Gold)
+                    Spacer(Modifier.height(14.dp))
                     SketchButton("🤝  With friends", { onFriends?.invoke() }, wide, color = Ink.You, enabled = onFriends != null)
                     Text(if (onFriends == null) "Online play — coming soon" else "Online, on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                     Spacer(Modifier.height(14.dp))
@@ -133,6 +139,21 @@ fun MenuScreen(
         // The settings wheel sits in the top corner.
         Box(Modifier.align(Alignment.TopEnd).systemBarsPadding().padding(12.dp)) {
             SketchButton("⚙", onSettings, color = Ink.PaperDeep)
+        }
+        if (offerTutorial) {
+            com.kingofthebeasts.app.game.PaperDialog(onDismiss = onTutorialOffered) {
+                Text("New to King of the Beasts?", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "A short guided battle teaches deploying, moving, attacking, answering interrupts and playing cards.",
+                    style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SketchButton("🎓  Play the tutorial", { onTutorialOffered(); onTutorial() }, color = Ink.Gold)
+                    SketchButton("Not now", onTutorialOffered, color = Ink.PaperDeep)
+                }
+                Text("You'll find it later under Play and in How to Play.", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+            }
         }
         if (confirmNew) {
             com.kingofthebeasts.app.game.PaperDialog(onDismiss = { confirmNew = false }) {
@@ -289,9 +310,10 @@ fun PlaySetupScreen(decks: List<Deck>, onBack: () -> Unit, onStart: (Deck, Deck?
 }
 
 @Composable
-fun RulesScreen(onBack: () -> Unit) {
+fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
     val sections = listOf(
-        "Goal" to "Defeat the enemy King. If your King falls, you lose.",
+        "Goal" to "Defeat the enemy King. If your King falls, you lose. New here? The Tutorial battle (top right) walks " +
+            "you through a first battle step by step.",
         "Decks" to "Build a deck of 40 cards plus one King, from up to 3 of the 6 races. Copies per card follow its stars: " +
             "★ cards up to 3, ★★ up to 2, ★★★ just 1. At most 3 Strategy cards.",
         "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter " +
@@ -361,7 +383,9 @@ fun RulesScreen(onBack: () -> Unit) {
     )
     PaperBackground {
         Column(Modifier.fillMaxSize().systemBarsPadding()) {
-            ScreenHeader("How to Play", onBack)
+            ScreenHeader("How to Play", onBack) {
+                SketchButton("🎓  Tutorial battle", onTutorial, small = true, color = Ink.Gold)
+            }
             Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                 sections.forEachIndexed { i, (title, body) ->
                     Column(

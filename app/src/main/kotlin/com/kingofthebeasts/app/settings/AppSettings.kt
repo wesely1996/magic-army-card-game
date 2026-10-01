@@ -30,6 +30,9 @@ object AppSettings {
     /** Shown to friends in online games. */
     var playerName by mutableStateOf("Player")
         private set
+    /** Whether the tutorial has been offered (on first launch) or played. */
+    var tutorialOffered by mutableStateOf(false)
+        private set
 
     fun load(context: Context) {
         val p = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -39,6 +42,7 @@ object AppSettings {
         animationSpeed = runCatching { AnimationSpeed.valueOf(p.getString("animationSpeed", null)!!) }.getOrDefault(AnimationSpeed.NORMAL)
         keepScreenOn = p.getBoolean("keepScreenOn", true)
         playerName = p.getString("playerName", null) ?: "Player"
+        tutorialOffered = p.getBoolean("tutorialOffered", false)
         GameAudio.musicVolume = musicVolume
         GameAudio.sfxVolume = sfxVolume
     }
@@ -63,6 +67,11 @@ object AppSettings {
     fun setScreenAwake(on: Boolean) {
         keepScreenOn = on
         prefs?.edit()?.putBoolean("keepScreenOn", on)?.apply()
+    }
+
+    fun markTutorialOffered() {
+        tutorialOffered = true
+        prefs?.edit()?.putBoolean("tutorialOffered", true)?.apply()
     }
 
     fun setName(name: String) {
