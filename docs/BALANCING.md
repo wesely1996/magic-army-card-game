@@ -2,6 +2,24 @@
 
 Target set by the product owner: **every race and every King wins between 44% and 55% of its games.**
 
+### v0.5.0 (second Champions, 3 Magic + 3 Equipment per race)
+
+| | First simulation after the v0.5 changes | After the balance pass |
+|---|---|---|
+| Race win rates | 46.3% – 54.3% | **47.7% – 51.4%** |
+| King win rates | 42.4% – 57.3% | **46.0% – 53.7%** |
+| Draws | 0% | **0%** |
+| First player wins | 52.6% | 52.0% |
+| Starter decks (overall) | 46.4% – 52.8% | **45.4% – 53.3%** |
+
+Three rounds: Wolf Kings, the Pride King and Midnight Fang were trimmed while the Naga Queen, Blight Seer
+and Hawk Kings got more health. The second round over-corrected the Pride King (57% → 45%), so the third gave
+its health back and instead trimmed the Ironjaw Packlord and War Harness, the strongest Wolf and Bear cards.
+The weakest equipment (Storm Plume, Plague Mask, Tattered Hood, Shadow Cloak) gained a stat each. The Stone-Eyed Gorgon
+(5/11, Stony Glare every 2 turns) and Warren Matriarch (4 attack) were strengthened. Finally two starter decks
+were re-tuned: Mountain Clans took War Harness and Stone Totem, and Warren Horde traded most of its Grafts and
+Cloaks for Serpent equipment.
+
 ### v0.4.0 (Champions, star ranks, field Strategies, 40 + King decks)
 
 | | First simulation after the v0.4 changes | After the balance pass |

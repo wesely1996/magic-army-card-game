@@ -3,7 +3,7 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
-## 0.5.0 — More Champions, resume, painless updates
+## 0.5.0 — More Champions, animations, resume, painless updates
 
 - **A second Champion for every race:** Midnight Fang, Quakeback Bear, Storm Griffin, Stone-Eyed Gorgon,
   Sunfire Chimera and Warren Matriarch.
@@ -14,7 +14,14 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **36 new cards:** 3 Magic and 3 Equipment for every race.
 - **Starter decks can be viewed** read-only (View), or copied to edit. Your own decks open for editing with a
   tap; decks saved before a card was renamed or removed no longer fail to open.
-- BALANCE_PLACEHOLDER
+- **Battle animations:** melee lunges, arrows, spell and ability orbs with coloured bursts (orange harms,
+  green helps, violet controls), hit shakes and red flashes, fallen units toppling, cards flying in from their
+  owner's side, units dropping onto the board, and a board-wide wave for Strategy cards. Events play in order
+  (a spell flies, then hits), and the AI paces its moves so each one can be followed.
+- **Balance:** every race wins 47.7–51.4%, every King 46.0–53.7% and every starter deck 45.4–53.3%
+  (target 44–55%). Wolf Kings, the Pride King, Midnight Fang, Ironjaw Packlord (5/10) and War Harness
+  (+1/+1) were trimmed; the Naga Queen, Blight Seer, Hawk Kings, Stone-Eyed Gorgon, Warren Matriarch and the
+  weakest Hawk and Vermin equipment were strengthened. See docs/BALANCING.md.
 
 ## 0.4.0 — Champions, star ranks and field Strategies
 

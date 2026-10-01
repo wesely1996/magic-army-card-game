@@ -12,6 +12,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -165,6 +166,9 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
 
 private class HitBox(val rect: Rect, val pos: Pos)
 
+/** Animations made from the events up to [seq], and when each moving unit should start sliding. */
+private class FxBatch(val seq: Int, val effects: List<Fx>, val moveDelay: Map<Int, Long>)
+
 @Composable
 fun BoardView(
     vm: GameViewModel,
@@ -206,12 +210,11 @@ fun BoardView(
         }
     }
 
-    // New events become animations during composition, so they are queued before the board redraws:
-    // a fallen unit keeps standing, and a new one stays hidden, until its moment comes.
-    val moveDelay = remember { HashMap<Int, Long>() }
-    remember(version) {
+    // New events become animations as part of the recomposition, so they are queued before the board
+    // redraws: a fallen unit keeps standing, and a new one stays hidden, until its moment comes.
+    val batch = remember(version) {
         val seenSeq = seen[0]
-        moveDelay.clear()
+        val moveDelay = HashMap<Int, Long>()
         // Lay the new events out on a timeline so cause comes before effect: a spell flies, then hits.
         val queued = mutableListOf<Fx>()
         var t = 0L
@@ -294,8 +297,13 @@ fun BoardView(
                 is GameEvent.Announce -> {}
             }
         }
-        seen[0] = state.eventSeq
-        fx += queued
+        FxBatch(state.eventSeq, queued, moveDelay)
+    }
+    SideEffect {
+        if (batch.seq > seen[0]) {
+            seen[0] = batch.seq
+            fx += batch.effects
+        }
     }
 
     LaunchedEffect(version) {
@@ -306,7 +314,7 @@ fun BoardView(
             val anim = positions[u.id]
             if (anim == null) positions[u.id] = Animatable(target, Offset.VectorConverter)
             else if (anim.targetValue != target) {
-                launch { anim.animateTo(target, tween(380, delayMillis = (moveDelay[u.id] ?: 0L).toInt())) }
+                launch { anim.animateTo(target, tween(380, delayMillis = (batch.moveDelay[u.id] ?: 0L).toInt())) }
             }
         }
     }
