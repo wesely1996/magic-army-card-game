@@ -1051,7 +1051,7 @@ object GameEngine {
         val card = ps.deck.removeAt(0)
         if (ps.hand.size >= HAND_LIMIT) {
             ps.discard += card
-            s.log("${ps.name}'s hand is full: ${card.def.name} is discarded")
+            s.log("${if (ps.name == "You") "Your" else ps.name + "'s"} hand is full: ${card.def.name} is discarded")
         } else {
             ps.hand += card
         }

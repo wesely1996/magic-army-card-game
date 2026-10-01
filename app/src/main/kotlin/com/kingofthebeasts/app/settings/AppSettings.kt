@@ -27,6 +27,9 @@ object AppSettings {
         private set
     var keepScreenOn by mutableStateOf(true)
         private set
+    /** Top-down 2D board instead of the 2.5D perspective view. */
+    var boardFlat by mutableStateOf(false)
+        private set
     /** Shown to friends in online games. */
     var playerName by mutableStateOf("Player")
         private set
@@ -43,6 +46,7 @@ object AppSettings {
         keepScreenOn = p.getBoolean("keepScreenOn", true)
         playerName = p.getString("playerName", null) ?: "Player"
         tutorialOffered = p.getBoolean("tutorialOffered", false)
+        boardFlat = p.getBoolean("boardFlat", false)
         GameAudio.musicVolume = musicVolume
         GameAudio.sfxVolume = sfxVolume
     }
@@ -67,6 +71,11 @@ object AppSettings {
     fun setScreenAwake(on: Boolean) {
         keepScreenOn = on
         prefs?.edit()?.putBoolean("keepScreenOn", on)?.apply()
+    }
+
+    fun chooseBoardView(flat: Boolean) {
+        boardFlat = flat
+        prefs?.edit()?.putBoolean("boardFlat", flat)?.apply()
     }
 
     fun markTutorialOffered() {

@@ -74,8 +74,9 @@ import kotlinx.coroutines.launch
  * board's centre. Board coordinates: x to the right, y away from the human player (row 0 is
  * nearest at angle 0). [angleDeg] turns the board around its centre; the camera always looks
  * from the bottom of the screen, so 180° shows the board from the opponent's side.
+ * With [flat] the camera looks straight down instead: a top-down 2D board.
  */
-class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
+class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f, val flat: Boolean = false) {
     private val cos = cos(Math.toRadians(angleDeg.toDouble())).toFloat()
     private val sin = sin(Math.toRadians(angleDeg.toDouble())).toFloat()
     /** Half-extent of the rotated board along the view axes (4 when square-on, ~5.7 at 45°). */
@@ -91,6 +92,12 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
     val a: Float
     private val cx = width / 2f
     private val horizonY: Float
+    /** Top-down view: screen pixels per square and the board centre's height on screen. */
+    private val cell = min(width * 0.94f, height * 0.9f) / span
+    private val cy = height / 2f
+
+    /** How much "height above the board" shows on screen (none looking straight down, a little for effects). */
+    val heightFactor: Float get() = if (flat) 0.3f else 1f
 
     init {
         var bb = width * 0.94f * z0 / span
@@ -113,7 +120,7 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
         return aa * (1f / z0 - 1f / (z0 + span)) + 1.15f * bb / (z0 + span - 0.5f) + 0.25f * bb / z0 + 6f
     }
 
-    val slab: Float get() = 0.25f * b / z0
+    val slab: Float get() = if (flat) 0f else 0.25f * b / z0
 
     private companion object {
         const val MIN_TILT = 0.55f
@@ -132,21 +139,28 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
 
     fun project(bx: Float, by: Float): Offset {
         val (u, v) = toView(bx, by)
+        if (flat) return Offset(cx + u * cell, cy - v * cell)
         val z = z0 + v + half
         return Offset(cx + u * b / z, horizonY + a / z)
     }
 
     /** Screen height of a [len]-square step away from the camera at board point ([bx], [by]). */
     fun depthSpan(bx: Float, by: Float, len: Float): Float {
+        if (flat) return len * cell
         val z = z0 + depth(bx, by) + half
         return a * len / (z * z)
     }
 
     /** Screen pixels per board square at board point ([bx], [by]). */
-    fun scale(bx: Float, by: Float): Float = b / (z0 + depth(bx, by) + half)
+    fun scale(bx: Float, by: Float): Float = if (flat) cell else b / (z0 + depth(bx, by) + half)
 
     /** The board square under a screen point (as fractional board coordinates), or null above the horizon. */
     fun unproject(o: Offset): Offset? {
+        if (flat) {
+            val u = (o.x - cx) / cell
+            val v = (cy - o.y) / cell
+            return Offset(u * cos + v * sin + Board.SIZE / 2f, -u * sin + v * cos + Board.SIZE / 2f)
+        }
         val dy = o.y - horizonY
         if (dy <= 0f) return null
         val z = a / dy
@@ -156,7 +170,7 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
     }
 
     /** Whether a board edge with outward normal (nx, ny) faces the camera. */
-    fun facesCamera(nx: Float, ny: Float): Boolean = nx * sin + ny * cos < -0.01f
+    fun facesCamera(nx: Float, ny: Float): Boolean = !flat && nx * sin + ny * cos < -0.01f
 
     fun quad(x: Int, y: Int, inset: Float = 0f): Path = Path().apply {
         val p0 = project(x + inset, y + inset)
@@ -178,6 +192,8 @@ fun BoardView(
     highlights: Highlights,
     modifier: Modifier = Modifier,
     angle: Float = 0f,
+    /** Top-down 2D view instead of the 2.5D one. */
+    flat: Boolean = false,
     onRotate: (Float) -> Unit = {},
     onInspect: (UnitState) -> Unit = {},
 ) {
@@ -388,7 +404,7 @@ fun BoardView(
         @Suppress("UNUSED_EXPRESSION") version // redraw whenever the game changes
         val clock = now
         val effects = fx.toList()
-        val proj = BoardProjection(size.width, size.height, angle)
+        val proj = BoardProjection(size.width, size.height, angle, flat)
         projHolder[0] = proj
 
         drawBoardBase(proj, boardTexture, matrix, bitmapPaint)
@@ -414,6 +430,18 @@ fun BoardView(
             val s0 = proj.scale(bp.x, bp.y)
             val restBase = proj.project(bp.x, bp.y)
             val team = if (u.owner == vm.human) Ink.You else Ink.Enemy
+            if (proj.flat) {
+                // Top-down view: a round token instead of an upright standee.
+                val r = 0.42f * s0 * pose.scale
+                val c = restBase + Offset(pose.shake * s0, -pose.lift * s0 * proj.heightFactor)
+                drawToken(
+                    u, c, r, s0, team, art(u.def.id), highlights.selected == u.pos, pose.flash,
+                    stunned = u.stun > 0, hidden = GameEngine.isHidden(state, u),
+                    attack = GameEngine.attackOf(state, u), textPaint = textPaint,
+                )
+                boxes += HitBox(Rect(c.x - r, c.y - r, c.x + r, c.y + r), u.pos)
+                continue
+            }
             withTransform({ translate(pose.shake * s0, 0f) }) {
                 val s = s0
                 val base = restBase
@@ -495,9 +523,66 @@ fun BoardView(
     }
 }
 
+/** A unit seen from above: its art in a round, team-coloured token with attack and health badges. */
+private fun DrawScope.drawToken(
+    u: UnitState, c: Offset, r: Float, s: Float, team: Color, img: ImageBitmap, selected: Boolean, flash: Float,
+    stunned: Boolean, hidden: Boolean, attack: Int, textPaint: Paint, alpha: Float = 1f,
+) {
+    drawCircle(Color.Black.copy(alpha = 0.25f * alpha), r * 1.02f, c + Offset(0.04f * s, 0.05f * s))
+    drawCircle(team.copy(alpha = alpha), r, c)
+    val inner = r * 0.84f
+    val clip = Path().apply { addOval(Rect(c.x - inner, c.y - inner, c.x + inner, c.y + inner)) }
+    clipPath(clip) {
+        val side = min(img.width, (img.height * 0.62f).roundToInt())
+        val top = (img.height * 0.36f - side / 2f).roundToInt().coerceIn(0, img.height - side)
+        drawImage(
+            img, srcOffset = IntOffset((img.width - side) / 2, top), srcSize = IntSize(side, side),
+            dstOffset = IntOffset((c.x - inner).roundToInt(), (c.y - inner).roundToInt()),
+            dstSize = IntSize((2 * inner).roundToInt(), (2 * inner).roundToInt()), alpha = alpha,
+        )
+        val box = Rect(c.x - inner, c.y - inner, c.x + inner, c.y + inner)
+        if (stunned) drawRect(Color(0x55A0A0FF), box.topLeft, box.size)
+        if (hidden) drawRect(Color(0x66302838), box.topLeft, box.size)
+        if (flash > 0f) drawRect(Ink.Attack.copy(alpha = flash), box.topLeft, box.size)
+    }
+    drawCircle(Ink.Line.copy(alpha = alpha), inner, c, style = Stroke(0.018f * s))
+    drawCircle(if (selected) Ink.Gold else Ink.Line.copy(alpha = alpha), r, c, style = Stroke(if (selected) 0.07f * s else 0.02f * s))
+    if (u.shield > 0) drawCircle(Ink.Move.copy(alpha = 0.85f * alpha), r * 1.12f, c, style = Stroke(0.05f * s))
+    if (alpha < 1f) return
+    val br = 0.13f * s
+    badge(Offset(c.x - r * 0.78f, c.y + r * 0.62f), br, Ink.Attack, attack.toString(), textPaint)
+    badge(Offset(c.x + r * 0.78f, c.y + r * 0.62f), br, if (u.hp < u.maxHp) Color(0xFFD9822B) else Ink.Heal, u.hp.toString(), textPaint)
+    if (u.isKing) label("♛", Offset(c.x, c.y - r * 0.72f), 0.3f * s, Ink.Gold, textPaint, outline = true)
+    var icons = ""
+    if (u.stun > 0) icons += "💫"
+    if (u.poisonTurns > 0) icons += "☠"
+    if (icons.isNotEmpty()) label(icons, Offset(c.x + r * 0.8f, c.y - r * 0.5f), 0.22f * s, Ink.Heal, textPaint, outline = true)
+}
+
 /** A fallen unit: it stands until its moment, then topples backwards, sinks and fades. */
 private fun DrawScope.drawGhost(proj: BoardProjection, g: Ghost, now: Long, img: ImageBitmap, team: Color) {
     val t = g.t(now)
+    if (proj.flat) {
+        // From above, the fallen token shrinks, darkens and fades away.
+        val s = proj.scale(g.at.x, g.at.y)
+        val c = proj.project(g.at.x, g.at.y)
+        val k = 1f - t
+        val r = 0.42f * s * (1f - 0.4f * t)
+        drawCircle(Color.Black.copy(alpha = 0.25f * k), r * 1.02f, c + Offset(0.04f * s, 0.05f * s))
+        drawCircle(team.copy(alpha = k), r, c)
+        val inner = r * 0.84f
+        clipPath(Path().apply { addOval(Rect(c.x - inner, c.y - inner, c.x + inner, c.y + inner)) }) {
+            val side = min(img.width, (img.height * 0.62f).roundToInt())
+            val top = (img.height * 0.36f - side / 2f).roundToInt().coerceIn(0, img.height - side)
+            drawImage(
+                img, srcOffset = IntOffset((img.width - side) / 2, top), srcSize = IntSize(side, side),
+                dstOffset = IntOffset((c.x - inner).roundToInt(), (c.y - inner).roundToInt()),
+                dstSize = IntSize((2 * inner).roundToInt(), (2 * inner).roundToInt()), alpha = k,
+            )
+            drawRect(Color(0xFF3A3A3A).copy(alpha = 0.5f * min(1f, t * 3f) * k), Offset(c.x - inner, c.y - inner), Size(2 * inner, 2 * inner))
+        }
+        return
+    }
     val k = 1f - t
     val s = proj.scale(g.at.x, g.at.y)
     val base = proj.project(g.at.x, g.at.y)

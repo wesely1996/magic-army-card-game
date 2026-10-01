@@ -101,7 +101,7 @@ private fun ease(t: Float): Float = 1f - (1f - t) * (1f - t)
 
 /** A point [height] squares above board point [p], on screen. */
 private fun BoardProjection.above(p: Offset, height: Float): Offset =
-    project(p.x, p.y) - Offset(0f, height * scale(p.x, p.y))
+    project(p.x, p.y) - Offset(0f, height * heightFactor * scale(p.x, p.y))
 
 /** A circle of [r] squares around [c], lying on the board. */
 private fun BoardProjection.groundCircle(c: Offset, r: Float): Path = Path().apply {

@@ -58,6 +58,16 @@ fun SettingsPanel(modifier: Modifier = Modifier) {
 
         Spacer(Modifier.height(8.dp))
         SectionTitle("Battle")
+        Text("Board view", style = MaterialTheme.typography.labelLarge)
+        Text(
+            "2.5D shows the board in perspective with standing pieces; Top-down shows it flat from above with round tokens.",
+            style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 4.dp)) {
+            Choice("2.5D", !AppSettings.boardFlat) { AppSettings.chooseBoardView(false) }
+            Choice("Top-down 2D", AppSettings.boardFlat) { AppSettings.chooseBoardView(true) }
+        }
+        Spacer(Modifier.height(4.dp))
         Text("Animation speed", style = MaterialTheme.typography.labelLarge)
         Text(
             "How quickly attacks, spells and the opponent's moves play out.",

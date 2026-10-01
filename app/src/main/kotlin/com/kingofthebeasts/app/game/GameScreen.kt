@@ -70,6 +70,7 @@ import com.kingofthebeasts.app.ui.theme.Ink
 import com.kingofthebeasts.app.audio.GameAudio
 import com.kingofthebeasts.app.audio.Music
 import com.kingofthebeasts.app.audio.Sfx
+import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.app.ui.SettingsPanel
 import androidx.compose.ui.window.DialogProperties
 import com.kingofthebeasts.app.ui.watercolor
@@ -198,6 +199,7 @@ fun GameScreen(
                 BoardView(
                     vm, vm.highlights(actions), Modifier.fillMaxSize().padding(start = boardInset),
                     angle = angle.value,
+                    flat = AppSettings.boardFlat,
                     onRotate = { delta -> scope.launch { angle.snapTo(angle.value + delta) } },
                     onInspect = { u -> detail = u.def to u.id },
                 )
@@ -205,6 +207,8 @@ fun GameScreen(
                     rotated = ((((angle.value - baseAngle) % 360f) + 360f) % 360f).let { it > 1f && it < 359f },
                     onMenu = { confirmExit = true },
                     onSettings = { showSettings = true },
+                    flat = AppSettings.boardFlat,
+                    onToggleView = { AppSettings.chooseBoardView(!AppSettings.boardFlat) },
                     onRotateLeft = { rotateBy(-90f) },
                     onRotateRight = { rotateBy(90f) },
                     onReset = {
@@ -338,6 +342,8 @@ private fun BoardControls(
     rotated: Boolean,
     onMenu: () -> Unit,
     onSettings: () -> Unit,
+    flat: Boolean,
+    onToggleView: () -> Unit,
     onRotateLeft: () -> Unit,
     onRotateRight: () -> Unit,
     onReset: () -> Unit,
@@ -346,6 +352,8 @@ private fun BoardControls(
     Row(modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         SketchButton("☰", onMenu, small = true, color = Ink.PaperDeep)
         SketchButton("⚙", onSettings, small = true, color = Ink.PaperDeep)
+        // Switch between the 2.5D board and a flat top-down one; the label names the view you'd switch to.
+        SketchButton(if (flat) "2.5D" else "2D", onToggleView, small = true, color = Ink.PaperDeep)
         SketchButton("⟲", onRotateLeft, small = true, color = Ink.PaperDeep)
         SketchButton("⟳", onRotateRight, small = true, color = Ink.PaperDeep)
         if (rotated) SketchButton("Reset view", onReset, small = true, color = Ink.Gold)
