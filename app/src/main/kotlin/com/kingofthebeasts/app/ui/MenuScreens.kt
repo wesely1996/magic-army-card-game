@@ -275,7 +275,14 @@ fun PlaySetupScreen(decks: List<Deck>, onBack: () -> Unit, onStart: (Deck, Deck?
                                     Modifier
                                         .weight(1f)
                                         .padding(vertical = 4.dp)
-                                        .then(if (on) Modifier.watercolor(if (d == Difficulty.EASY) Ink.Heal else Ink.Enemy, 60 + d.ordinal, 1.2f) else Modifier)
+                                        .then(if (on) Modifier.watercolor(
+                                            when (d) {
+                                                Difficulty.EASY -> Ink.Heal
+                                                Difficulty.MEDIUM -> Ink.Enemy
+                                                Difficulty.HARD -> Ink.Target
+                                            },
+                                            60 + d.ordinal, 1.2f,
+                                        ) else Modifier)
                                         .sketchBorder(if (on) Ink.Line else Ink.Faded, seed = 60 + d.ordinal)
                                         .clickable { difficulty = d }
                                         .padding(10.dp),

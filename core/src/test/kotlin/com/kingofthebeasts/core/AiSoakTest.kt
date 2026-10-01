@@ -39,6 +39,15 @@ class AiSoakTest {
         assertTrue(decisive >= games / 2, "most AI games should end with a King falling")
     }
 
+    /** Master (with a short thinking time, to keep the test quick) plays legal moves and finishes games. */
+    @Test
+    fun masterGamesFinish() {
+        repeat(2) { g ->
+            val s = play(g, AiPlayer(Difficulty.HARD, g.toLong(), thinkMs = 60), AiPlayer(Difficulty.MEDIUM, g + 9L))
+            assertEquals(Phase.GAME_OVER, s.phase)
+        }
+    }
+
     @Test
     fun mediumBeatsEasy() {
         val games = 32

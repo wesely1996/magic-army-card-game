@@ -12,8 +12,10 @@ import kotlin.random.Random
 
 @Serializable
 enum class Difficulty(val displayName: String, val description: String) {
-    EASY("Easy", "Plays on instinct: picks what looks best right now, and sometimes slips."),
-    MEDIUM("Medium", "Thinks 3 moves ahead: its move, your best reply, and its follow-up."),
+    // The names are stored in saved battles; only the display names change.
+    EASY("Beginner", "Plays on instinct: picks what looks best right now, and sometimes slips."),
+    MEDIUM("Pro", "Thinks 3 moves ahead: its move, your best reply, and its follow-up."),
+    HARD("Master", "Thinks as far ahead as time allows, weighs every possible answer, and seldom slips."),
 }
 
 /**
@@ -25,6 +27,10 @@ enum class Difficulty(val displayName: String, val description: String) {
  *   opponent's reply, its next action) over the most promising candidates at
  *   each level. It does not peek at the opponent's hand: when predicting
  *   replies it only considers moves, attacks and abilities on the board.
+ * - [Difficulty.HARD] searches the same way but deeper and wider, deepening
+ *   one ply at a time until its [thinkMs] budget runs out (so it adapts to the
+ *   phone's speed), reusing each pass's ranking to search the best moves first.
+ *   It also looks ahead before deciding whether to interrupt.
  *
  * Simulations assume nobody interrupts; interrupts are decided separately when
  * a response window actually opens.
@@ -36,6 +42,8 @@ class AiPlayer(
     private val greedyNoise: Double = 1.6,
     /** Chance that Easy ignores a chance to interrupt. */
     private val skipInterruptChance: Double = 0.5,
+    /** Hard's thinking time per decision, in milliseconds. */
+    private val thinkMs: Long = 1500,
 ) {
     private val rng = Random(seed)
 
@@ -46,6 +54,7 @@ class AiPlayer(
             DecisionKind.MAIN -> when (difficulty) {
                 Difficulty.EASY -> chooseGreedy(s, d.player, noise = greedyNoise)
                 Difficulty.MEDIUM -> chooseBySearch(s, d.player)
+                Difficulty.HARD -> chooseByDeepening(s, d.player)
             }
             DecisionKind.RESPOND -> chooseResponse(s, d.player)
             DecisionKind.NONE -> Action.Pass
@@ -142,6 +151,73 @@ class AiPlayer(
         }
     }
 
+    // ------------------------------------------------------------------ hard
+
+    private class OutOfTime : RuntimeException() {
+        override fun fillInStackTrace(): Throwable = this
+    }
+
+    private fun chooseByDeepening(s: GameState, me: Int): Action {
+        val deadline = System.nanoTime() + thinkMs * 1_000_000
+        var order = expand(s, includeCards = true)
+            .map { (a, c) -> Triple(a, c, Evaluator.evaluate(c, me)) }
+            .sortedByDescending { it.third }
+        if (order.isEmpty()) return Action.Pass
+        // A winning move needs no thought.
+        order.firstOrNull { it.second.phase == Phase.GAME_OVER && it.second.winner == me }?.let { return it.first }
+        var best = order.first().first
+        for (depth in 2..HARD_MAX_PLIES) {
+            val scored = mutableListOf<Triple<Action, GameState, Double>>()
+            var alpha = Double.NEGATIVE_INFINITY
+            var passBest: Action? = null
+            val finished = try {
+                for ((a, c, _) in order.take(HARD_ROOT_BEAM)) {
+                    val v = deepValue(c, me, depth - 1, alpha, Double.POSITIVE_INFINITY, deadline)
+                    scored += Triple(a, c, v)
+                    if (v > alpha) {
+                        alpha = v
+                        passBest = a
+                    }
+                }
+                true
+            } catch (_: OutOfTime) {
+                false
+            }
+            // The previous best is searched first, so even a cut-short pass can only improve on it.
+            passBest?.let { best = it }
+            if (!finished) break
+            order = scored.sortedByDescending { it.third } + order.drop(HARD_ROOT_BEAM)
+        }
+        return best
+    }
+
+    /** Like [value], but wider, with a deadline. */
+    private fun deepValue(s: GameState, me: Int, plies: Int, alphaIn: Double, betaIn: Double, deadline: Long): Double {
+        if (System.nanoTime() > deadline) throw OutOfTime()
+        if (plies == 0 || s.phase != Phase.BATTLE) return Evaluator.evaluate(s, me)
+        val maximizing = GameEngine.decision(s).player == me
+        val kids = expand(s, includeCards = maximizing).map { (_, c) -> c to Evaluator.evaluate(c, me) }
+        if (kids.isEmpty()) return Evaluator.evaluate(s, me)
+        if (plies == 1) return if (maximizing) kids.maxOf { it.second } else kids.minOf { it.second }
+        val beam = if (plies >= 3) HARD_WIDE_BEAM else HARD_INNER_BEAM
+        val ordered = (if (maximizing) kids.sortedByDescending { it.second } else kids.sortedBy { it.second }).take(beam)
+        var alpha = alphaIn
+        var beta = betaIn
+        var v = if (maximizing) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
+        for ((c, _) in ordered) {
+            val w = deepValue(c, me, plies - 1, alpha, beta, deadline)
+            if (maximizing) {
+                v = maxOf(v, w)
+                alpha = maxOf(alpha, v)
+            } else {
+                v = minOf(v, w)
+                beta = minOf(beta, v)
+            }
+            if (alpha >= beta) break
+        }
+        return v
+    }
+
     // ------------------------------------------------------------- interrupts
 
     private fun chooseResponse(s: GameState, p: Int): Action {
@@ -150,14 +226,23 @@ class AiPlayer(
         val passScore = Evaluator.evaluate(passSim, p)
         // Easy players often miss the chance to interrupt.
         if (difficulty == Difficulty.EASY && rng.nextDouble() < skipInterruptChance) return Action.Pass
+        // Hard looks two actions past the chain before judging an answer (and saving the card).
+        val deadline = System.nanoTime() + thinkMs * 1_000_000 / 2
+        fun judge(sim: GameState): Double =
+            if (difficulty != Difficulty.HARD) Evaluator.evaluate(sim, p)
+            else try {
+                deepValue(sim, p, 2, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, deadline)
+            } catch (_: OutOfTime) {
+                Evaluator.evaluate(sim, p)
+            }
         var best: Action = Action.Pass
-        var bestScore = passScore + 0.75
+        var bestScore = (if (difficulty == Difficulty.HARD) judge(passSim.also { passAll(it) }) else passScore) + 0.75
         for (a in GameEngine.legalActions(s, distinctCards = true)) {
             if (a == Action.Pass) continue
             val sim = s.copyForSimulation()
             GameEngine.applyUnchecked(sim, a)
             passAll(sim)
-            val score = Evaluator.evaluate(sim, p)
+            val score = judge(sim)
             if (score > bestScore) {
                 bestScore = score
                 best = a
@@ -188,5 +273,9 @@ class AiPlayer(
         const val SEARCH_PLIES = 3
         const val ROOT_BEAM = 10
         const val INNER_BEAM = 6
+        const val HARD_MAX_PLIES = 7
+        const val HARD_ROOT_BEAM = 14
+        const val HARD_WIDE_BEAM = 8
+        const val HARD_INNER_BEAM = 6
     }
 }
