@@ -80,7 +80,7 @@ docs/        Design notes and plan.
 The cards are balanced with simulations and statistics. The AI plays itself thousands of times with
 generated decks for every race combination. A Bradley–Terry regression turns the results into Elo
 strengths, and paired "what if" experiments measure what each stat is worth. A ridge least-squares
-solve then sizes the changes. Every race now wins 49.7–54.0% of its games and every King 46.4–53.4%
+solve then sizes the changes. Every race now wins 48.9–53.1% of its games and every King 46.0–54.3%
 (target: 44–55%).
 See [docs/BALANCING.md](docs/BALANCING.md) for the method and changelog, and
 [docs/BALANCE.md](docs/BALANCE.md) for the full numbers.

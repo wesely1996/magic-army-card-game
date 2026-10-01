@@ -2,6 +2,16 @@
 
 Target set by the product owner: **every race and every King wins between 44% and 55% of its games.**
 
+### v0.4.0 (Champions, star ranks, field Strategies, 40 + King decks)
+
+| | First simulation after the v0.4 changes | After the balance pass |
+|---|---|---|
+| Race win rates | 45.2% – 56.8% | **48.9% – 53.1%** |
+| King win rates | 38.6% – 59.3% | **46.0% – 54.3%** |
+| Draws | 0% | **0%** |
+| First player wins | 52.2% | 51.7% |
+| Starter decks (overall) | 36.8% – 62.0% | **46.4% – 52.8%** |
+
 ### v0.3.0 (6 races, racial traits, King immunity, unit slots, exhausted/discarded cards)
 
 | | First simulation after the v0.3 changes | After the balance pass |
@@ -72,6 +82,21 @@ for that player. Human play will differ somewhat; the tools make it cheap to re-
   swapping Strategy cards for units was the strongest single lever.
 * **Removal spells (Savage Bite, Sunfire, Sky Strike) are the most powerful cards in a deck.** Moving
   two or three copies between starter decks swings a matchup by 20+ points.
+
+## v0.4.0 balance pass
+
+Three rounds of 4000 simulated games each.
+
+* The new rules mostly helped the Vermin (more unit slots matter more once Champions take 3) and hurt Lion,
+  whose Strategy cards (War Banner, Tall Grass) were the weakest fields.
+* **Changes:** Endless Horde 24 → 22 slots; Rat King 12 health and Call the Mischief cooldown 3; Blightspawn
+  Colossus 6/11; Blight Seer 7 health; Alpha Wolf 10 health; Royal Pride lost its "−1 health to other units"
+  drawback; War Drums also gives +1 movement; Sunmane Paragon 7/12; Pride King 12 and Lioness Queen 10 health;
+  Thunderbird 4/10.
+* **Starter decks:** Pack & Pride swapped a Savage Bite and a Grey Hunter for Valor and a Lion Cub; Venom &
+  Wings swapped Venom Surge for Shed Skin; Mountain Clans added the Sunmane Paragon; Warren Horde became
+  Vermin + Serpent (Pythons, Mirage, Hiss of Denial instead of Sling Rats, Vanishing Tricks and Blight
+  Tinkers).
 
 ## v0.3.0 balance pass
 

@@ -15,7 +15,9 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **Decks are 40 cards plus the King.** Starter decks rebuilt (each now has its race's Champion).
 - **Card frames by type**: brown studded units (gold for Kings), violet starred Magic, teal Strategy with a
   pennant, steel riveted Equipment.
-- BALANCE_PLACEHOLDER
+- **Rebalanced** (target 44–55%): races 48.9–53.1%, Kings 46.0–54.3%, starter decks 46.4–52.8%. Endless
+  Horde gives 22 slots; Royal Pride no longer weakens other units; War Drums adds +1 movement; several King
+  health values tuned. Warren Horde is now a Vermin + Serpent deck. See [docs/BALANCING.md](docs/BALANCING.md).
 
 ## 0.3.0 — The Vermin Horde, racial traits and new card rules
 
