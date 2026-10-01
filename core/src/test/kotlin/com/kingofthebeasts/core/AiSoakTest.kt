@@ -77,7 +77,7 @@ class AiSoakTest {
         pool.shutdown()
         val won = results.count { it == 1 }
         val lost = results.count { it == -1 }
-        println("Medium vs Easy: $won wins, $lost losses, ${games - won - lost} draws in %.1fs".format((System.nanoTime() - start) / 1e9))
-        assertTrue(won >= 0.6 * (won + lost), "looking 3 moves ahead should clearly beat the greedy player")
+        println("Pro vs Beginner: $won wins, $lost losses, ${games - won - lost} draws in %.1fs".format((System.nanoTime() - start) / 1e9))
+        assertTrue(won >= 0.6 * (won + lost), "Pro should clearly beat Beginner")
     }
 }

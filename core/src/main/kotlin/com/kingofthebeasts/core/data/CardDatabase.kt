@@ -90,6 +90,17 @@ object CardDatabase {
         add(equipment("w_necklace", "Alpha Fang Necklace", WOLF, "+2 attack, but −1 movement.", Buff(attack = 2, move = -1)))
         add(equipment("w_tracker", "Tracker's Collar", WOLF, "Pack Hunter and +1 movement.", GrantKeyword(PACK_HUNTER), Buff(move = 1)))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
+        // 0.11: the Wolf Pack is the unit-focused race — a third Champion and three new Elites.
+        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 6, 10, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
+        add(unit("w_rimefang", "Rimefang Alpha", WOLF, 4, 7, 2, 1, emptySet(),
+            ability("Frost Bite", "Stun an adjacent enemy for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 1), 3,
+                effects = listOf(Stun(1))), elite = true))
+        add(unit("w_warg", "Warg Rider", WOLF, 5, 6, 4, 1, setOf(PACK_HUNTER), elite = true))
+        add(unit("w_elder", "Howling Elder", WOLF, 3, 7, 2, 2, emptySet(),
+            ability("War Howl", "This unit and allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 2,
+                effects = listOf(Area(2, Side.FRIENDLY, includeCenter = true, op = Buff(attack = 1, turns = 1)))), elite = true))
+        add(magic("w_pursuit", "Moonlit Pursuit", WOLF, "An allied unit gets +2 movement and Pack Hunter for 1 turn.",
+            TargetRule.FRIENDLY, Buff(move = 2, turns = 1), GrantKeyword(PACK_HUNTER, 1)))
         add(strategy("w_moonlit", "Moonlit Hunt", WOLF, FieldRule.HUNTING_GROUNDS))
         add(equipment("w_collar", "Spiked Collar", WOLF, "+1 attack and Retaliate.",
             Buff(attack = 1), GrantKeyword(RETALIATE)))
@@ -144,6 +155,14 @@ object CardDatabase {
         add(equipment("b_harness", "War Harness", BEAR, "+1 attack and +1 health.", Buff(attack = 1, health = 1)))
         add(equipment("b_coat", "Winter Coat", BEAR, "Regenerate.", GrantKeyword(REGENERATE)))
         add(equipment("b_totem", "Stone Totem", BEAR, "Immovable and +2 health.", GrantKeyword(IMMOVABLE), Buff(health = 2)))
+        // 0.11: the Bear Clan leans on equipment.
+        add(equipment("b_helm", "Horned Helm", BEAR, "+1 attack and Retaliate.", Buff(attack = 1), GrantKeyword(RETALIATE)))
+        add(equipment("b_gauntlets", "Stone Gauntlets", BEAR, "+3 attack, but −1 movement.", Buff(attack = 3, move = -1)))
+        add(equipment("b_plate", "Bearhide Plate", BEAR, "Armored and +1 health.", GrantKeyword(ARMORED), Buff(health = 1)))
+        add(equipment("b_standard", "Clan Standard", BEAR, "Guardian: allies next to it take 1 less damage.", GrantKeyword(Keyword.GUARDIAN)))
+        add(magic("b_tremor", "Tremor", BEAR, "Enemies next to an allied unit take 1 damage and get −1 movement for 1 turn.",
+            TargetRule.FRIENDLY, Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)),
+            Area(1, Side.ENEMY, includeCenter = false, op = Buff(move = -1, turns = 1)), rank = 2))
         add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY))
         add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY))
         add(equipment("b_bark", "Bark Armor", BEAR, "+2 health.", Buff(health = 2)))
@@ -196,6 +215,17 @@ object CardDatabase {
         add(equipment("h_plume", "Storm Plume", HAWK, "Flying, +1 attack and +1 movement.", GrantKeyword(FLYING), Buff(attack = 1, move = 1)))
         add(equipment("h_hood", "Falconer's Hood", HAWK, "Retaliate and +1 health.", GrantKeyword(RETALIATE), Buff(health = 1)))
         add(equipment("h_steel", "Steel Feathers", HAWK, "Armored.", GrantKeyword(ARMORED)))
+        // 0.11: the Hawk Aerie leans on magic.
+        add(magic("h_thunderclap", "Thunderclap", HAWK, "Deal 1 damage to an enemy unit and stun it for 1 turn.",
+            TargetRule.ENEMY, Damage(1), Stun(1)))
+        add(magic("h_shear", "Wind Shear", HAWK, "An enemy unit gets −1 attack and −1 range for 2 turns.",
+            TargetRule.ENEMY, Buff(attack = -1, range = -1, turns = 2)))
+        add(magic("h_keen", "Keen Sight", HAWK, "Draw 2 cards.", TargetRule.NONE, EffectOp.Draw(2), rank = 2))
+        add(magic("h_rain", "Rain of Feathers", HAWK,
+            "An allied unit and allies next to it get a 1-point shield and +1 movement for 1 turn.",
+            TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Shield(1)),
+            Area(1, Side.FRIENDLY, includeCenter = true, op = Buff(move = 1, turns = 1))))
+        add(equipment("h_harness", "Windrider Harness", HAWK, "Flying and +1 health.", GrantKeyword(FLYING), Buff(health = 1)))
         add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND))
         add(strategy("h_winds", "Favorable Winds", HAWK, FieldRule.TAILWIND))
         add(equipment("h_talons", "Razor Talons", HAWK, "+1 attack and +1 range.", Buff(attack = 1, range = 1)))
@@ -252,6 +282,16 @@ object CardDatabase {
             TargetRule.ENEMY, EffectOp.Enthrall(2), rank = 2))
         add(equipment("s_slick", "Slick Scales", SERPENT, "+2 health.", Buff(health = 2)))
         add(equipment("s_cobrahood", "Cobra Hood", SERPENT, "Retaliate and Poisonous.", GrantKeyword(RETALIATE), GrantKeyword(POISONOUS)))
+        // 0.11: the Serpent Coil leans on magic.
+        add(magic("s_paralyze", "Paralytic Bite", SERPENT, "Stun an enemy unit for 1 turn and poison it: 1 damage per turn for 2 turns.",
+            TargetRule.ENEMY, Stun(1), Poison(1, 2), rank = 2))
+        add(magic("s_acid", "Acid Spit", SERPENT, "Deal 2 damage to an enemy unit. It gets −1 attack for 2 turns.",
+            TargetRule.ENEMY, Damage(2), Buff(attack = -1, turns = 2), rank = 2))
+        add(magic("s_molt", "Molting", SERPENT, "An allied unit gets Regenerate for 3 turns and a 2-point shield.",
+            TargetRule.FRIENDLY, GrantKeyword(REGENERATE, 3), Shield(2)))
+        add(magic("s_patience", "Serpent's Patience", SERPENT, "Draw a card. An allied unit gets +1 attack for 2 turns.",
+            TargetRule.FRIENDLY, EffectOp.Draw(1), Buff(attack = 1, turns = 2)))
+        add(strategy("s_haze", "Hypnotic Haze", SERPENT, FieldRule.HYPNOTIC_HAZE))
         add(equipment("s_eye", "Hypnotic Eye", SERPENT, "+1 range.", Buff(range = 1)))
         add(strategy("s_swamp", "Murky Swamp", SERPENT, FieldRule.SWAMP))
         add(strategy("s_trance", "Hypnotic Trance", SERPENT, FieldRule.SILENCE))
@@ -309,6 +349,13 @@ object CardDatabase {
         add(equipment("l_claws", "Golden Claws", LION, "Pack Hunter and +1 attack.", GrantKeyword(PACK_HUNTER), Buff(attack = 1)))
         add(strategy("l_banner", "War Banner", LION, FieldRule.WAR_DRUMS))
         add(strategy("l_grass", "Tall Grass", LION, FieldRule.AMBUSH))
+        // 0.11: the Lion Pride leans on Strategy.
+        add(strategy("l_decree", "Royal Decree", LION, FieldRule.ROYAL_DECREE))
+        add(strategy("l_dawn", "Golden Dawn", LION, FieldRule.GOLDEN_DAWN))
+        add(strategy("l_formation", "Pride Formation", LION, FieldRule.PRIDE_FORMATION))
+        add(magic("l_roar", "Roar of the Pride", LION, "An allied unit and allies next to it get +1 attack and +1 movement for 1 turn.",
+            TargetRule.FRIENDLY, Area(1, Side.FRIENDLY, includeCenter = true, op = Buff(attack = 1, move = 1, turns = 1)), rank = 2))
+        add(equipment("l_scepter", "Sun Scepter", LION, "Commander: allies within 3 squares get +1 attack.", GrantKeyword(Keyword.COMMANDER)))
         add(equipment("l_mane", "Golden Mane", LION, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
@@ -368,6 +415,17 @@ object CardDatabase {
         add(equipment("v_grafts", "Mutant Grafts", VERMIN, "+2 attack and +2 health, but −1 movement.",
             Buff(attack = 2, health = 2, move = -1)))
         add(equipment("v_cloak", "Shadow Cloak", VERMIN, "Hidden, Backstab and +1 movement.", GrantKeyword(HIDDEN), GrantKeyword(BACKSTAB), Buff(move = 1)))
+        // 0.11: a bit of everything for the Vermin Horde.
+        add(equipment("v_tailblade", "Tail Blade", VERMIN, "Backstab and +1 attack.", GrantKeyword(BACKSTAB), Buff(attack = 1)))
+        add(equipment("v_shard", "Glowshard Charm", VERMIN, "+2 attack and Regenerate, but −1 movement.",
+            Buff(attack = 2, move = -1), GrantKeyword(REGENERATE)))
+        add(magic("v_bomb", "Plague Bomb", VERMIN,
+            "Deal 1 damage to an enemy unit and enemies next to it, and poison them: 1 damage per turn for 2 turns.",
+            TargetRule.ENEMY, Area(1, Side.ENEMY, includeCenter = true, op = Damage(1)),
+            Area(1, Side.ENEMY, includeCenter = true, op = Poison(1, 2)), rank = 2))
+        add(magic("v_gorge", "Gorge", VERMIN, "Heal an allied unit by 3. It gets +1 attack for good.",
+            TargetRule.FRIENDLY, Heal(3), Buff(attack = 1), rank = 2))
+        add(strategy("v_tide", "Rat Tide", VERMIN, FieldRule.RAT_TIDE))
     }
 
     @Volatile private var current: List<CardDef> = base

@@ -14,18 +14,19 @@ import kotlin.random.Random
 enum class Difficulty(val displayName: String, val description: String) {
     // The names are stored in saved battles; only the display names change.
     EASY("Beginner", "Plays on instinct: picks what looks best right now, and sometimes slips."),
-    MEDIUM("Pro", "Thinks 3 moves ahead: its move, your best reply, and its follow-up."),
+    MEDIUM("Pro", "Thinks 2 moves ahead: its move and your best reply."),
     HARD("Master", "Thinks as far ahead as time allows, weighs every possible answer, and seldom slips."),
 }
 
 /**
  * The computer opponent.
  *
- * - [Difficulty.EASY] simulates each legal action one step ahead and picks the
- *   best-looking result, with enough noise to make mistakes.
- * - [Difficulty.MEDIUM] runs a 3-ply alpha-beta search (its action, the
- *   opponent's reply, its next action) over the most promising candidates at
- *   each level. It does not peek at the opponent's hand: when predicting
+ * - [Difficulty.EASY] simulates each legal action one step ahead and ranks the
+ *   results; it takes the best only half the time and otherwise one of the
+ *   next four, so it makes beginner's mistakes.
+ * - [Difficulty.MEDIUM] runs a 2-ply search (each of its actions against the
+ *   opponent's best reply) and looks one action past an interrupt chain
+ *   before deciding whether to answer. It does not peek at the opponent's hand: when predicting
  *   replies it only considers moves, attacks and abilities on the board.
  * - [Difficulty.HARD] searches the same way but deeper and wider, deepening
  *   one ply at a time until its [thinkMs] budget runs out (so it adapts to the
@@ -44,6 +45,11 @@ class AiPlayer(
     private val skipInterruptChance: Double = 0.5,
     /** Hard's thinking time per decision, in milliseconds. */
     private val thinkMs: Long = 1500,
+    /**
+     * Easy picks among this many of its best-looking actions instead of always the best
+     * (see [EASY_PICK_WEIGHTS]); the balance simulator sets 1 for a steady player.
+     */
+    private val easyTopChoices: Int = 5,
 ) {
     private val rng = Random(seed)
 
@@ -90,16 +96,21 @@ class AiPlayer(
     // ------------------------------------------------------------------ easy
 
     private fun chooseGreedy(s: GameState, p: Int, noise: Double): Action {
-        var best: Action = Action.Pass
-        var bestScore = Double.NEGATIVE_INFINITY
-        for ((a, sim) in expand(s, includeCards = true)) {
-            val score = Evaluator.evaluate(sim, p) + rng.nextDouble() * noise
-            if (score > bestScore) {
-                bestScore = score
-                best = a
-            }
+        val ranked = expand(s, includeCards = true)
+            .map { (a, sim) -> a to Evaluator.evaluate(sim, p) + rng.nextDouble() * noise }
+            .sortedByDescending { it.second }
+        if (ranked.isEmpty()) return Action.Pass
+        // A winning move is never passed up, even by a beginner.
+        if (ranked.first().second >= WIN_SCORE) return ranked.first().first
+        val n = minOf(easyTopChoices, ranked.size, EASY_PICK_WEIGHTS.size)
+        if (n <= 1) return ranked.first().first
+        val weights = EASY_PICK_WEIGHTS.take(n)
+        var roll = rng.nextDouble() * weights.sum()
+        for (i in 0 until n) {
+            roll -= weights[i]
+            if (roll <= 0) return ranked[i].first
         }
-        return best
+        return ranked.first().first
     }
 
     // ---------------------------------------------------------------- medium
@@ -111,7 +122,7 @@ class AiPlayer(
         if (children.isEmpty()) return Action.Pass
         var best = children.first().first
         var alpha = Double.NEGATIVE_INFINITY
-        for ((a, c, _) in children.take(ROOT_BEAM)) {
+        for ((a, c, _) in children) {
             val v = value(c, me, SEARCH_PLIES - 1, alpha, Double.POSITIVE_INFINITY) + rng.nextDouble() * 0.2
             if (v > alpha) {
                 alpha = v
@@ -226,17 +237,22 @@ class AiPlayer(
         val passScore = Evaluator.evaluate(passSim, p)
         // Easy players often miss the chance to interrupt.
         if (difficulty == Difficulty.EASY && rng.nextDouble() < skipInterruptChance) return Action.Pass
-        // Hard looks two actions past the chain before judging an answer (and saving the card).
+        // Pro looks one action past the chain before judging an answer (and saving the card), Master two.
         val deadline = System.nanoTime() + thinkMs * 1_000_000 / 2
+        val lookAhead = when (difficulty) {
+            Difficulty.EASY -> 0
+            Difficulty.MEDIUM -> 1
+            Difficulty.HARD -> 2
+        }
         fun judge(sim: GameState): Double =
-            if (difficulty != Difficulty.HARD) Evaluator.evaluate(sim, p)
+            if (lookAhead == 0) Evaluator.evaluate(sim, p)
             else try {
-                deepValue(sim, p, 2, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, deadline)
+                deepValue(sim, p, lookAhead, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, deadline)
             } catch (_: OutOfTime) {
                 Evaluator.evaluate(sim, p)
             }
         var best: Action = Action.Pass
-        var bestScore = (if (difficulty == Difficulty.HARD) judge(passSim.also { passAll(it) }) else passScore) + 0.75
+        var bestScore = (if (lookAhead > 0) judge(passSim.also { passAll(it) }) else passScore) + 0.75
         for (a in GameEngine.legalActions(s, distinctCards = true)) {
             if (a == Action.Pass) continue
             val sim = s.copyForSimulation()
@@ -270,9 +286,11 @@ class AiPlayer(
     }
 
     private companion object {
-        const val SEARCH_PLIES = 3
-        const val ROOT_BEAM = 10
+        const val SEARCH_PLIES = 2
         const val INNER_BEAM = 6
+        /** How likely Easy is to take its best, 2nd, 3rd, 4th and 5th best-looking action. */
+        val EASY_PICK_WEIGHTS = listOf(0.50, 0.20, 0.13, 0.10, 0.07)
+        const val WIN_SCORE = 900_000.0
         const val HARD_MAX_PLIES = 7
         const val HARD_ROOT_BEAM = 14
         const val HARD_WIDE_BEAM = 8

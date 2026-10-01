@@ -163,6 +163,11 @@ object GameEngine {
         if (s.fieldActive(u.owner, FieldRule.WAR_DRUMS)) a += 1
         if (u.range >= 2 && s.fieldActive(u.owner, FieldRule.HIGH_GROUND)) a += 1
         if (s.fieldActive(1 - u.owner, FieldRule.SWAMP) && a > 1) a -= 1
+        if (u.range >= 2 && s.fieldActive(1 - u.owner, FieldRule.HYPNOTIC_HAZE) && a > 1) a -= 1
+        if (u.isKing && s.fieldActive(u.owner, FieldRule.ROYAL_DECREE)) a += 2
+        if (s.fieldActive(u.owner, FieldRule.PRIDE_FORMATION) &&
+            s.unitsOf(u.owner).any { it.id != u.id && it.pos.distanceTo(u.pos) == 1 }
+        ) a += 1
         if (s.unitsOf(u.owner).any { it.id != u.id && it.has(Keyword.COMMANDER) && it.pos.distanceTo(u.pos) <= COMMANDER_RANGE }) a += 1
         return max(0, a)
     }
@@ -178,6 +183,7 @@ object GameEngine {
     fun rangeOf(s: GameState, u: UnitState): Int {
         var r = u.range + u.mods.sumOf { it.range }
         if (u.range >= 2 && s.fieldActive(u.owner, FieldRule.HIGH_GROUND)) r += 1
+        if (u.range >= 2 && s.fieldActive(1 - u.owner, FieldRule.HYPNOTIC_HAZE)) r -= 1
         return max(1, r)
     }
 
@@ -853,6 +859,9 @@ object GameEngine {
             if (t.has(Keyword.ARMORED)) d -= 1
             if (s.fieldActive(t.owner, FieldRule.FORTIFY)) d -= 1
             if (s.unitsOf(t.owner).any { it.id != t.id && it.has(Keyword.GUARDIAN) && it.pos.distanceTo(t.pos) == 1 }) d -= 1
+            if (s.fieldActive(t.owner, FieldRule.ROYAL_DECREE) && !t.isKing &&
+                s.king(t.owner)?.let { it.pos.distanceTo(t.pos) == 1 } == true
+            ) d -= 1
         }
         d = max(0, d)
         if (t.has(Keyword.UNSTOPPABLE)) d = min(d, 3)
@@ -1002,6 +1011,7 @@ object GameEngine {
             u.broodLeft--
             summonToken(s, u, SWARM_RAT)
         }
+        if (s.fieldActive(p, FieldRule.RAT_TIDE)) s.king(p)?.let { summonToken(s, it, SWARM_RAT) }
         if (s.fieldActive(p, FieldRule.PLAGUE)) {
             val mine = s.unitsOf(p)
             s.unitsOf(1 - p).filter { e -> !e.isKing && mine.any { it.pos.distanceTo(e.pos) == 1 } }.forEach { e ->
@@ -1019,7 +1029,10 @@ object GameEngine {
         }
         cleanupDeaths(s)
         if (s.phase == Phase.GAME_OVER) return
-        if (draw) drawCard(s, p)
+        if (draw) {
+            drawCard(s, p)
+            if (s.fieldActive(p, FieldRule.GOLDEN_DAWN)) drawCard(s, p)
+        }
     }
 
     private fun drawCard(s: GameState, p: Int) {

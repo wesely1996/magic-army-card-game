@@ -189,4 +189,9 @@ enum class FieldRule(val displayName: String, val description: String) {
     AMBUSH("Ambush", "You may play units anywhere in your half of the board (still 2+ squares from enemies)."),
     TUNNELS("Warren Tunnels", "Your units are Hidden."),
     PLAGUE("Creeping Plague", "At the start of your turn, every enemy unit next to one of your units takes 1 damage (not Kings)."),
+    ROYAL_DECREE("Royal Decree", "Your King gets +2 attack, and your units next to your King take 1 less damage."),
+    GOLDEN_DAWN("Golden Dawn", "You draw an extra card at the start of your turn."),
+    PRIDE_FORMATION("Pride Formation", "Your units next to another of your units get +1 attack."),
+    HYPNOTIC_HAZE("Hypnotic Haze", "Enemy ranged units (range 2+) get −1 range and −1 attack (never below 1)."),
+    RAT_TIDE("Rat Tide", "At the start of your turn, a Swarm Rat appears next to your King."),
 }

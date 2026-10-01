@@ -64,7 +64,7 @@ fun aiFor(kind: String, seed: Long): AiPlayer = when (kind) {
     "medium" -> AiPlayer(Difficulty.MEDIUM, seed)
     "easy" -> AiPlayer(Difficulty.EASY, seed)
     // Steady greedy player: little noise and never skips an interrupt, so results reflect the cards.
-    else -> AiPlayer(Difficulty.EASY, seed, greedyNoise = 0.3, skipInterruptChance = 0.0)
+    else -> AiPlayer(Difficulty.EASY, seed, greedyNoise = 0.3, skipInterruptChance = 0.0, easyTopChoices = 1)
 }
 
 fun playGame(g: Int, ai: String, sides: List<Side>): GameResult {

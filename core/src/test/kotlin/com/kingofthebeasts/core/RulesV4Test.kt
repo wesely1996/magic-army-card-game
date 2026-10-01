@@ -34,9 +34,11 @@ class RulesV4Test {
     }
 
     @Test
-    fun everyRaceHasTwoChampions() {
+    fun everyRaceHasAtLeastTwoChampions() {
         for (race in com.kingofthebeasts.core.model.Race.entries) {
-            assertEquals(2, CardDatabase.ofRace(race).count { it.unit?.isChampion == true }, race.name)
+            val champions = CardDatabase.ofRace(race).count { it.unit?.isChampion == true }
+            // The Wolf Pack, the unit-focused race, has a third.
+            assertEquals(if (race == com.kingofthebeasts.core.model.Race.WOLF) 3 else 2, champions, race.name)
         }
     }
 
