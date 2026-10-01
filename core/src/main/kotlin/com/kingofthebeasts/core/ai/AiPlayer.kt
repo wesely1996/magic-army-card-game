@@ -24,8 +24,8 @@ enum class Difficulty(val displayName: String, val description: String) {
  * - [Difficulty.EASY] simulates each legal action one step ahead and ranks the
  *   results; it takes the best only half the time and otherwise one of the
  *   next four, so it makes beginner's mistakes.
- * - [Difficulty.MEDIUM] runs a 2-ply search (each of its actions against the
- *   opponent's best reply) and looks one action past an interrupt chain
+ * - [Difficulty.MEDIUM] runs a 2-ply search (its 16 most promising actions,
+ *   each against the opponent's best reply) and looks one action past an interrupt chain
  *   before deciding whether to answer. It does not peek at the opponent's hand: when predicting
  *   replies it only considers moves, attacks and abilities on the board.
  * - [Difficulty.HARD] searches the same way but deeper and wider, deepening
@@ -122,7 +122,7 @@ class AiPlayer(
         if (children.isEmpty()) return Action.Pass
         var best = children.first().first
         var alpha = Double.NEGATIVE_INFINITY
-        for ((a, c, _) in children) {
+        for ((a, c, _) in children.take(ROOT_BEAM)) {
             val v = value(c, me, SEARCH_PLIES - 1, alpha, Double.POSITIVE_INFINITY) + rng.nextDouble() * 0.2
             if (v > alpha) {
                 alpha = v
@@ -287,6 +287,7 @@ class AiPlayer(
 
     private companion object {
         const val SEARCH_PLIES = 2
+        const val ROOT_BEAM = 16
         const val INNER_BEAM = 6
         /** How likely Easy is to take its best, 2nd, 3rd, 4th and 5th best-looking action. */
         val EASY_PICK_WEIGHTS = listOf(0.50, 0.20, 0.13, 0.10, 0.07)
