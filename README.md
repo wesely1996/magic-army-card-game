@@ -20,7 +20,7 @@ The art is hand-drawn ink over watercolor washes.
 <img src="docs/screenshots/setup.webp" width="270" alt="Battle setup with difficulty">
 <img src="docs/screenshots/inspect_king.webp" width="270" alt="Inspecting a King card">
 </p>
-<img src="docs/screenshots/cards.webp" width="420" alt="Cards">
+<img src="docs/screenshots/cards.webp" width="860" alt="Card frames: King, unit tiers, Magic, Strategy, Equipment">
 
 ## How to play
 
@@ -28,7 +28,7 @@ The art is hand-drawn ink over watercolor washes.
 |---|---|
 | **Goal** | Kill the enemy King. If your King dies, you lose. |
 | **Deck** | **40 cards plus one King**, from 1–3 races. Copies per card follow its stars: ★ cards up to 3, ★★ up to 2, ★★★ just 1. At most **3 Strategy cards**. The King's race gives the whole army its **racial trait** (see below). |
-| **Card types** | **Unit** (a piece on the board): ★ normal, ★★ **Elite**, ★★★ **Champion**. **Magic** (buff, heal, damage, stun, counter, move or swap units — usable as interrupts), ranked ★ to ★★★. **Strategy**: a powerful **field** — only one field is on the battlefield at a time and it stays until any Strategy card (yours or your opponent's) replaces it. **Equipment** (permanent unit upgrades). |
+| **Card types** | **Unit** (a piece on the board): ★ normal, ★★ **Elite**, ★★★ **Champion**. **Magic** (buff, heal, damage, stun, counter, move or swap units — usable as interrupts), ranked ★ to ★★★. **Strategy**: a powerful **field** — only one field is on the battlefield at a time and it stays until any Strategy card (yours or your opponent's) replaces it. **Equipment** (permanent unit upgrades). Each type has its own frame: **brown studded** units (**gold** for Kings), **violet starred** Magic, **teal** Strategy with a pennant, **steel riveted** Equipment. |
 | **Deployment** | Coin flip picks who starts. Players alternate placing one unit in their **first 3 rows**, up to 5 each. The King is always placed first. Units are chosen from all unit cards in the deck. Then everyone shuffles and draws 5. |
 | **Battle** | Draw a card, then take **one** action: move, attack, use a unit ability, or play a card. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. |
 | **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. Each side has **16 unit slots** (24 for an Endless Horde): **Champions** take 3 slots, **Elite** units 2, other units 1 and the King none. Summoned and enthralled units count too. |

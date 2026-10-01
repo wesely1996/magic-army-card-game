@@ -23,7 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -57,6 +64,84 @@ fun cardText(def: CardDef, full: Boolean): String {
             add("Arrival: +${list.size} ${CardDatabase.get(id).name}")
         }
     }.joinToString(" · ").ifEmpty { if (u.isKing) "King" else "" }
+}
+
+/**
+ * A frame that tells the card type at a glance: brown studded band for units (gold for Kings),
+ * violet band with stars for Magic, gold band with a dashed map line and pennant for Strategy,
+ * steel band with rivets for Equipment.
+ */
+private fun Modifier.cardFrame(def: CardDef): Modifier = drawWithContent {
+    drawContent()
+    val s = size.minDimension
+    val band = if (def.isKing) Ink.Gold else Ink.type(def.type)
+    val t = s * 0.05f
+    val r = s * 0.07f
+    // Outer band and an ink hairline inside it.
+    drawRoundRect(band, Offset(t / 2, t / 2), Size(size.width - t, size.height - t), CornerRadius(r), style = Stroke(t))
+    val i = t * 1.15f
+    drawRoundRect(
+        Ink.Line.copy(alpha = 0.55f), Offset(i, i), Size(size.width - 2 * i, size.height - 2 * i),
+        CornerRadius(r * 0.7f), style = Stroke(s * 0.009f),
+    )
+    val corners = listOf(Offset(t * 1.6f, t * 1.6f), Offset(size.width - t * 1.6f, t * 1.6f),
+        Offset(t * 1.6f, size.height - t * 1.6f), Offset(size.width - t * 1.6f, size.height - t * 1.6f))
+    when (def.type) {
+        CardType.UNIT -> corners.forEach { c ->
+            // Square shield studs.
+            val h = t * 0.75f
+            drawRect(band, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h))
+            drawRect(Ink.Line, Offset(c.x - h, c.y - h), Size(2 * h, 2 * h), style = Stroke(s * 0.008f))
+        }
+        CardType.MAGIC -> corners.forEach { c ->
+            // Four-point stars with a soft glow.
+            drawCircle(band.copy(alpha = 0.35f), t * 1.3f, c)
+            drawPath(star(c, t * 1.25f, t * 0.35f), band)
+            drawPath(star(c, t * 1.25f, t * 0.35f), Ink.Line, style = Stroke(s * 0.006f))
+        }
+        CardType.STRATEGY -> {
+            // A dashed "map" line and a pennant at the top.
+            val d = t * 1.9f
+            drawRoundRect(
+                band.copy(alpha = 0.9f), Offset(d, d), Size(size.width - 2 * d, size.height - 2 * d), CornerRadius(r * 0.5f),
+                style = Stroke(s * 0.012f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(s * 0.04f, s * 0.025f))),
+            )
+            val cx = size.width / 2
+            val flag = Path().apply {
+                moveTo(cx - t * 1.4f, 0f); lineTo(cx + t * 1.4f, 0f); lineTo(cx + t * 1.4f, t * 2.4f)
+                lineTo(cx, t * 1.6f); lineTo(cx - t * 1.4f, t * 2.4f); close()
+            }
+            drawPath(flag, band)
+            drawPath(flag, Ink.Line, style = Stroke(s * 0.008f))
+        }
+        CardType.EQUIPMENT -> {
+            // Rivets along every edge.
+            val step = s * 0.16f
+            val rr = t * 0.32f
+            var x = t * 2.2f
+            while (x < size.width - t * 2f) {
+                drawCircle(Ink.Paper, rr, Offset(x, t / 2)); drawCircle(Ink.Line, rr, Offset(x, t / 2), style = Stroke(s * 0.006f))
+                drawCircle(Ink.Paper, rr, Offset(x, size.height - t / 2)); drawCircle(Ink.Line, rr, Offset(x, size.height - t / 2), style = Stroke(s * 0.006f))
+                x += step
+            }
+            var y = t * 2.2f
+            while (y < size.height - t * 2f) {
+                drawCircle(Ink.Paper, rr, Offset(t / 2, y)); drawCircle(Ink.Line, rr, Offset(t / 2, y), style = Stroke(s * 0.006f))
+                drawCircle(Ink.Paper, rr, Offset(size.width - t / 2, y)); drawCircle(Ink.Line, rr, Offset(size.width - t / 2, y), style = Stroke(s * 0.006f))
+                y += step
+            }
+        }
+    }
+}
+
+private fun star(c: Offset, outer: Float, inner: Float): Path = Path().apply {
+    for (k in 0 until 8) {
+        val a = Math.PI / 4 * k - Math.PI / 2
+        val rad = if (k % 2 == 0) outer else inner
+        val p = Offset(c.x + (rad * kotlin.math.cos(a)).toFloat(), c.y + (rad * kotlin.math.sin(a)).toFloat())
+        if (k == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y)
+    }
+    close()
 }
 
 fun typeSymbol(t: CardType) = when (t) {
@@ -93,6 +178,7 @@ fun CardFace(
             .alpha(if (dimmed) 0.45f else 1f)
             .then(if (selected) Modifier.border(3.dp, Ink.Gold, shape) else Modifier)
             .clip(shape)
+            .cardFrame(def)
             .background(Ink.Paper)
             .then(
                 if (onClick != null || onLongClick != null) {

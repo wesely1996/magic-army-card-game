@@ -13,6 +13,8 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **Strategy cards are fields**: one field on the battlefield, lasting until any Strategy card replaces it.
   They are exhausted after use, at most 3 per deck, and several fields got stronger.
 - **Decks are 40 cards plus the King.** Starter decks rebuilt (each now has its race's Champion).
+- **Card frames by type**: brown studded units (gold for Kings), violet starred Magic, teal Strategy with a
+  pennant, steel riveted Equipment.
 - BALANCE_PLACEHOLDER
 
 ## 0.3.0 — The Vermin Horde, racial traits and new card rules

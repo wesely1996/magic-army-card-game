@@ -40,7 +40,7 @@ object Ink {
     fun type(t: CardType): Color = when (t) {
         CardType.UNIT -> Color(0xFF7A5C3E)
         CardType.MAGIC -> Color(0xFF7D4FB0)
-        CardType.STRATEGY -> Color(0xFFB9852A)
+        CardType.STRATEGY -> Color(0xFF2F7F8A)
         CardType.EQUIPMENT -> Color(0xFF5E7282)
     }
 }
