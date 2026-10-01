@@ -11,12 +11,12 @@ import kotlin.random.Random
  * King. Used by the balance simulator; also handy for "random deck" features.
  */
 object DeckGenerator {
-    /** Target number of non-King cards per type (39 in total). */
+    /** Target number of non-King cards per type (40 in total). */
     private val quota = linkedMapOf(
-        CardType.UNIT to 17,
-        CardType.MAGIC to 11,
-        CardType.EQUIPMENT to 7,
-        CardType.STRATEGY to 4,
+        CardType.UNIT to 19,
+        CardType.MAGIC to 12,
+        CardType.EQUIPMENT to 6,
+        CardType.STRATEGY to DeckRules.MAX_STRATEGY,
     )
 
     fun generate(races: List<Race>, kingId: String, rng: Random, name: String = "Generated"): Deck {
@@ -30,7 +30,8 @@ object DeckGenerator {
             // A few passes so that most cards end up with 2-3 copies instead of 1 of everything.
             for (pass in 0 until 3) {
                 for (c in cards.shuffled(rng)) {
-                    if (added >= target || counts.values.sum() >= DeckRules.DECK_SIZE) return
+                    // counts includes the King, which doesn't count toward the 40.
+                    if (added >= target || counts.values.sum() - 1 >= DeckRules.DECK_SIZE) return
                     val have = counts[c.id] ?: 0
                     if (have >= c.maxCopies) continue
                     val take = minOf(if (pass == 0) 1 + rng.nextInt(2) else 1, c.maxCopies - have, target - added)
@@ -42,7 +43,7 @@ object DeckGenerator {
 
         for ((type, n) in quota) add(pool.filter { it.type == type }, n)
         // Small pools (mono-race decks) can't always fill a type's quota; top up from anything left.
-        add(pool, DeckRules.DECK_SIZE - counts.values.sum())
+        add(pool.filter { it.type != CardType.STRATEGY }, DeckRules.DECK_SIZE - (counts.values.sum() - 1))
         val deck = Deck(name, races, counts)
         check(DeckRules.isValid(deck)) { "Generated an invalid deck: ${DeckRules.validate(deck)}" }
         return deck

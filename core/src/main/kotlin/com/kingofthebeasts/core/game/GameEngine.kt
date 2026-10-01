@@ -150,6 +150,8 @@ object GameEngine {
     fun attackOf(s: GameState, u: UnitState): Int {
         var a = u.attack + u.mods.sumOf { it.attack }
         if (s.fieldActive(u.owner, FieldRule.WAR_DRUMS)) a += 1
+        if (u.range >= 2 && s.fieldActive(u.owner, FieldRule.HIGH_GROUND)) a += 1
+        if (s.fieldActive(1 - u.owner, FieldRule.SWAMP) && a > 1) a -= 1
         if (s.unitsOf(u.owner).any { it.id != u.id && it.has(Keyword.COMMANDER) && it.pos.distanceTo(u.pos) <= COMMANDER_RANGE }) a += 1
         return max(0, a)
     }
@@ -173,7 +175,7 @@ object GameEngine {
         if (a.has(Keyword.PACK_HUNTER) &&
             s.unitsOf(a.owner).any { it.id != a.id && it.pos.distanceTo(t.pos) == 1 }
         ) d += 1
-        if (s.fieldActive(a.owner, FieldRule.HUNTING_GROUNDS) && t.hp < t.maxHp) d += 1
+        if (s.fieldActive(a.owner, FieldRule.HUNTING_GROUNDS) && t.hp < t.maxHp) d += 2
         if (a.has(Keyword.BACKSTAB) && attacksFromBehind(a, t)) d += BACKSTAB_BONUS
         return d
     }
@@ -186,7 +188,7 @@ object GameEngine {
 
     fun reachableWithMove(s: GameState, u: UnitState, mv: Int): List<Pos> {
         if (mv <= 0) return emptyList()
-        val flying = u.has(Keyword.FLYING)
+        val flying = u.has(Keyword.FLYING) || s.fieldActive(u.owner, FieldRule.TAILWIND)
         val dist = HashMap<Pos, Int>()
         val queue = ArrayDeque<Pos>()
         dist[u.pos] = 0
@@ -618,8 +620,10 @@ object GameEngine {
             }
             is EffectOp.Draw -> repeat(op.count) { drawCard(s, p) }
             is EffectOp.Field -> {
-                s.fields.removeAll { it.owner == p }
-                s.fields += FieldEffect(p, op.rule, op.turns, cardId ?: "")
+                // Only one field at a time: a new Strategy replaces whatever field is active.
+                s.fields.firstOrNull()?.let { old -> s.log("${old.rule.displayName} is replaced") }
+                s.fields.clear()
+                s.fields += FieldEffect(p, op.rule, cardId ?: "")
                 s.log("${s.players[p].name}: ${op.rule.displayName} is now active")
             }
             is EffectOp.Summon -> (source ?: t)?.let { summonToken(s, it, op.cardId) }
@@ -905,9 +909,6 @@ object GameEngine {
             if (u.stun > 0) u.stun--
             u.abilities.forEach { if (it.cooldown > 0) it.cooldown-- }
         }
-        s.fields.filter { it.owner == p }.forEach { it.turns-- }
-        s.fields.filter { it.turns <= 0 }.forEach { s.log("${it.rule.displayName} has ended") }
-        s.fields.removeAll { it.turns <= 0 }
         s.blitzUsed = false
         s.activePlayer = 1 - p
         s.turnNumber++
@@ -932,7 +933,7 @@ object GameEngine {
             if (u.alive) {
                 var h = 0
                 if (u.has(Keyword.REGENERATE)) h++
-                if (s.fieldActive(p, FieldRule.SANCTUARY)) h++
+                if (s.fieldActive(p, FieldRule.SANCTUARY)) h += 2
                 if (h > 0) heal(s, u, h)
             }
         }

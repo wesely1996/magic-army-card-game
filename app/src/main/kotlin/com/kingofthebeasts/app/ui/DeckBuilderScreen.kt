@@ -140,7 +140,8 @@ fun DeckBuilderScreen(
                     Spacer(Modifier.height(10.dp))
                     val king = deck.cards.keys.map { CardDatabase.get(it) }.filter { it.isKing }
                     Text(
-                        "Cards ${deck.size}/${DeckRules.DECK_SIZE}  ·  King: ${king.joinToString { it.name }.ifEmpty { "none yet" }}",
+                        "Cards ${deck.mainSize}/${DeckRules.DECK_SIZE} + King: ${king.joinToString { it.name }.ifEmpty { "none yet" }}  ·  " +
+                            "Strategy ${deck.strategyCount}/${DeckRules.MAX_STRATEGY}",
                         style = MaterialTheme.typography.labelLarge,
                     )
                     king.firstOrNull()?.race?.trait?.let { t ->
@@ -178,7 +179,11 @@ fun DeckBuilderScreen(
                                     Text("$count/${def.maxCopies}", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 6.dp))
                                     SketchButton(
                                         "+", { deck = deck.withCount(def.id, count + 1) }, small = true, color = Ink.Deploy,
-                                        enabled = count < def.maxCopies && deck.size < DeckRules.DECK_SIZE,
+                                        enabled = count < def.maxCopies && when {
+                                            def.isKing -> deck.cards.keys.none { CardDatabase.get(it).isKing }
+                                            def.type == CardType.STRATEGY -> deck.mainSize < DeckRules.DECK_SIZE && deck.strategyCount < DeckRules.MAX_STRATEGY
+                                            else -> deck.mainSize < DeckRules.DECK_SIZE
+                                        },
                                     )
                                 }
                             }

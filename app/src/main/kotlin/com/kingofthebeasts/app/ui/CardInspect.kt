@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kingofthebeasts.app.ui.theme.Ink
+import com.kingofthebeasts.core.deck.DeckRules
 import com.kingofthebeasts.core.game.GameEngine
 import com.kingofthebeasts.core.game.GameState
 import com.kingofthebeasts.core.game.UnitState
@@ -124,10 +125,15 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             Line("No slot", "doesn't count toward the unit slots")
             Line("Racial trait: ${def.race.trait.displayName}", def.race.trait.description + " (for the army this King leads)")
         } else if (def.unit != null) {
+            val st = def.unit!!
             Line(
-                if (def.unit!!.isElite) "Elite" else "Unit slot",
-                if (def.unit!!.isElite) "takes 2 of your unit slots" else "takes 1 of your unit slots",
+                "★".repeat(def.stars) + " " + when { st.isChampion -> "Champion"; st.isElite -> "Elite"; else -> "Unit" },
+                "takes ${st.slots} unit slot(s); up to ${def.maxCopies} per deck",
             )
+        } else if (def.type == CardType.MAGIC) {
+            Line("★".repeat(def.stars) + " spell", "up to ${def.maxCopies} per deck")
+        } else if (def.type == CardType.STRATEGY) {
+            Line("Field", "stays until any Strategy card replaces it; up to ${DeckRules.MAX_STRATEGY} Strategy cards per deck")
         }
         Line(
             "After use",

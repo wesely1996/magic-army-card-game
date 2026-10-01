@@ -171,7 +171,7 @@ fun DeckRow(deck: Deck, selected: Boolean = false, onClick: (() -> Unit)? = null
         Column(Modifier.weight(1f)) {
             Text(deck.name, style = MaterialTheme.typography.titleMedium)
             Text(
-                "${deck.size}/${DeckRules.DECK_SIZE} · ${king?.name ?: "no King"} · " + if (valid) "ready ✓" else "draft",
+                "${deck.mainSize}/${DeckRules.DECK_SIZE} + ${king?.name ?: "no King"} · " + if (valid) "ready ✓" else "draft",
                 style = MaterialTheme.typography.bodySmall, color = if (valid) Ink.Heal else Ink.Enemy,
             )
         }

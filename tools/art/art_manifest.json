@@ -128,5 +128,11 @@
   "v_tunnels":       {"icon": "hole"},
   "v_plague":        {"icon": "poison-cloud"},
   "v_grafts":        {"icon": "brain-tentacle"},
-  "v_cloak":         {"icon": "cloak"}
+  "v_cloak":         {"icon": "cloak"},
+  "w_packlord":      {"icon": "werewolf", "accent": "fangs"},
+  "b_ancient":       {"icon": "polar-bear", "accent": "mountaintop"},
+  "h_thunderbird":   {"icon": "eagle-emblem", "accent": "focused-lightning"},
+  "s_hydra":         {"icon": "hydra"},
+  "l_paragon":       {"icon": "lion", "accent": "heraldic-sun"},
+  "v_colossus":      {"icon": "troll", "accent": "biohazard"}
 }

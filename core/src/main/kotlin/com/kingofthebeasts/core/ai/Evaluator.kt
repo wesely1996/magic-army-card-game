@@ -26,7 +26,7 @@ object Evaluator {
             if (u.owner == me) score += v else score -= v
         }
         score += (s.players[me].hand.size - s.players[opp].hand.size) * 1.5
-        for (f in s.fields) score += (if (f.owner == me) 1 else -1) * 1.2 * minOf(f.turns, 3)
+        for (f in s.fields) score += (if (f.owner == me) 1 else -1) * 4.0
 
         if (s.phase == Phase.BATTLE) {
             val mover = s.activePlayer

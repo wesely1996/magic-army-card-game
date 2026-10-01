@@ -34,8 +34,9 @@ class EngineTest {
             GameEngine.apply(s, a)
         }
         assertEquals(Phase.BATTLE, s.phase)
-        assertEquals(GameEngine.MAX_DEPLOY, s.unitsOf(0).size)
-        assertEquals(GameEngine.MAX_DEPLOY, s.unitsOf(1).size)
+        // Units that arrive with tokens (e.g. Wolf Pups) add to the board, but only cards count as deployed.
+        assertEquals(GameEngine.MAX_DEPLOY, s.unitsOf(0).count { !it.isToken })
+        assertEquals(GameEngine.MAX_DEPLOY, s.unitsOf(1).count { !it.isToken })
         assertTrue(s.units.all { Board.isDeployZone(it.owner, it.pos) })
         assertEquals(GameEngine.OPENING_HAND, s.players[0].hand.size)
         assertEquals(first, s.activePlayer)
@@ -73,7 +74,7 @@ class EngineTest {
         assertFalse(p(0, 3) in tiles)
         assertTrue(p(0, 2) in tiles)
         assertFalse(p(3, 3) in tiles)
-        s.fields += com.kingofthebeasts.core.game.FieldEffect(0, FieldRule.AMBUSH, 3, "l_grass")
+        s.fields += com.kingofthebeasts.core.game.FieldEffect(0, FieldRule.AMBUSH, "l_grass")
         assertTrue(p(3, 3) in GameEngine.battleDeployTiles(s, 0))
     }
 
@@ -117,7 +118,7 @@ class EngineTest {
         GameEngine.apply(s, Action.PlayCard(hug.uid, Target.Unit(u[0].id)))
         assertEquals(u[1].maxHp, u[1].hp, "the stunned attacker never hit")
         assertEquals(1, s.activePlayer)
-        assertEquals(0, u[0].stun, "the stun only interrupted the action on its owner's own turn")
+        assertEquals(1, u[0].stun, "Bear Hug stuns for 2 turns: one is used up interrupting this action")
     }
 
     @Test
@@ -191,7 +192,7 @@ class EngineTest {
     @Test
     fun blitzGivesAFreeMove() {
         val (s, u) = battle(Triple("w_scout", 0, p(3, 1)), Triple("w_king_alpha", 0, p(0, 0)), Triple("l_king_pride", 1, p(7, 7)))
-        s.fields += com.kingofthebeasts.core.game.FieldEffect(0, FieldRule.BLITZ, 3, "w_hunt")
+        s.fields += com.kingofthebeasts.core.game.FieldEffect(0, FieldRule.BLITZ, "w_hunt")
         GameEngine.apply(s, Action.Move(u[0].id, p(3, 3)))
         assertEquals(0, s.activePlayer)
         GameEngine.apply(s, Action.Move(u[0].id, p(3, 4)))

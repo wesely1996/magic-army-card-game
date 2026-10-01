@@ -43,7 +43,8 @@ sealed interface EffectOp {
     /** Applies [op] to every unit of [side] within [radius] of the target. */
     data class Area(val radius: Int, val side: Side, val includeCenter: Boolean, val op: EffectOp) : EffectOp
     data class Draw(val count: Int) : EffectOp
-    data class Field(val rule: FieldRule, val turns: Int) : EffectOp
+    /** Sets the battlefield's one field (Strategy cards); it lasts until another Strategy replaces it. */
+    data class Field(val rule: FieldRule) : EffectOp
     /** Places a token copy of [cardId] on an empty square next to the source unit (or the target, for cards). */
     data class Summon(val cardId: String) : EffectOp
     /** Source unit swaps squares with the target unit. */
@@ -104,10 +105,11 @@ data class UnitStats(
     val isKing: Boolean = false,
     /** Effects that happen when the unit is played from a card (source and target: the unit itself). */
     val arrival: List<EffectOp> = emptyList(),
-    /** Unit slots it takes up: 2 for Elite units, 1 for the rest, 0 for Kings. */
+    /** Unit slots it takes up: 3 for Champions, 2 for Elite units, 1 for the rest, 0 for Kings. */
     val slots: Int = if (isKing) 0 else 1,
 ) {
-    val isElite: Boolean get() = slots >= 2
+    val isElite: Boolean get() = slots == 2
+    val isChampion: Boolean get() = slots >= 3
 }
 
 data class CardDef(
@@ -121,25 +123,47 @@ data class CardDef(
     val unit: UnitStats? = null,
     val target: TargetRule = TargetRule.NONE,
     val effects: List<EffectOp> = emptyList(),
+    /** Magic cards: 1★, 2★ or 3★. Stronger spells are rarer in a deck (3, 2 or 1 copies). */
+    val rank: Int = 1,
 ) {
     val isKing: Boolean get() = unit?.isKing == true
-    val maxCopies: Int get() = if (isKing) 1 else 3
+
+    /**
+     * Star tier: units 1★ (normal, 1 slot), 2★ (Elite, 2 slots), 3★ (Champion, 3 slots); Magic by
+     * [rank]; 0 for Kings, Strategy and Equipment.
+     */
+    val stars: Int
+        get() = when {
+            isKing -> 0
+            unit != null -> unit.slots
+            type == CardType.MAGIC -> rank
+            else -> 0
+        }
+
+    /** Copies allowed in a deck: 3 / 2 / 1 for 1★ / 2★ / 3★ cards, 1 King, 3 of other cards. */
+    val maxCopies: Int
+        get() = when {
+            isKing -> 1
+            stars > 0 -> 4 - stars
+            else -> 3
+        }
 
     /** Magic cards can always be played as interrupts. */
     val isQuick: Boolean get() = type == CardType.MAGIC
 
     /**
-     * After use, Strategy cards and Magic cards that don't deal damage or summon go to the discard
-     * pile, which becomes the new deck when the deck runs out. Everything else (units, equipment,
-     * damage and summoning spells) is exhausted: used once, then out of the game.
+     * After use, Magic cards that don't deal damage or summon go to the discard pile, which becomes
+     * the new deck when the deck runs out. Everything else (units, equipment, Strategy cards, damage
+     * and summoning spells) is exhausted: used once, then out of the game.
      */
     val returnsToDeck: Boolean
-        get() = type == CardType.STRATEGY || (type == CardType.MAGIC && effects.none { it.exhausting })
+        get() = type == CardType.MAGIC && effects.none { it.exhausting }
 
     val text: String
         get() = if (unit == null) rulesText else buildString {
             if (unit.isKing) append("King: takes no damage from Magic cards or abilities. ")
             if (unit.isElite) append("Elite: takes 2 unit slots. ")
+            if (unit.isChampion) append("Champion: takes 3 unit slots. ")
             unit.keywords.forEach { append(it.displayName).append(": ").append(it.description).append(' ') }
             unit.abilities.forEach {
                 append(it.name)
@@ -153,12 +177,12 @@ data class CardDef(
 
 enum class FieldRule(val displayName: String, val description: String) {
     BLITZ("Blitz", "Once per turn, moving a unit doesn't end your turn."),
-    HUNTING_GROUNDS("Hunting Grounds", "Your attacks deal +1 damage to wounded enemies."),
+    HUNTING_GROUNDS("Hunting Grounds", "Your attacks deal +2 damage to wounded enemies."),
     FORTIFY("Fortify", "Your units take 1 less damage."),
-    SANCTUARY("Sanctuary", "Your units heal 1 at the start of your turn."),
-    HIGH_GROUND("High Ground", "Your ranged units (range 2+) get +1 range."),
-    TAILWIND("Tailwind", "Your units get +1 movement."),
-    SWAMP("Swamp", "Enemy units get -1 movement."),
+    SANCTUARY("Sanctuary", "Your units heal 2 at the start of your turn."),
+    HIGH_GROUND("High Ground", "Your ranged units (range 2+) get +1 range and +1 attack."),
+    TAILWIND("Tailwind", "Your units get +1 movement and Flying."),
+    SWAMP("Swamp", "Enemy units get −1 movement and −1 attack (never below 1)."),
     SILENCE("Silence", "Your opponent can't interrupt your actions."),
     WAR_DRUMS("War Drums", "Your units get +1 attack."),
     AMBUSH("Ambush", "You may play units anywhere in your half of the board (still 2+ squares from enemies)."),

@@ -119,8 +119,9 @@ class StackItem(
     fun copy() = StackItem(id, controller, action, label, card, countered)
 }
 
-class FieldEffect(val owner: Int, val rule: FieldRule, var turns: Int, val cardId: String) {
-    fun copy() = FieldEffect(owner, rule, turns, cardId)
+/** The battlefield's field (from a Strategy card): helps [owner] until another Strategy replaces it. */
+class FieldEffect(val owner: Int, val rule: FieldRule, val cardId: String) {
+    fun copy() = FieldEffect(owner, rule, cardId)
 }
 
 enum class Phase { DEPLOY, BATTLE, GAME_OVER }

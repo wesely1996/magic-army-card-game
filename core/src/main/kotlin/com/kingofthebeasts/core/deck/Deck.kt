@@ -13,7 +13,14 @@ data class Deck(
     /** card id -> number of copies */
     val cards: Map<String, Int>,
 ) {
+    /** All cards including the King. */
     val size: Int get() = cards.values.sum()
+
+    /** Cards that count toward the 40-card limit: everything except the King. */
+    val mainSize: Int get() = cards.entries.sumOf { (id, n) -> if (CardDatabase.find(id)?.isKing == true) 0 else n }
+
+    val strategyCount: Int
+        get() = cards.entries.sumOf { (id, n) -> if (CardDatabase.find(id)?.type == com.kingofthebeasts.core.model.CardType.STRATEGY) n else 0 }
 
     fun cardIds(): List<String> = cards.flatMap { (id, n) -> List(n) { id } }
 
@@ -22,15 +29,18 @@ data class Deck(
 }
 
 object DeckRules {
+    /** Cards besides the King. */
     const val DECK_SIZE = 40
     const val MAX_RACES = 3
+    const val MAX_STRATEGY = 3
 
     fun validate(deck: Deck): List<String> {
         val errors = mutableListOf<String>()
         if (deck.name.isBlank()) errors += "Give the deck a name."
         if (deck.races.isEmpty()) errors += "Pick at least one race."
         if (deck.races.size > MAX_RACES) errors += "A deck can use at most $MAX_RACES races."
-        if (deck.size != DECK_SIZE) errors += "The deck must have exactly $DECK_SIZE cards (has ${deck.size})."
+        if (deck.mainSize != DECK_SIZE) errors += "The deck must have exactly $DECK_SIZE cards besides the King (has ${deck.mainSize})."
+        if (deck.strategyCount > MAX_STRATEGY) errors += "At most $MAX_STRATEGY Strategy cards (has ${deck.strategyCount})."
         var kings = 0
         for ((id, count) in deck.cards) {
             val def = CardDatabase.find(id)

@@ -102,7 +102,7 @@ class RulesV3Test {
         if (s.stack.isNotEmpty()) GameEngine.apply(s, Action.Pass) // the opponent may get a chance to respond
         assertTrue(frenzy in s.players[0].discard, "non-damage magic goes to the discard pile")
         assertFalse(CardDatabase.get("w_scout").returnsToDeck, "unit cards are used once")
-        assertTrue(CardDatabase.get("w_hunt").returnsToDeck, "strategy cards come back")
+        assertFalse(CardDatabase.get("w_hunt").returnsToDeck, "strategy cards are used once")
         assertFalse(CardDatabase.get("v_swarm").returnsToDeck, "summoning spells are used once")
     }
 
@@ -152,7 +152,7 @@ class RulesV3Test {
             Triple("v_tunnel", 0, p(3, 3)), Triple("l_cub", 1, p(3, 4)), Triple("l_king_pride", 1, p(2, 4)),
             Triple("v_king_rat", 0, p(0, 0)),
         )
-        s.fields += FieldEffect(0, FieldRule.PLAGUE, 3, "v_plague")
+        s.fields += FieldEffect(0, FieldRule.PLAGUE, "v_plague")
         val cubHp = u[1].hp
         val kingHp = u[2].hp
         GameEngine.apply(s, Action.Pass) // player 1's turn…

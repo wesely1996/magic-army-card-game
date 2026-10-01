@@ -41,7 +41,7 @@ class AiSoakTest {
 
     @Test
     fun mediumBeatsEasy() {
-        val games = 16
+        val games = 32
         val start = System.nanoTime()
         val pool = Executors.newFixedThreadPool(4)
         val results = (0 until games).map { g ->
@@ -51,7 +51,7 @@ class AiSoakTest {
                 val swap = g % 2 == 1
                 val medium = AiPlayer(Difficulty.MEDIUM, g.toLong())
                 val easy = AiPlayer(Difficulty.EASY, g + 50L)
-                val s = GameEngine.newGame(decks[g % 3], decks[(g + 1 + g / 3) % 3], listOf("A", "B"), 1000L + g)
+                val s = GameEngine.newGame(decks[g % decks.size], decks[(g + 1 + g / decks.size) % decks.size], listOf("A", "B"), 1000L + g)
                 val ais = if (swap) listOf(easy, medium) else listOf(medium, easy)
                 var steps = 0
                 while (s.phase != Phase.GAME_OVER) {

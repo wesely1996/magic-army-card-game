@@ -69,16 +69,18 @@ object CardDatabase {
         add(unit("w_runner", "Howling Runner", WOLF, 3, 4, 4, 1, setOf(PACK_HUNTER)))
         add(unit("w_ghost", "Ghost Wolf", WOLF, 4, 4, 3, 1, setOf(HIDDEN)))
         add(unit("w_ravager", "Pack Ravager", WOLF, 5, 6, 2, 1, setOf(PACK_HUNTER, RETALIATE), elite = true))
+        add(unit("w_packlord", "Ironjaw Packlord", WOLF, 6, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
+            arrival = summons("w_pup", 2), text = "Arrival: two Wolf Pups appear next to him.", champion = true))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
             TargetRule.FRIENDLY, Buff(attack = 2, turns = 1)))
-        add(magic("w_bite", "Savage Bite", WOLF, "Deal 3 damage to an enemy unit.", TargetRule.ENEMY, Damage(3)))
+        add(magic("w_bite", "Savage Bite", WOLF, "Deal 4 damage to an enemy unit.", TargetRule.ENEMY, Damage(4), rank = 3))
         add(magic("w_scatter", "Scatter", WOLF, "Interrupt only. Cancel the action you are responding to.",
-            TargetRule.STACK, EffectOp.Counter))
+            TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("w_relay", "Pack Relay", WOLF,
             "Shuffle an allied unit (not your King) into your deck. A random unit from your deck takes its square.",
-            TargetRule.FRIENDLY, EffectOp.Replace))
-        add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ, 4))
-        add(strategy("w_moonlit", "Moonlit Hunt", WOLF, FieldRule.HUNTING_GROUNDS, 4))
+            TargetRule.FRIENDLY, EffectOp.Replace, rank = 2))
+        add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
+        add(strategy("w_moonlit", "Moonlit Hunt", WOLF, FieldRule.HUNTING_GROUNDS))
         add(equipment("w_collar", "Spiked Collar", WOLF, "+1 attack and Retaliate.",
             Buff(attack = 1), GrantKeyword(RETALIATE)))
         add(equipment("w_charm", "Fang Charm", WOLF, "+1 attack and +1 movement.", Buff(attack = 1, move = 1)))
@@ -110,16 +112,17 @@ object CardDatabase {
         add(unit("b_spirit", "Spirit Bear", BEAR, 2, 3, 2, 2, emptySet(),
             ability("Ancestral Ward", "Give an ally within 2 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 2), 3,
                 quick = true, effects = listOf(Shield(2)))))
+        add(unit("b_ancient", "Ancient Cave Bear", BEAR, 6, 14, 1, 1, setOf(ARMORED, IMMOVABLE, REGENERATE), champion = true))
         add(magic("b_hide", "Thick Hide", BEAR, "Give an allied unit a 2-point shield.", TargetRule.FRIENDLY, Shield(2)))
         add(magic("b_hibernate", "Hibernate", BEAR, "Heal an allied unit by 3 and remove stun and poison.",
-            TargetRule.FRIENDLY, Heal(3), EffectOp.Cleanse))
-        add(magic("b_hug", "Bear Hug", BEAR, "Stun an enemy unit for 1 turn. As an interrupt it stops that unit's action.",
-            TargetRule.ENEMY, Stun(1)))
+            TargetRule.FRIENDLY, Heal(3), EffectOp.Cleanse, rank = 2))
+        add(magic("b_hug", "Bear Hug", BEAR, "Stun an enemy unit for 2 turns. As an interrupt it stops that unit's action.",
+            TargetRule.ENEMY, Stun(2), rank = 3))
         add(magic("b_shove", "Mighty Shove", BEAR,
             "Push an enemy unit 2 squares directly away from your nearest unit. If a unit or the edge stops it, it takes 2 damage.",
-            TargetRule.ENEMY, EffectOp.Push(2, PushFrom.NEAREST_ALLY, impactDamage = 2)))
-        add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY, 3))
-        add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY, 3))
+            TargetRule.ENEMY, EffectOp.Push(2, PushFrom.NEAREST_ALLY, impactDamage = 2), rank = 2))
+        add(strategy("b_den", "Den Fortress", BEAR, FieldRule.FORTIFY))
+        add(strategy("b_salmon", "Salmon Run", BEAR, FieldRule.SANCTUARY))
         add(equipment("b_bark", "Bark Armor", BEAR, "+2 health.", Buff(health = 2)))
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
@@ -147,17 +150,21 @@ object CardDatabase {
             ability("Talon Dive", "Deal 2 damage to an enemy within 2.", TargetRule(TargetKind.ENEMY_UNIT, 2), 3,
                 effects = listOf(Damage(2)))))
         add(unit("h_vulture", "Vulture", HAWK, 2, 3, 2, 1, setOf(FLYING, REGENERATE), elite = true))
+        add(unit("h_thunderbird", "Thunderbird", HAWK, 4, 9, 3, 3, setOf(FLYING),
+            ability("Thunderclap", "Deal 2 damage to an enemy within 3 and stun it for 1 turn.",
+                TargetRule(TargetKind.ENEMY_UNIT, 3), 3, effects = listOf(Damage(2), Stun(1))),
+            champion = true))
         add(magic("h_gust", "Gust", HAWK, "Interrupt only. Cancel the action you are responding to.",
-            TargetRule.STACK, EffectOp.Counter))
+            TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("h_tailwind", "Tailwind", HAWK, "An allied unit gets +2 movement and Flying for 1 turn.",
             TargetRule.FRIENDLY, Buff(move = 2, turns = 1), GrantKeyword(FLYING, 1)))
-        add(magic("h_skystrike", "Sky Strike", HAWK, "Deal 2 damage to an enemy unit and 1 damage to enemies next to it.",
-            TargetRule.ENEMY, Damage(2), Area(1, Side.ENEMY, includeCenter = false, op = Damage(1))))
+        add(magic("h_skystrike", "Sky Strike", HAWK, "Deal 3 damage to an enemy unit and 1 damage to enemies next to it.",
+            TargetRule.ENEMY, Damage(3), Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)), rank = 3))
         add(magic("h_gale", "Gale Force", HAWK,
             "Blow an enemy unit up to 3 squares straight back toward its own side of the board.",
-            TargetRule.ENEMY, EffectOp.Push(3, PushFrom.OWNER_SIDE)))
-        add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND, 4))
-        add(strategy("h_winds", "Favorable Winds", HAWK, FieldRule.TAILWIND, 4))
+            TargetRule.ENEMY, EffectOp.Push(3, PushFrom.OWNER_SIDE), rank = 2))
+        add(strategy("h_high", "High Ground", HAWK, FieldRule.HIGH_GROUND))
+        add(strategy("h_winds", "Favorable Winds", HAWK, FieldRule.TAILWIND))
         add(equipment("h_talons", "Razor Talons", HAWK, "+1 attack and +1 range.", Buff(attack = 1, range = 1)))
         add(equipment("h_amulet", "Eagle Eye Amulet", HAWK, "+1 health and +1 range.", Buff(health = 1, range = 1)))
 
@@ -187,17 +194,21 @@ object CardDatabase {
             ability("Hypnotize", "Stun an enemy within 2 for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 2), 3,
                 quick = true, effects = listOf(Stun(1)))))
         add(unit("s_krait", "Sea Krait", SERPENT, 2, 4, 3, 1, setOf(POISONOUS, BACKSTAB)))
+        add(unit("s_hydra", "Great Hydra", SERPENT, 5, 12, 1, 1, setOf(POISONOUS, REGENERATE),
+            ability("Many Heads", "Deal 1 damage to every enemy next to it.", TargetRule.SELF, 2,
+                effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)))),
+            champion = true))
         add(magic("s_hiss", "Hiss of Denial", SERPENT, "Interrupt only. Cancel the action you are responding to.",
-            TargetRule.STACK, EffectOp.Counter))
+            TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("s_venom", "Venom Surge", SERPENT, "Poison an enemy unit: 2 damage per turn for 2 turns.",
-            TargetRule.ENEMY, Poison(2, 2)))
+            TargetRule.ENEMY, Poison(2, 2), rank = 2))
         add(magic("s_shed", "Shed Skin", SERPENT, "Remove stun and poison from an allied unit and heal it by 2.",
             TargetRule.FRIENDLY, EffectOp.Cleanse, Heal(2)))
         add(magic("s_mirage", "Mirage", SERPENT,
             "Shuffle an enemy unit (not a King) into its owner's deck. A random unit from that deck takes its square.",
-            TargetRule.ENEMY, EffectOp.Replace))
-        add(strategy("s_swamp", "Murky Swamp", SERPENT, FieldRule.SWAMP, 4))
-        add(strategy("s_trance", "Hypnotic Trance", SERPENT, FieldRule.SILENCE, 3))
+            TargetRule.ENEMY, EffectOp.Replace, rank = 3))
+        add(strategy("s_swamp", "Murky Swamp", SERPENT, FieldRule.SWAMP))
+        add(strategy("s_trance", "Hypnotic Trance", SERPENT, FieldRule.SILENCE))
         add(equipment("s_fangs", "Venom Fangs", SERPENT, "+1 attack and Poisonous.", Buff(attack = 1), GrantKeyword(POISONOUS)))
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
@@ -223,17 +234,21 @@ object CardDatabase {
         add(unit("l_stalker", "Savanna Stalker", LION, 3, 4, 3, 1, setOf(HIDDEN)))
         add(unit("l_cheetah", "Cheetah Outrider", LION, 3, 3, 5, 1, setOf(PACK_HUNTER)))
         add(unit("l_champion", "Pride Champion", LION, 5, 7, 2, 1, setOf(RETALIATE), elite = true))
+        add(unit("l_paragon", "Sunmane Paragon", LION, 6, 11, 2, 1, setOf(ARMORED, RETALIATE),
+            ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
+                effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
+            champion = true))
         add(magic("l_charge", "Glorious Charge", LION, "An allied unit gets +2 attack and +1 movement for 1 turn.",
-            TargetRule.FRIENDLY, Buff(attack = 2, move = 1, turns = 1)))
+            TargetRule.FRIENDLY, Buff(attack = 2, move = 1, turns = 1), rank = 2))
         add(magic("l_valor", "Valor", LION, "Heal an allied unit by 3. It gets +1 attack for 1 turn.",
             TargetRule.FRIENDLY, Heal(3), Buff(attack = 1, turns = 1)))
-        add(magic("l_sunfire", "Sunfire", LION, "Deal 2 damage to an enemy unit and draw a card.",
-            TargetRule.ENEMY, Damage(2), EffectOp.Draw(1)))
+        add(magic("l_sunfire", "Sunfire", LION, "Deal 3 damage to an enemy unit and draw a card.",
+            TargetRule.ENEMY, Damage(3), EffectOp.Draw(1), rank = 3))
         add(magic("l_rally", "Rally to the King", LION,
             "An allied unit moves to the empty square next to your King that is nearest to it.",
             TargetRule.FRIENDLY, EffectOp.RallyToKing))
-        add(strategy("l_banner", "War Banner", LION, FieldRule.WAR_DRUMS, 4))
-        add(strategy("l_grass", "Tall Grass", LION, FieldRule.AMBUSH, 4))
+        add(strategy("l_banner", "War Banner", LION, FieldRule.WAR_DRUMS))
+        add(strategy("l_grass", "Tall Grass", LION, FieldRule.AMBUSH))
         add(equipment("l_mane", "Golden Mane", LION, "+1 attack and +2 health.", Buff(attack = 1, health = 2)))
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
@@ -265,18 +280,20 @@ object CardDatabase {
             ability("Blight Spark", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
+        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 7, 12, 1, 1, setOf(RETALIATE, REGENERATE),
+            arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
         add(magic("v_blightfire", "Blightfire", VERMIN,
-            "Deal 3 damage to an enemy unit and 1 damage to every other unit next to it, friend or foe.",
-            TargetRule.ENEMY, Damage(3), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))
+            "Deal 4 damage to an enemy unit and 1 damage to every other unit next to it, friend or foe.",
+            TargetRule.ENEMY, Damage(4), Area(1, Side.ALL, includeCenter = false, op = Damage(1)), rank = 3))
         add(magic("v_vanish", "Vanishing Trick", VERMIN, "An allied unit becomes Hidden for 2 turns and gets +1 movement for 1 turn.",
             TargetRule.FRIENDLY, GrantKeyword(HIDDEN, 2), Buff(move = 1, turns = 1)))
         add(magic("v_swarm", "Call the Swarm", VERMIN, "Two Swarm Rats appear next to an allied unit.",
-            TargetRule.FRIENDLY, Summon(SWARM_RAT), Summon(SWARM_RAT)))
+            TargetRule.FRIENDLY, Summon(SWARM_RAT), Summon(SWARM_RAT), rank = 2))
         add(magic("v_ratrun", "Rat Run", VERMIN,
             "An enemy unit swaps squares with your unit nearest to it (Immovable units can't be swapped).",
-            TargetRule.ENEMY, EffectOp.SwapWithNearestAlly))
-        add(strategy("v_tunnels", "Warren Tunnels", VERMIN, FieldRule.TUNNELS, 3))
-        add(strategy("v_plague", "Creeping Plague", VERMIN, FieldRule.PLAGUE, 3))
+            TargetRule.ENEMY, EffectOp.SwapWithNearestAlly, rank = 2))
+        add(strategy("v_tunnels", "Warren Tunnels", VERMIN, FieldRule.TUNNELS))
+        add(strategy("v_plague", "Creeping Plague", VERMIN, FieldRule.PLAGUE))
         add(equipment("v_grafts", "Mutant Grafts", VERMIN, "+2 attack and +2 health, but −1 movement.",
             Buff(attack = 2, health = 2, move = -1)))
         add(equipment("v_cloak", "Shadow Cloak", VERMIN, "Hidden and Backstab.", GrantKeyword(HIDDEN), GrantKeyword(BACKSTAB)))
@@ -310,9 +327,12 @@ object CardDatabase {
     private fun unit(
         id: String, name: String, race: Race, atk: Int, hp: Int, move: Int, range: Int,
         keywords: Set<Keyword> = emptySet(), ability: AbilityDef? = null,
-        arrival: List<EffectOp> = emptyList(), text: String = "", elite: Boolean = false,
+        arrival: List<EffectOp> = emptyList(), text: String = "", elite: Boolean = false, champion: Boolean = false,
     ) = CardDef(id, name, race, CardType.UNIT, rulesText = text,
-        unit = UnitStats(atk, hp, move, range, keywords, listOfNotNull(ability), arrival = arrival, slots = if (elite) 2 else 1))
+        unit = UnitStats(
+            atk, hp, move, range, keywords, listOfNotNull(ability), arrival = arrival,
+            slots = if (champion) 3 else if (elite) 2 else 1,
+        ))
 
     /** Arrival effect: [n] Swarm Rats (or other tokens) appear next to the unit. */
     private fun summons(cardId: String, n: Int) = List(n) { Summon(cardId) }
@@ -324,13 +344,13 @@ object CardDatabase {
         // Every King is Immovable (and immune to damage from cards and abilities, see GameEngine).
         unit = UnitStats(atk, hp, move, range, setOf(Keyword.IMMOVABLE) + keywords, listOfNotNull(ability), isKing = true))
 
-    private fun magic(id: String, name: String, race: Race, text: String, target: TargetRule, vararg effects: EffectOp) =
-        CardDef(id, name, race, CardType.MAGIC, rulesText = text, target = target, effects = effects.toList())
+    private fun magic(id: String, name: String, race: Race, text: String, target: TargetRule, vararg effects: EffectOp, rank: Int = 1) =
+        CardDef(id, name, race, CardType.MAGIC, rulesText = text, target = target, effects = effects.toList(), rank = rank)
 
-    private fun strategy(id: String, name: String, race: Race, rule: FieldRule, turns: Int) =
+    private fun strategy(id: String, name: String, race: Race, rule: FieldRule) =
         CardDef(id, name, race, CardType.STRATEGY,
-            rulesText = "For $turns of your turns: ${rule.description}",
-            effects = listOf(Field(rule, turns)))
+            rulesText = "Field: ${rule.description} Lasts until any Strategy card replaces it.",
+            effects = listOf(Field(rule)))
 
     private fun equipment(id: String, name: String, race: Race, text: String, vararg effects: EffectOp) =
         CardDef(id, name, race, CardType.EQUIPMENT, rulesText = "Equip an allied unit: $text",

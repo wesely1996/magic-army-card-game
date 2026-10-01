@@ -278,6 +278,15 @@ private fun ActionRail(vm: GameViewModel, actions: List<Action>, onOpen: () -> U
             Text("  vs  ", style = MaterialTheme.typography.labelMedium, color = Ink.Faded)
             Text("⚔${GameEngine.usedSlots(s, 1 - vm.human)}", style = MaterialTheme.typography.labelMedium, color = Ink.Enemy)
         }
+        // The one active field (from a Strategy card), whose side it helps.
+        s.fields.firstOrNull()?.let { f ->
+            Text(
+                "⚑ ${f.rule.displayName}",
+                style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center,
+                color = if (f.owner == vm.human) Ink.You else Ink.Enemy,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
         Spacer(Modifier.height(8.dp))
         Text(
             if (s.stack.isEmpty()) "Chain empty" else "⚡ Chain · ${s.stack.size}",
@@ -540,10 +549,10 @@ private fun StatusDrawer(
             }
 
             if (s.fields.isNotEmpty()) {
-                DrawerSection("Battlefield rules")
+                DrawerSection("Field")
                 for (f in s.fields) {
                     Text(
-                        "⚑ ${f.rule.displayName} (${if (f.owner == vm.human) "yours" else "opponent's"}, ${f.turns} turn(s) left)",
+                        "⚑ ${f.rule.displayName} (${if (f.owner == vm.human) "yours" else "opponent's"}, until another Strategy replaces it)",
                         style = MaterialTheme.typography.labelMedium, color = if (f.owner == vm.human) Ink.You else Ink.Enemy,
                     )
                     Text(f.rule.description, style = MaterialTheme.typography.bodySmall)
