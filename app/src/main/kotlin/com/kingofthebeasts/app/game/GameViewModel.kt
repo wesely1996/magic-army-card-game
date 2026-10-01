@@ -115,7 +115,7 @@ class GameViewModel(
                 val started = System.currentTimeMillis()
                 val action = withContext(Dispatchers.Default) { ai.choose(state) }
                 // Keep a readable pace even when the AI decides instantly.
-                val minPause = if (d.kind == DecisionKind.DEPLOY) 450L else 850L
+                val minPause = if (d.kind == DecisionKind.DEPLOY) 600L else 1000L
                 delay((minPause - (System.currentTimeMillis() - started)).coerceAtLeast(0L))
                 GameEngine.apply(state, action)
                 record(action)

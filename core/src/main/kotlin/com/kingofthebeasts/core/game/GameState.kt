@@ -146,11 +146,27 @@ sealed interface GameEvent {
     val seq: Int
     data class Damaged(override val seq: Int, val unitId: Int, val pos: Pos, val amount: Int) : GameEvent
     data class Healed(override val seq: Int, val unitId: Int, val pos: Pos, val amount: Int) : GameEvent
-    data class Died(override val seq: Int, val unitId: Int, val pos: Pos) : GameEvent
+    data class Died(override val seq: Int, val unitId: Int, val pos: Pos, val cardId: String = "", val owner: Int = 0) : GameEvent
     data class Moved(override val seq: Int, val unitId: Int, val from: Pos, val to: Pos) : GameEvent
     data class Status(override val seq: Int, val pos: Pos, val text: String) : GameEvent
     data class Announce(override val seq: Int, val player: Int, val text: String) : GameEvent
+    /** [unitId] strikes the unit at [to]: an attack or a retaliation. */
+    data class Attacked(override val seq: Int, val unitId: Int, val from: Pos, val to: Pos) : GameEvent
+    /** A unit enters the board: deployed, played from hand or summoned as a token. */
+    data class Arrived(override val seq: Int, val unitId: Int, val pos: Pos, val token: Boolean) : GameEvent
+    /**
+     * A card or ability takes effect. [from] is the unit using an ability (null for a card from the
+     * hand), [at] the square it aims at (null when it has no square, e.g. a field), [radius] the size
+     * of an area effect.
+     */
+    data class Cast(
+        override val seq: Int, val player: Int, val cardId: String, val ability: String?,
+        val from: Pos?, val at: Pos?, val look: CastLook, val radius: Int = 0,
+    ) : GameEvent
 }
+
+/** How a cast looks on the board. */
+enum class CastLook { HARM, HELP, CONTROL, SUMMON, EQUIP, FIELD }
 
 class GameState(
     val players: List<PlayerState>,

@@ -29,7 +29,7 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Battle-phase units: empty border square, ≥2 squares from every enemy (Ambush strategy relaxes this).
 - Interrupts: every action goes on a stack. Magic cards and ⚡ quick abilities can respond, alternating.
   A pass resolves the whole chain last-in-first-out, and illegal actions fizzle. Counter cards cancel the action they answer.
-- Strategy: one active per player, lasts N of the owner's turns. Equipment: permanent.
+- Strategy cards are fields (see below). Equipment: permanent.
 - "+X for 1 turn" effects applied during the unit owner's own turn last through their next turn.
 - Exhaustion: from turn 120 each King loses 1 health (+1 every 20 turns) at the start of its owner's turn and can't be healed.
 - Decks: 40 cards plus the King. Stars set the copy limit: ★ 3, ★★ 2, ★★★ 1. At most 3 Strategy cards.
@@ -62,4 +62,5 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - Online multiplayer. The engine is deterministic and action-based, so a server or peer can
   relay `Action`s. Hidden information (hands, deck order) needs server-side authority.
 - Real painted art: drop `art_<id>.webp` files in `app/src/main/res/drawable-nodpi/`.
-- Balance pass using AI-vs-AI statistics, sound, richer animations, tutorial.
+- Balance passes using AI-vs-AI statistics run every version. Basic battle animations are in (0.5.0).
+- Sound, richer animations, tutorial.

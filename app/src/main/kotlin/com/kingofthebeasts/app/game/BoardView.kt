@@ -5,7 +5,6 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector2D
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -14,7 +13,9 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -33,6 +34,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,6 +48,7 @@ import com.kingofthebeasts.app.R
 import com.kingofthebeasts.app.ui.CardArt
 import com.kingofthebeasts.app.ui.theme.Ink
 import com.kingofthebeasts.core.game.Board
+import com.kingofthebeasts.core.game.CastLook
 import com.kingofthebeasts.core.game.GameEngine
 import com.kingofthebeasts.core.game.GameEvent
 import com.kingofthebeasts.core.game.Phase
@@ -58,6 +62,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -158,8 +163,6 @@ class BoardProjection(width: Float, height: Float, angleDeg: Float = 0f) {
     }
 }
 
-private class Popup(val text: String, val color: Color, val at: Offset, val anim: Animatable<Float, *>)
-
 private class HitBox(val rect: Rect, val pos: Pos)
 
 @Composable
@@ -186,9 +189,114 @@ fun BoardView(
     val currentHighlights = rememberUpdatedState(highlights)
 
     val positions = remember { HashMap<Int, Animatable<Offset, AnimationVector2D>>() }
-    val popups = remember { mutableStateListOf<Popup>() }
-    // After a resume, don't replay the popups of everything that happened before.
-    var lastSeq by remember { mutableIntStateOf(vm.resumedEventSeq) }
+    val fx = remember { mutableStateListOf<Fx>() }
+    var now by remember { mutableLongStateOf(0L) }
+    // After a resume, don't replay the animations of everything that happened before.
+    val seen = remember { intArrayOf(vm.resumedEventSeq) }
+
+    // Frame clock: ticks only while something is animating. Newly queued effects start on the next frame.
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (fx.isEmpty()) snapshotFlow { fx.size }.first { it > 0 }
+            withFrameMillis { t ->
+                for (f in fx) if (f.base < 0) f.base = t
+                now = t
+                fx.removeAll { it.done(t) }
+            }
+        }
+    }
+
+    // New events become animations during composition, so they are queued before the board redraws:
+    // a fallen unit keeps standing, and a new one stays hidden, until its moment comes.
+    val moveDelay = remember { HashMap<Int, Long>() }
+    remember(version) {
+        val seenSeq = seen[0]
+        moveDelay.clear()
+        // Lay the new events out on a timeline so cause comes before effect: a spell flies, then hits.
+        val queued = mutableListOf<Fx>()
+        var t = 0L
+        fun at(p: Pos) = Offset(p.x + 0.5f, p.y + 0.5f)
+        val rows = HashMap<Pos, Int>()
+        fun text(text: String, color: Color, p: Pos) {
+            val row = rows[p] ?: 0
+            rows[p] = row + 1
+            queued += FloatText(t, text, color, at(p), row)
+        }
+        for (e in state.events) {
+            if (e.seq <= seenSeq) continue
+            when (e) {
+                is GameEvent.Cast -> {
+                    val color = lookColor(e.look)
+                    val target = e.at?.let(::at) ?: Offset(Board.SIZE / 2f, Board.SIZE / 2f)
+                    val radius = if (e.radius > 0) e.radius + 0.5f else 0.5f
+                    if (e.from != null) {
+                        // an ability: a glow at the user, then an orb to the target
+                        queued += Burst(t, at(e.from!!), color, 0.35f)
+                        t += 120
+                        if (e.at != null && e.at != e.from) {
+                            queued += Bolt(t, at(e.from!!), target, color, arrow = false)
+                            t += 300
+                        }
+                        queued += Burst(t, target, color, radius)
+                        t += 140
+                    } else {
+                        // a card from the hand flies in from its owner's side
+                        val side = if (e.player == vm.human) -1.5f else Board.SIZE + 1.5f
+                        queued += CardFly(t, e.cardId, Offset(target.x, side), target, color)
+                        t += 400
+                        when (e.look) {
+                            CastLook.FIELD -> queued += FieldWave(t, color)
+                            CastLook.SUMMON -> {}
+                            else -> queued += Burst(t, target, color, radius)
+                        }
+                        t += 120
+                    }
+                }
+                is GameEvent.Attacked -> {
+                    val dir = Offset((e.to.x - e.from.x).toFloat(), (e.to.y - e.from.y).toFloat())
+                    if (e.from.distanceTo(e.to) <= 1) {
+                        queued += Lunge(t, e.unitId, dir.normalized(0.4f))
+                        t += 170
+                    } else {
+                        queued += Lunge(t, e.unitId, dir.normalized(-0.1f))
+                        queued += Bolt(t + 60, at(e.from), at(e.to), Ink.Line, arrow = true)
+                        t += 400
+                    }
+                }
+                is GameEvent.Damaged -> {
+                    queued += Hit(t, e.unitId)
+                    text(if (e.amount > 0) "-${e.amount}" else "0", Ink.Attack, e.pos)
+                    t += 120
+                }
+                is GameEvent.Healed -> {
+                    queued += Burst(t, at(e.pos), Ink.Heal, 0.4f)
+                    text("+${e.amount}", Ink.Heal, e.pos)
+                    t += 120
+                }
+                is GameEvent.Status -> {
+                    text(e.text, Ink.Target, e.pos)
+                    t += 120
+                }
+                is GameEvent.Died -> {
+                    queued += Ghost(t, e.cardId, e.owner, at(e.pos))
+                    t += 140
+                }
+                is GameEvent.Arrived -> {
+                    queued += Appear(t, e.unitId)
+                    queued += Burst(t + 250, at(e.pos), Ink.Faded, 0.45f)
+                    t += if (e.token) 120 else 200
+                }
+                is GameEvent.Moved -> {
+                    moveDelay[e.unitId] = t
+                    queued += Hop(t, e.unitId)
+                    t += 160
+                }
+                is GameEvent.Announce -> {}
+            }
+        }
+        seen[0] = state.eventSeq
+        fx += queued
+    }
 
     LaunchedEffect(version) {
         val alive = state.units.map { it.id }.toSet()
@@ -197,27 +305,10 @@ fun BoardView(
             val target = Offset(u.pos.x + 0.5f, u.pos.y + 0.5f)
             val anim = positions[u.id]
             if (anim == null) positions[u.id] = Animatable(target, Offset.VectorConverter)
-            else if (anim.targetValue != target) launch { anim.animateTo(target, tween(380)) }
-        }
-        var delayIndex = 0
-        for (e in state.events) {
-            if (e.seq <= lastSeq) continue
-            val (text, color, pos) = when (e) {
-                is GameEvent.Damaged -> Triple(if (e.amount > 0) "-${e.amount}" else "0", Ink.Attack, e.pos)
-                is GameEvent.Healed -> Triple("+${e.amount}", Ink.Heal, e.pos)
-                is GameEvent.Died -> Triple("✖", Ink.Line, e.pos)
-                is GameEvent.Status -> Triple(e.text, Ink.Target, e.pos)
-                else -> continue
-            }
-            val popup = Popup(text, color, Offset(pos.x + 0.5f, pos.y + 0.5f), Animatable(0f))
-            popups += popup
-            val startDelay = delayIndex++ * 180
-            launch {
-                popup.anim.animateTo(1f, tween(1400, delayMillis = startDelay, easing = LinearEasing))
-                popups.remove(popup)
+            else if (anim.targetValue != target) {
+                launch { anim.animateTo(target, tween(380, delayMillis = (moveDelay[u.id] ?: 0L).toInt())) }
             }
         }
-        lastSeq = state.eventSeq
     }
 
     Canvas(
@@ -246,6 +337,8 @@ fun BoardView(
         },
     ) {
         @Suppress("UNUSED_EXPRESSION") version // redraw whenever the game changes
+        val clock = now
+        val effects = fx.toList()
         val proj = BoardProjection(size.width, size.height, angle)
         projHolder[0] = proj
 
@@ -254,78 +347,145 @@ fun BoardView(
         drawHighlights(proj, highlights)
         drawCoordinates(proj, textPaint)
 
-        // Units, far to near, so nearer standees overlap farther ones.
+        // Units (and fading fallen ones), far to near, so nearer standees overlap farther ones.
         hitBoxes.clear()
         val drawn = state.units.filter { it.alive }.map { u ->
-            u to (positions[u.id]?.value ?: Offset(u.pos.x + 0.5f, u.pos.y + 0.5f))
-        }.sortedByDescending { proj.depth(it.second.x, it.second.y) }
+            Triple(u, null as Ghost?, positions[u.id]?.value ?: Offset(u.pos.x + 0.5f, u.pos.y + 0.5f))
+        } + effects.filterIsInstance<Ghost>().map { Triple(null, it, it.at) }
         val boxes = mutableListOf<HitBox>()
-        for ((u, bp) in drawn) {
-            val s = proj.scale(bp.x, bp.y)
-            val base = proj.project(bp.x, bp.y)
+        for ((unit, ghost, home) in drawn.sortedByDescending { proj.depth(it.third.x, it.third.y) }) {
+            if (ghost != null) {
+                drawGhost(proj, ghost, clock, art(ghost.cardId), if (ghost.owner == vm.human) Ink.You else Ink.Enemy)
+                continue
+            }
+            val u = unit!!
+            val pose = poseOf(u.id, effects, clock)
+            if (pose.hidden) continue
+            val bp = home + pose.boardShift
+            val s0 = proj.scale(bp.x, bp.y)
+            val restBase = proj.project(bp.x, bp.y)
             val team = if (u.owner == vm.human) Ink.You else Ink.Enemy
-            // Apparent height of the base disc: the screen height of a 0.68-square step in depth.
-            val depth = proj.depthSpan(bp.x, bp.y, 0.68f)
+            withTransform({ translate(pose.shake * s0, 0f) }) {
+                val s = s0
+                val base = restBase
+                // Apparent height of the base disc: the screen height of a 0.68-square step in depth.
+                val depth = proj.depthSpan(bp.x, bp.y, 0.68f)
 
-            drawOval(Color.Black.copy(alpha = 0.22f), Offset(base.x - 0.4f * s, base.y - depth / 2 + 0.03f * s), Size(0.8f * s, depth))
-            drawOval(team.copy(alpha = 0.55f), Offset(base.x - 0.33f * s, base.y - depth * 0.42f), Size(0.66f * s, depth * 0.84f))
-            drawOval(Ink.Line.copy(alpha = 0.8f), Offset(base.x - 0.33f * s, base.y - depth * 0.42f), Size(0.66f * s, depth * 0.84f), style = Stroke(0.02f * s))
-            if (u.shield > 0) {
-                drawOval(Ink.Move.copy(alpha = 0.8f), Offset(base.x - 0.42f * s, base.y - depth * 0.55f), Size(0.84f * s, depth * 1.1f), style = Stroke(0.05f * s))
-            }
+                drawOval(Color.Black.copy(alpha = 0.22f), Offset(base.x - 0.4f * s, base.y - depth / 2 + 0.03f * s), Size(0.8f * s, depth))
+                drawOval(team.copy(alpha = 0.55f), Offset(base.x - 0.33f * s, base.y - depth * 0.42f), Size(0.66f * s, depth * 0.84f))
+                drawOval(Ink.Line.copy(alpha = 0.8f), Offset(base.x - 0.33f * s, base.y - depth * 0.42f), Size(0.66f * s, depth * 0.84f), style = Stroke(0.02f * s))
+                if (u.shield > 0) {
+                    drawOval(Ink.Move.copy(alpha = 0.8f), Offset(base.x - 0.42f * s, base.y - depth * 0.55f), Size(0.84f * s, depth * 1.1f), style = Stroke(0.05f * s))
+                }
 
-            val sw = 0.6f * s
-            val sh = 0.92f * s
-            val rect = Rect(base.x - sw / 2, base.y - sh, base.x + sw / 2, base.y - 0.02f * s)
-            val arch = Path().apply {
-                moveTo(rect.left, rect.bottom)
-                lineTo(rect.left, rect.top + sw / 2)
-                arcTo(Rect(rect.left, rect.top, rect.right, rect.top + sw), 180f, 180f, false)
-                lineTo(rect.right, rect.bottom)
-                close()
-            }
-            // standee thickness
-            translate(0.035f * s, 0.02f * s) { drawPath(arch, Color(0xFF4A3B2E)) }
-            val img = art(u.def.id)
-            val srcH = (img.height * 0.5f).roundToInt()
-            val srcW = min(img.width, (srcH * sw / sh).roundToInt())
-            val srcTop = (img.height * 0.36f - srcH / 2f).roundToInt().coerceIn(0, img.height - srcH)
-            clipPath(arch) {
-                drawImage(
-                    img,
-                    srcOffset = IntOffset((img.width - srcW) / 2, srcTop), srcSize = IntSize(srcW, srcH),
-                    dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
-                    dstSize = IntSize(rect.width.roundToInt(), rect.height.roundToInt()),
-                )
-                if (u.stun > 0) drawRect(Color(0x55A0A0FF), rect.topLeft, rect.size)
-                // Hidden units look shadowy.
-                if (GameEngine.isHidden(state, u)) drawRect(Color(0x66302838), rect.topLeft, rect.size)
-            }
-            val selected = highlights.selected == u.pos
-            drawPath(arch, if (selected) Ink.Gold else team, style = Stroke(if (selected) 0.09f * s else 0.055f * s, join = StrokeJoin.Round))
-            drawPath(arch, Ink.Line, style = Stroke(0.014f * s, join = StrokeJoin.Round))
+                // The standee itself hops, drops in and bounces; its base stays on the board.
+                withTransform({
+                    translate(0f, -pose.lift * s0)
+                    scale(pose.scale, pose.scale, restBase)
+                }) {
+                    val sw = 0.6f * s
+                    val sh = 0.92f * s
+                    val rect = Rect(base.x - sw / 2, base.y - sh, base.x + sw / 2, base.y - 0.02f * s)
+                    val arch = Path().apply {
+                        moveTo(rect.left, rect.bottom)
+                        lineTo(rect.left, rect.top + sw / 2)
+                        arcTo(Rect(rect.left, rect.top, rect.right, rect.top + sw), 180f, 180f, false)
+                        lineTo(rect.right, rect.bottom)
+                        close()
+                    }
+                    // standee thickness
+                    translate(0.035f * s, 0.02f * s) { drawPath(arch, Color(0xFF4A3B2E)) }
+                    val img = art(u.def.id)
+                    val srcH = (img.height * 0.5f).roundToInt()
+                    val srcW = min(img.width, (srcH * sw / sh).roundToInt())
+                    val srcTop = (img.height * 0.36f - srcH / 2f).roundToInt().coerceIn(0, img.height - srcH)
+                    clipPath(arch) {
+                        drawImage(
+                            img,
+                            srcOffset = IntOffset((img.width - srcW) / 2, srcTop), srcSize = IntSize(srcW, srcH),
+                            dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
+                            dstSize = IntSize(rect.width.roundToInt(), rect.height.roundToInt()),
+                        )
+                        if (u.stun > 0) drawRect(Color(0x55A0A0FF), rect.topLeft, rect.size)
+                        // Hidden units look shadowy.
+                        if (GameEngine.isHidden(state, u)) drawRect(Color(0x66302838), rect.topLeft, rect.size)
+                        if (pose.flash > 0f) drawRect(Ink.Attack.copy(alpha = pose.flash), rect.topLeft, rect.size)
+                    }
+                    val selected = highlights.selected == u.pos
+                    drawPath(arch, if (selected) Ink.Gold else team, style = Stroke(if (selected) 0.09f * s else 0.055f * s, join = StrokeJoin.Round))
+                    drawPath(arch, Ink.Line, style = Stroke(0.014f * s, join = StrokeJoin.Round))
 
-            // attack and health badges
-            val r = 0.14f * s
-            val atk = GameEngine.attackOf(state, u)
-            badge(Offset(rect.left + 0.02f * s, rect.bottom - 0.12f * s), r, Ink.Attack, atk.toString(), textPaint)
-            badge(Offset(rect.right - 0.02f * s, rect.bottom - 0.12f * s), r, if (u.hp < u.maxHp) Color(0xFFD9822B) else Ink.Heal, u.hp.toString(), textPaint)
-            if (u.isKing) label("♛", Offset(base.x, rect.top - 0.02f * s), 0.34f * s, Ink.Gold, textPaint, outline = true)
-            var icons = ""
-            if (u.stun > 0) icons += "💫"
-            if (u.poisonTurns > 0) icons += "☠"
-            if (icons.isNotEmpty()) label(icons, Offset(rect.right, rect.top + 0.18f * s), 0.24f * s, Ink.Heal, textPaint, outline = true)
-            boxes += HitBox(Rect(rect.left - r, rect.top, rect.right + r, base.y + depth / 2), u.pos)
+                    // attack and health badges
+                    val r = 0.14f * s
+                    val atk = GameEngine.attackOf(state, u)
+                    badge(Offset(rect.left + 0.02f * s, rect.bottom - 0.12f * s), r, Ink.Attack, atk.toString(), textPaint)
+                    badge(Offset(rect.right - 0.02f * s, rect.bottom - 0.12f * s), r, if (u.hp < u.maxHp) Color(0xFFD9822B) else Ink.Heal, u.hp.toString(), textPaint)
+                    if (u.isKing) label("♛", Offset(base.x, rect.top - 0.02f * s), 0.34f * s, Ink.Gold, textPaint, outline = true)
+                    var icons = ""
+                    if (u.stun > 0) icons += "💫"
+                    if (u.poisonTurns > 0) icons += "☠"
+                    if (icons.isNotEmpty()) label(icons, Offset(rect.right, rect.top + 0.18f * s), 0.24f * s, Ink.Heal, textPaint, outline = true)
+                    boxes += HitBox(Rect(rect.left - r, rect.top, rect.right + r, base.y + depth / 2), u.pos)
+                }
+            }
         }
         // nearest first for hit testing
         hitBoxes += boxes.asReversed()
 
-        for (p in popups) {
-            val t = p.anim.value
-            if (t <= 0f) continue
-            val s = proj.scale(p.at.x, p.at.y)
-            val at = proj.project(p.at.x, p.at.y) - Offset(0f, (0.75f + t * 0.6f) * s)
-            label(p.text, at, 0.3f * s, p.color.copy(alpha = (1f - t * t).coerceIn(0f, 1f)), textPaint, outline = true)
+        for (f in effects) when (f) {
+            is Burst -> drawBurst(proj, f, clock)
+            is FieldWave -> drawFieldWave(proj, f, clock)
+            else -> {}
+        }
+        for (f in effects) when (f) {
+            is Bolt -> drawBolt(proj, f, clock)
+            is CardFly -> drawCardFly(proj, f, clock, art(f.cardId))
+            is FloatText -> drawFloatText(proj, f, clock) { text, at, size, color -> label(text, at, size, color, textPaint, outline = true) }
+            else -> {}
+        }
+    }
+}
+
+/** A fallen unit: it stands until its moment, then topples backwards, sinks and fades. */
+private fun DrawScope.drawGhost(proj: BoardProjection, g: Ghost, now: Long, img: ImageBitmap, team: Color) {
+    val t = g.t(now)
+    val k = 1f - t
+    val s = proj.scale(g.at.x, g.at.y)
+    val base = proj.project(g.at.x, g.at.y)
+    val depth = proj.depthSpan(g.at.x, g.at.y, 0.68f)
+    drawOval(Color.Black.copy(alpha = 0.22f * k), Offset(base.x - 0.4f * s, base.y - depth / 2 + 0.03f * s), Size(0.8f * s, depth))
+    val sw = 0.6f * s
+    val sh = 0.92f * s * (1f - 0.35f * t)
+    val rect = Rect(base.x - sw / 2, base.y - sh + 0.15f * s * t, base.x + sw / 2, base.y - 0.02f * s + 0.15f * s * t)
+    val arch = Path().apply {
+        moveTo(rect.left, rect.bottom)
+        lineTo(rect.left, rect.top + sw / 2)
+        arcTo(Rect(rect.left, rect.top, rect.right, rect.top + sw), 180f, 180f, false)
+        lineTo(rect.right, rect.bottom)
+        close()
+    }
+    rotate(-70f * t * t, Offset(base.x, base.y)) {
+        val srcH = (img.height * 0.5f).roundToInt()
+        val srcW = min(img.width, (srcH * sw / (0.92f * s)).roundToInt())
+        val srcTop = (img.height * 0.36f - srcH / 2f).roundToInt().coerceIn(0, img.height - srcH)
+        clipPath(arch) {
+            drawImage(
+                img, srcOffset = IntOffset((img.width - srcW) / 2, srcTop), srcSize = IntSize(srcW, srcH),
+                dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
+                dstSize = IntSize(rect.width.roundToInt(), rect.height.roundToInt()), alpha = k,
+            )
+            drawRect(Color(0xFF3A3A3A).copy(alpha = 0.5f * min(1f, t * 3f) * k), rect.topLeft, rect.size)
+        }
+        drawPath(arch, team.copy(alpha = k), style = Stroke(0.055f * s, join = StrokeJoin.Round))
+        drawPath(arch, Ink.Line.copy(alpha = k), style = Stroke(0.014f * s, join = StrokeJoin.Round))
+    }
+    // dust puffs where it falls
+    if (t > 0.3f) {
+        val d = (t - 0.3f) / 0.7f
+        for (i in 0 until 6) {
+            val a = i / 6f * 2f * Math.PI.toFloat()
+            val p = proj.project(g.at.x + cos(a) * 0.35f * d, g.at.y + sin(a) * 0.35f * d) - Offset(0f, 0.12f * s * d)
+            drawCircle(Ink.Faded.copy(alpha = 0.45f * (1f - d)), 0.08f * s * (0.6f + d), p)
         }
     }
 }

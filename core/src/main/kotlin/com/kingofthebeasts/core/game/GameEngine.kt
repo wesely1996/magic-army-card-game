@@ -518,7 +518,10 @@ object GameEngine {
                 if (u == null || ab == null || u.owner != p || u.stun > 0 ||
                     !targetStillValid(s, p, ab.target, u, a.target)
                 ) fizzle(s, item)
-                else applyEffects(s, p, u, ab.effects, a.target, null)
+                else {
+                    castEvent(s, p, u.def.id, ab.name, u.pos, a.target, ab.effects, CardType.MAGIC)
+                    applyEffects(s, p, u, ab.effects, a.target, null)
+                }
             }
             is Action.PlayCard -> {
                 val card = item.card!!
@@ -530,10 +533,12 @@ object GameEngine {
                             fizzle(s, item)
                             s.players[p].exhausted += card
                         } else {
+                            s.event { GameEvent.Cast(it, p, def.id, null, null, pos, CastLook.SUMMON) }
                             arrive(s, p, summon(s, p, card, pos, token = false))
                         }
                     }
                     CardType.STRATEGY -> {
+                        castEvent(s, p, def.id, null, null, a.target, def.effects, def.type)
                         applyEffects(s, p, null, def.effects, a.target, def.id)
                         retire(s, p, card)
                     }
@@ -541,6 +546,7 @@ object GameEngine {
                         if (!targetStillValid(s, p, def.target, null, a.target)) {
                             fizzle(s, item)
                         } else {
+                            castEvent(s, p, def.id, null, null, a.target, def.effects, def.type)
                             applyEffects(s, p, null, def.effects, a.target, def.id)
                             if (def.type == CardType.EQUIPMENT) {
                                 (a.target as? Target.Unit)?.let { s.unit(it.unitId) }?.equipment?.add(def.name)
@@ -551,6 +557,37 @@ object GameEngine {
                 }
             }
             else -> {}
+        }
+    }
+
+    private fun castEvent(
+        s: GameState, p: Int, cardId: String, ability: String?, from: Pos?, target: Target,
+        effects: List<EffectOp>, type: CardType,
+    ) {
+        if (s.simulation) return
+        val at = when (target) {
+            is Target.Unit -> s.unit(target.unitId)?.pos
+            is Target.Tile -> target.pos
+            is Target.StackEntry -> s.stack.firstOrNull { it.id == target.itemId }?.action?.sourcePos(s)
+            Target.None -> from
+        }
+        val radius = effects.filterIsInstance<EffectOp.Area>().maxOfOrNull { it.radius } ?: 0
+        s.event { GameEvent.Cast(it, p, cardId, ability, from, at, castLook(effects, type), radius) }
+    }
+
+    /** The visual flavour of a set of effects. */
+    fun castLook(effects: List<EffectOp>, type: CardType): CastLook {
+        val ops = effects.map { if (it is EffectOp.Area) it.op else it }
+        return when {
+            ops.any { it is EffectOp.Field } -> CastLook.FIELD
+            type == CardType.EQUIPMENT -> CastLook.EQUIP
+            ops.any { it is EffectOp.Damage || it is EffectOp.Poison || (it is EffectOp.Push && it.impactDamage > 0) } -> CastLook.HARM
+            ops.any { it is EffectOp.Summon } -> CastLook.SUMMON
+            ops.any {
+                it is EffectOp.Heal || it is EffectOp.Buff || it is EffectOp.Shield || it is EffectOp.GrantKeyword ||
+                    it is EffectOp.Cleanse || it is EffectOp.Draw
+            } -> CastLook.HELP
+            else -> CastLook.CONTROL
         }
     }
 
@@ -744,6 +781,7 @@ object GameEngine {
         applyTrait(s.players[p].trait, u)
         if (!token && u.has(Keyword.BROOD)) u.broodLeft = BROOD_TURNS
         s.units += u
+        s.event { GameEvent.Arrived(it, u.id, pos, token) }
         return u
     }
 
@@ -783,12 +821,14 @@ object GameEngine {
     }
 
     private fun performAttack(s: GameState, a: UnitState, t: UnitState) {
+        s.event { GameEvent.Attacked(it, a.id, a.pos, t.pos) }
         val dealt = dealDamage(s, t, attackDamage(s, a, t))
         if (t.alive) {
             if (a.has(Keyword.POISONOUS) && dealt > 0) poison(s, t, 1, 2)
             if (a.has(Keyword.PETRIFY)) stun(s, t, 1)
             if (t.has(Keyword.RETALIATE) && t.stun == 0 && a.pos.distanceTo(t.pos) == 1) {
                 s.log("${t.tag} retaliates")
+                s.event { GameEvent.Attacked(it, t.id, t.pos, a.pos) }
                 dealDamage(s, a, attackDamage(s, t, a))
             }
         }
@@ -872,7 +912,7 @@ object GameEngine {
         for (u in dead) {
             s.units.remove(u)
             s.log("${u.tag} is defeated")
-            s.event { GameEvent.Died(it, u.id, u.pos) }
+            s.event { GameEvent.Died(it, u.id, u.pos, u.def.id, u.owner) }
             if (!u.isToken) s.players[u.owner].exhausted += u.card
             for (b in s.units.filter { it.alive && it.owner != u.owner && it.has(Keyword.BLOODTHIRST) }) {
                 b.attack += 1
