@@ -4,7 +4,7 @@ A 2.5D card–chess hybrid for Android. Build a 40-card deck from up to three an
 races, deploy your army on a chessboard, and battle to bring down the enemy King.
 The art is hand-drawn ink over watercolor washes.
 
-> Status: **playable MVP**. You play against the computer (Easy or Medium). Online battles with friends are planned next.
+> Status: **playable MVP**. You play against the computer (Beginner, Pro or Master) or a friend on the same Wi-Fi.
 
 <p>
 <img src="docs/screenshots/battle.webp" width="420" alt="Battle: your hand in front of the board">
@@ -41,7 +41,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Inspecting** | Press and hold any card (in your hand, in the deck builder) or any unit on the board. It opens large, with every trait, ability, target, range and cooldown spelled out. Units also show their live stats and effects. |
 | **Decks** | Build and save your own decks, and edit them any time (tap a deck). Starter decks can be opened read-only with **View**, or copied to edit with **Copy**. |
 | **Controls** | The game plays in landscape. When it is your move your hand fans out in front of the board. Pick a card and it tucks into a strip on the left while you choose a highlighted square. Swipe the hand down or tap **Hide** to see the board, and tap the strip (or swipe it right) to bring the cards back. **⟲ / ⟳** turn the board 90° (a two-finger twist turns it freely), and **Reset view** puts your side back at the bottom. The rail on the right shows whose move it is, the action queue (the interrupt chain, next to resolve on top) and the buttons you need now; tap **◀ Details** or swipe it left to pull out a drawer that explains what is going on, what each queued action will do, both armies, active battlefield rules and recent events. |
-| **Opponents** | **Easy** plays on instinct and sometimes misses chances to interrupt. **Medium** thinks 3 moves ahead: its move, your best reply, and its follow-up. |
+| **Opponents** | **Beginner** plays on instinct and sometimes misses chances to interrupt. **Pro** thinks 3 moves ahead: its move, your best reply, and its follow-up. **Master** searches as deep as its thinking time allows (about 1.5 s per move) and looks ahead before interrupting; in testing it beat Pro in 62% of 48 games. None of them peek at your hand. |
 | **Animations** | Every action plays out on the board: melee units lunge at their target, archers loose arrows, spells and abilities fly as glowing orbs and burst on impact (orange harms, green helps, violet controls), hit units shake and flash red, fallen units topple and fade, played cards fly in from their owner's side, new units drop onto the board, and Strategy cards wash the whole board in their colour. |
 | **Tutorial** | A guided first battle (offered on first launch, and under **Play** and **How to Play**). A coach note teaches one thing at a time — deploying, moving, answering an attack with a Magic card, the action queue, Magic, attacking, Strategy fields — and only the move being taught lights up, until you defeat the rival's King. Tap the note to fold it away. |
 | **Menu** | **Play** opens the play options: **Continue** (your battle in progress), **New game** (against the AI), **Tutorial** and **With friends** (online), with **Back** to the main menu. The **⚙** wheel in the top corner opens Settings. |
@@ -77,10 +77,12 @@ docs/        Design notes and plan.
   its own actions with a checksum of the whole game state, and the other side checks the move is legal and
   the checksums match. The transport is a small `Link` interface, so an internet connection can be added.
 * **AI** (`core/.../ai`): positions are scored on material, King safety, next-turn threats and board advance.
-  *Easy* picks the best-looking action one step ahead, with some noise. *Medium* runs a 3-ply alpha-beta
+  *Beginner* picks the best-looking action one step ahead, with some noise. *Pro* runs a 3-ply alpha-beta
   search (its action → your reply → its action) over the most promising candidates at each level. It
   doesn't peek at your hand: when predicting your reply it only considers board actions. Both interrupt
-  only when it clearly pays off. A test checks that Medium beats Easy.
+  only when it clearly pays off. *Master* deepens the same search one ply at a time (wider beams, best moves
+  first from the previous pass) until its time budget runs out, so it adapts to the phone's speed, and searches
+  two plies past an interrupt chain before answering. A test checks that Pro beats Beginner.
 * **2.5D board** (`app/.../game/BoardView.kt`): a perspective projection of the board plane. The watercolor
   board texture is mapped with a homography, units are upright card standees sorted by depth, and taps
   are mapped back through the inverse projection.

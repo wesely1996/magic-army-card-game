@@ -3,6 +3,15 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.10.0 — Master AI
+
+- **New difficulty, Master:** searches as far ahead as its thinking time allows (about 1.5 seconds per move),
+  deepening one move at a time and checking the most promising lines first, so it plays as strong as the
+  phone allows. It also looks two actions past an interrupt before deciding whether to answer.
+- In AI-vs-AI testing Master beat Pro in 30 of 48 games (62.5%).
+- **Difficulties renamed:** Easy is now **Beginner**, Medium is **Pro**, and the new Hard level is **Master**.
+  Saved battles keep their difficulty.
+
 ## 0.9.0 — Rejoin dropped online games
 
 - **Dropped connections no longer end online battles.** The battle shows "Reconnecting…" and keeps going

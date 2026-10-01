@@ -12,7 +12,8 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 - CI/CD runs on GitHub Actions.
 - The game is called **King of the Beasts** (app id `com.kingofthebeasts.app`).
 - Press-and-hold opens any card (or a unit on the board) large, with every rule written out.
-- Two AI levels: **Easy** (greedy, one step ahead) and **Medium** (3-ply alpha-beta search).
+- Three AI levels: **Beginner** (greedy, one step ahead), **Pro** (3-ply alpha-beta search) and **Master**
+  (iterative deepening within a time budget).
 - Landscape only, for a bigger board. The hand comes to the front when you choose a card and moves to a
   strip at the side when you choose where to play it; it can be hidden and shown by hand. The board can be
   turned (90° buttons or a two-finger twist) to look at it from any side.
@@ -67,7 +68,7 @@ race, King and starter deck between 44% and 55% wins, and new cards or rules are
    battle drawer, ending with defeating the enemy King. Offered on first launch and from How to Play.
 2. **0.9.0 — Rejoin dropped online games.** *(done)* If the Wi-Fi connection drops, either player can reconnect and
    both phones catch up from the shared move list instead of the battle ending.
-3. **0.10.0 — Hard AI.** Deeper search and smarter interrupts, for players who have outgrown Medium.
+3. **0.10.0 — Master AI (Hard).** *(done; levels renamed Beginner / Pro / Master)* Deeper search and smarter interrupts, for players who have outgrown Medium.
 4. **0.11.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
    with invite codes) next to same-Wi-Fi play. Peer-to-peer play shares hidden information (hands, deck order)
    between the two apps; truly hiding it would need a trusted server.
@@ -80,4 +81,4 @@ Ongoing, any time: custom painted card art (drop `art_<id>.webp` files in
 team colours, screen reader labels).
 
 Done: landscape 2.5D board and drawer (0.2), Vermin and racial traits (0.3), Champions and fields (0.4),
-animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8), rejoining dropped online games (0.9).
+animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8), rejoining dropped online games (0.9), Master AI (0.10).
