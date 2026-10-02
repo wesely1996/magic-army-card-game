@@ -30,9 +30,12 @@ The art is hand-drawn ink over watercolor washes.
 | **Deck** | **40 cards plus one King**, from 1–3 races. Copies per card follow its stars: ★ cards up to 3, ★★ up to 2, ★★★ just 1. At most **3 Strategy cards**. The King's race gives the whole army its **racial trait** (see below). |
 | **Card types** | **Unit** (a piece on the board): ★ normal, ★★ **Elite**, ★★★ **Champion**. **Magic** (buff, heal, damage, stun, counter, move or swap units — usable as interrupts), ranked ★ to ★★★. **Strategy**: a powerful **field** — only one field is on the battlefield at a time and it stays until any Strategy card (yours or your opponent's) replaces it. **Equipment** (permanent unit upgrades). Each type has its own frame: **brown studded** units (**gold** for Kings), **violet starred** Magic, **teal** Strategy with a pennant, **steel riveted** Equipment. |
 | **Deployment** | Coin flip picks who starts. Players alternate placing one unit in their **first 3 rows**, up to 6 each. The King is always placed first. Units are chosen from all unit cards in the deck. Then everyone shuffles and draws 5. |
-| **Battle** | Draw a card, then take **one** action: move, attack, use a unit ability, or play a card. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. |
+| **Battle** | Draw a card (hand up to **10**), then take **one** action: move, attack, use a unit ability, or play a card. **Kings and Champions** that fight in melee may **move and then attack** in the same turn; every other unit (and every ranged unit) moves or attacks. **Quick** spells don't use your action. Movement is up to MOV steps in 8 directions (flyers pass over units); range counts diagonals. Battles last about 40 turns on average. |
+| **Turn timer** | Online battles give each decision **20 seconds**; when it runs out you pass (or a unit is placed for you during deployment). No timer against the computer. |
+| **Structures** | Unit cards that never move or attack by themselves: **Sentry** towers fire at the weakest enemy in range each turn, **Taunt** walls (high health) force adjacent enemies to attack them or move away, and **Mending Aura** totems heal adjacent allies by 2 each turn. 1–2 per race. |
+| **Evolution** | **EVOLVES** units turn into a stronger form after surviving some of your turns or defeating enemies — some evolve twice. Evolving heals fully and keeps equipment; evolved forms can't be put in decks. 2 per race. |
 | **Reinforcements** | Unit cards played in battle go on an empty **edge** square at least **2 squares** from every enemy. Each side has **16 unit slots** (22 for an Endless Horde): **Champions** take 3 slots, **Elite** units 2, other units 1 and the King none. Summoned and enthralled units count too. |
-| **Kings** | Kings take **no damage from Magic cards or abilities** (attacks, Retaliate and Exhaustion still hurt them) and are **Immovable**: nothing can push, swap or replace them. |
+| **Kings** | Kings are tough (28–35 health) but mostly weak fighters — rule engines to protect behind a wall of units; only the Pride King and Alpha Wolf hit hard. They take **no damage from Magic cards or abilities** (attacks, Retaliate and Exhaustion still hurt them) and are **Immovable**: nothing can push, swap or replace them. |
 | **Used cards** | **Exhausted** (out of the game once used): unit cards, equipment, Strategy cards, and spells that deal damage or summon units. **Discarded** (they come back): other Magic cards go to the discard pile, which is shuffled into a new deck when your deck runs out. |
 | **Exhaustion** | From turn 120 each King loses health at the start of its owner's turn (1, +1 every 20 turns) and can't be healed, so every battle ends. |
 | **Interrupts** | Any action can be answered with a Magic card or a ⚡ interrupt ability. The other player can answer that, and so on. The chain then resolves last-in-first-out, and actions that no longer make sense fizzle. |
@@ -87,7 +90,7 @@ docs/        Design notes and plan.
 * **2.5D board** (`app/.../game/BoardView.kt`): a perspective projection of the board plane. The watercolor
   board texture is mapped with a homography, units are upright card standees sorted by depth, and taps
   are mapped back through the inverse projection.
-* **Cards** (`core/.../data/CardDatabase.kt`): all 204 cards are data. New cards are usually one line,
+* **Cards** (`core/.../data/CardDatabase.kt`): all 272 cards are data (254 for decks, plus 18 evolved forms). New cards are usually one line,
   built from the effect primitives in `model/Cards.kt`.
 
 ## Balance
