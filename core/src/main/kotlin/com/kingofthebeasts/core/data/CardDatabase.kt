@@ -389,7 +389,7 @@ object CardDatabase {
         add(unit("l_stalker", "Savanna Stalker", LION, 3, 4, 3, 1, setOf(HIDDEN)))
         add(unit("l_cheetah", "Cheetah Outrider", LION, 3, 3, 5, 1, setOf(PACK_HUNTER)))
         add(unit("l_champion", "Pride Champion", LION, 5, 7, 2, 1, setOf(RETALIATE), elite = true))
-        add(unit("l_paragon", "Sunmane Paragon", LION, 5, 11, 2, 1, setOf(ARMORED, RETALIATE),
+        add(unit("l_paragon", "Sunmane Paragon", LION, 5, 9, 2, 1, setOf(ARMORED, RETALIATE),
             ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
             champion = true))
@@ -472,7 +472,7 @@ object CardDatabase {
             ability("Blight Spark", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
-        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 5, 11, 1, 1, setOf(RETALIATE, REGENERATE),
+        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 4, 10, 1, 1, setOf(RETALIATE, REGENERATE),
             arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
         add(unit("v_matriarch", "Warren Matriarch", VERMIN, 4, 12, 1, 1, setOf(BROOD, REGENERATE),
             arrival = summons("v_rat", 3), text = "Arrival: three Swarm Rats appear next to her.", champion = true))
