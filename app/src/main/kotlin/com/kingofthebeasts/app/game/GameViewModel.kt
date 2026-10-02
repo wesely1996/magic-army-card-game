@@ -94,6 +94,40 @@ class GameViewModel(
     /** The two copies of an online game disagree (or the friend sent something impossible). */
     var desynced by mutableStateOf(false)
         private set
+
+    /** Online: seconds left for the current decision, or null when there's no clock (AI battles, tutorial). */
+    var secondsLeft by mutableStateOf<Int?>(null)
+        private set
+    private var clock: Job? = null
+    private val timeoutPlayer by lazy { AiPlayer(Difficulty.EASY, seed + 99) }
+
+    /** Online games give each decision [TURN_SECONDS]; when yours runs out your app passes (or deploys) for you. */
+    private fun restartClock() {
+        if (remote == null) return
+        clock?.cancel()
+        val d = GameEngine.decision(state)
+        if (d.kind == DecisionKind.NONE || desynced) {
+            secondsLeft = null
+            return
+        }
+        val mine = d.player == human
+        val decisionAt = history.size
+        clock = viewModelScope.launch {
+            for (t in TURN_SECONDS downTo 1) {
+                secondsLeft = t
+                delay(1000)
+            }
+            secondsLeft = 0
+            if (mine && history.size == decisionAt && humanToAct) {
+                val legal = GameEngine.legalActions(state)
+                val action = when {
+                    Action.Pass in legal -> Action.Pass
+                    else -> timeoutPlayer.choose(state).takeIf { it in legal } ?: legal.first()
+                }
+                perform(action)
+            }
+        }
+    }
     private val ai = AiPlayer(difficulty, seed * 31 + 7 + resume.size)
     private var aiJob: Job? = null
 
@@ -117,7 +151,12 @@ class GameViewModel(
             history += code
         }
         resumedEventSeq = if (resume.isEmpty()) 0 else state.eventSeq
-        if (remote != null) viewModelScope.launch { for (act in remote.incoming) receive(act) } else runAi()
+        if (remote != null) {
+            viewModelScope.launch { for (act in remote.incoming) receive(act) }
+            restartClock()
+        } else {
+            runAi()
+        }
     }
 
     /** The battle as it stands, for [onSave]. */
@@ -148,6 +187,7 @@ class GameViewModel(
         remote?.send(history.size - 1, history.last(), state.checksum())
         selection = Selection.None
         version++
+        restartClock()
         runAi()
     }
 
@@ -166,6 +206,7 @@ class GameViewModel(
         record(action)
         if (state.checksum() != act.checksum) desynced = true
         version++
+        restartClock()
     }
 
     private fun runAi() {
@@ -280,5 +321,10 @@ class GameViewModel(
             selected = state.unit(sel.unitId)?.pos,
         )
         Selection.None -> Highlights()
+    }
+
+    companion object {
+        /** Seconds per decision in online battles. */
+        const val TURN_SECONDS = 20
     }
 }

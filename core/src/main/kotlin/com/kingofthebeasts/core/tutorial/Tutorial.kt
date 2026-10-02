@@ -38,7 +38,7 @@ object Tutorial {
     private const val LIONESS = "l_lioness"
     private const val RUNNER = "l_runner"
     private const val COURAGE = "l_courage"
-    private const val CHARGE = "l_charge"
+    private const val BATTLE_CRY = "l_battlecry"
     private const val BANNER = "l_banner"
 
     private const val RIVAL_KING = "w_king_moon"
@@ -49,7 +49,7 @@ object Tutorial {
     val KING_SQUARE = Pos(3, 0) // D1
     val LIONESS_SQUARE = Pos(3, 2) // D3
     val RUNNER_SQUARE = Pos(4, 2) // E3
-    val LIONESS_TARGET = Pos(3, 4) // D5, next to the pup
+    val LIONESS_TARGET = Pos(3, 3) // D4, two squares from the pup
     private val RIVAL_KING_SQUARE = Pos(4, 7) // E8
     private val PUP_SQUARE = Pos(3, 5) // D6
     private val HUNTER_SQUARE = Pos(6, 6) // G7
@@ -59,7 +59,7 @@ object Tutorial {
         "Tutorial: Pride", listOf(Race.LION),
         linkedMapOf(
             KING to 1, LIONESS to 1, RUNNER to 1,
-            COURAGE to 1, CHARGE to 1, BANNER to 1, "l_sunfire" to 1, "l_valor" to 1,
+            COURAGE to 1, BATTLE_CRY to 1, BANNER to 1, "l_sunfire" to 1, "l_valor" to 1,
             "l_sunbeam" to 1, "l_laurel" to 1, "l_spear" to 1, "l_mane" to 1, "l_gaze" to 1, "l_claws" to 1,
         ),
     )
@@ -128,14 +128,20 @@ object Tutorial {
         TutorialStep(
             "Move",
             "Each turn you take one action: move, attack, use an ability or play a card. Tap your Lioness Hunter on D3, " +
-                "then the glowing square D5 to move her next to the Wolf Pup.",
+                "then the glowing square D4.",
             allows = { s, a -> a is Action.Move && a.to == LIONESS_TARGET && s.unit(a.unitId)?.card?.cardId == LIONESS },
             done = { it.mine(LIONESS)?.pos == LIONESS_TARGET },
         ),
         TutorialStep(
+            "Strategy",
+            "The rival's Wolf Pup crept up next to your Lioness. Get ready: Strategy cards change the whole battlefield " +
+                "until another Strategy replaces them. Play War Banner: your units get +1 attack and +1 movement.",
+            allows = plays(BANNER),
+            done = { s -> s.fields.any { it.cardId == BANNER } && s.stack.isEmpty() },
+        ),
+        TutorialStep(
             "Answer the attack!",
-            "The Wolf Pup attacks your Lioness. When your rival acts, you may answer before it lands. " +
-                "Play Pride's Courage on your Lioness: its shield soaks up 2 of the damage.",
+            "The Wolf Pup attacks your Lioness! When your rival acts, you may answer before it lands. Play Pride's Courage on your Lioness: its shield soaks up 2 of the damage.",
             respond = true,
             allows = plays(COURAGE, onto = LIONESS),
             done = { it.used(COURAGE) && it.stack.isEmpty() },
@@ -147,30 +153,26 @@ object Tutorial {
             info = true,
         ),
         TutorialStep(
-            "Magic",
-            "Magic cards boost your units. Play Glorious Charge on your Lioness: +2 attack this turn and next.",
-            allows = plays(CHARGE, onto = LIONESS),
-            done = { it.used(CHARGE) && it.stack.isEmpty() },
+            "Quick spells",
+            "Magic cards boost your units. Quick spells (marked Quick) don't even use up your action. " +
+                "Play Battle Cry on your Lioness: +1 attack this turn — and it's still your move.",
+            allows = plays(BATTLE_CRY, onto = LIONESS),
+            done = { it.used(BATTLE_CRY) && it.stack.isEmpty() },
         ),
         TutorialStep(
             "Attack",
-            "Now strike! Tap your Lioness, then the Wolf Pup. With 5 attack she defeats it.",
+            "Now strike! Tap your Lioness, then the Wolf Pup. With 6 attack (War Banner, Battle Cry, and +1 from your " +
+                "King's Commander aura) she defeats it.",
             allows = { s, a ->
                 a is Action.Attack && s.unit(a.unitId)?.card?.cardId == LIONESS && s.unit(a.targetId)?.card?.cardId == PUP
             },
             done = { s -> s.theirs(PUP) == null && s.stack.isEmpty() },
         ),
         TutorialStep(
-            "Strategy",
-            "Strategy cards change the whole battlefield until another Strategy replaces them. Play War Banner: " +
-                "your units get +1 attack and +1 movement.",
-            allows = plays(BANNER),
-            done = { s -> s.fields.any { it.cardId == BANNER } && s.stack.isEmpty() },
-        ),
-        TutorialStep(
             "Defeat the King",
-            "Finish it: march on the Moon Howler at E8 and attack it. Kings can't be hurt by spells, only by attacks. " +
-                "Your Pride King fights too, and allies within 3 squares of him get +1 attack. Everything is allowed now.",
+            "Finish it: march on the Moon Howler at E8 and attack it. Kings and Champions may move and then attack in one " +
+                "turn; other units move or attack. Kings can't be hurt by spells, only by attacks. Your Pride King fights too, and allies " +
+                "within 3 squares of him get +1 attack. Everything is allowed now.",
             done = { it.phase == Phase.GAME_OVER },
         ),
     )
@@ -191,8 +193,8 @@ object Tutorial {
     }
 
     /**
-     * The rival's move. It deploys its three units, then waits — except that its Wolf Pup bites your
-     * Lioness as soon as she stands next to it, so you can learn to answer an interrupt.
+     * The rival's move. It deploys its three units, then waits — except that its Wolf Pup creeps up to
+     * your Lioness and, a turn later, bites her (once), so you can learn to answer an interrupt.
      */
     fun rivalAction(s: GameState): Action {
         val legal = GameEngine.legalActions(s)
@@ -210,8 +212,14 @@ object Tutorial {
             DecisionKind.MAIN -> {
                 val pup = s.theirs(PUP)
                 val lioness = s.mine(LIONESS)
-                val bite = if (pup != null && lioness != null) Action.Attack(pup.id, lioness.id) else null
-                if (bite != null && bite in legal && !s.used(COURAGE)) bite else Action.Pass
+                if (pup == null || lioness == null || s.used(COURAGE)) return Action.Pass
+                val bite = Action.Attack(pup.id, lioness.id)
+                if (bite in legal) return bite
+                // Step up next to her (she has moved to D4); the bite comes next turn.
+                legal.filterIsInstance<Action.Move>()
+                    .filter { it.unitId == pup.id && it.to.distanceTo(lioness.pos) == 1 }
+                    .minByOrNull { it.to.distanceTo(pup.pos) * 10 + it.to.x }
+                    ?: Action.Pass
             }
             else -> Action.Pass
         }

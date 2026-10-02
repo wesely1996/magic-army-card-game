@@ -69,7 +69,7 @@ fun DeckBuilderScreen(
     }
 
     val pool = CardDatabase.all
-        .filter { it.race in deck.races && (filter == null || it.type == filter) }
+        .filter { it.collectible && it.race in deck.races && (filter == null || it.type == filter) }
         .sortedWith(compareBy<CardDef>({ !it.isKing }, { it.type }, { it.race }, { it.name }))
 
     PaperBackground {

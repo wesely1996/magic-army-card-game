@@ -76,6 +76,14 @@ data class OnlineSave(
     val peerName: String get() = if (isHost) start.guestName else start.hostName
     val myName: String get() = if (isHost) start.hostName else start.guestName
 
+    /** Whether the saved moves still replay (an update may have changed the rules or cards). */
+    fun replays(): Boolean = runCatching {
+        val s = com.kingofthebeasts.core.game.GameEngine.newGame(
+            start.hostDeck, start.guestDeck, listOf(start.hostName, start.guestName), start.seed,
+        )
+        for (a in acts) com.kingofthebeasts.core.game.GameEngine.apply(s, com.kingofthebeasts.core.game.ActionCodec.decode(a.code))
+    }.isSuccess
+
     fun encode(): String = json.encodeToString(serializer(), this)
 
     companion object {
@@ -86,7 +94,7 @@ data class OnlineSave(
 
 object NetProtocol {
     /** Bump whenever messages or game rules change in a way older versions can't follow. */
-    const val VERSION = 2
+    const val VERSION = 3
 
     /** Service type used to find games on the local network. */
     const val SERVICE_TYPE = "_kingbeasts._tcp."
@@ -127,13 +135,14 @@ fun GameState.checksum(): Long {
     val b = StringBuilder()
     b.append(phase).append('|').append(activePlayer).append('|').append(turnNumber).append('|')
         .append(priority).append('|').append(winner).append('|').append(isDraw).append('|').append(rng.seed).append('|')
-        .append(blitzUsed).append('|').append(nextId).append('\n')
+        .append(blitzUsed).append('|').append(nextId).append('|').append(followUp).append('\n')
     for (u in units.sortedBy { it.id }) {
         b.append(u.id).append(',').append(u.card.cardId).append(',').append(u.owner).append(',').append(u.pos)
             .append(',').append(u.hp).append('/').append(u.maxHp).append(',').append(u.attack).append(',').append(u.move)
             .append(',').append(u.range).append(',').append(u.stun).append(',').append(u.poisonDamage).append('x').append(u.poisonTurns)
             .append(',').append(u.shield).append(',').append(u.keywords.map { it.name }.sorted())
-            .append(',').append(u.abilities.map { it.cooldown }).append('\n')
+            .append(',').append(u.abilities.map { it.cooldown }).append(',').append(u.form)
+            .append(',').append(u.turnsAlive).append(',').append(u.kills).append('\n')
     }
     for (p in players) {
         b.append(p.index).append(':').append(p.deck.map { it.uid }).append(p.hand.map { it.uid })

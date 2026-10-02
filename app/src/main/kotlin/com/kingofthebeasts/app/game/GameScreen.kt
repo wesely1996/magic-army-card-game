@@ -170,6 +170,11 @@ fun GameScreen(
         announcement = null
     }
 
+    // After a melee unit moves it may still attack: keep it selected so its targets light up.
+    LaunchedEffect(s.followUp, vm.humanToAct) {
+        val id = s.followUp
+        if (id != null && vm.humanToAct && vm.selection == Selection.None) vm.selection = Selection.Unit(id)
+    }
     // Sounds that belong to the screen rather than the board: your turn, picking a card, the result.
     LaunchedEffect(s.turnNumber, s.activePlayer, s.phase) {
         if (s.phase == Phase.BATTLE && s.activePlayer == vm.human && s.stack.isEmpty()) GameAudio.play(Sfx.TURN)
@@ -382,6 +387,19 @@ private fun ActionRail(vm: GameViewModel, actions: List<Action>, onOpen: () -> U
         SketchButton("◀ Details", onOpen, Modifier.fillMaxWidth(), small = true, color = Ink.PaperDeep)
         Spacer(Modifier.height(8.dp))
         Text(status, style = MaterialTheme.typography.titleSmall, color = statusColor, textAlign = TextAlign.Center)
+        // Online clock: each decision has 20 seconds.
+        vm.secondsLeft?.let { left ->
+            val mine = vm.decision.player == vm.human
+            Text(
+                "⏱ ${left}s",
+                style = MaterialTheme.typography.titleMedium,
+                color = when {
+                    !mine -> Ink.Faded
+                    left <= 5 -> Ink.Enemy
+                    else -> Ink.Line
+                },
+            )
+        }
         Text(
             when (s.phase) {
                 Phase.DEPLOY -> "Deployment"
@@ -489,7 +507,7 @@ private fun PrimaryButton(vm: GameViewModel, actions: List<Action>, modifier: Mo
         d.kind == DecisionKind.RESPOND && Action.Pass in actions ->
             SketchButton("Pass", { vm.perform(Action.Pass) }, modifier, small = true, color = Ink.Gold)
         d.kind == DecisionKind.MAIN && Action.Pass in actions ->
-            SketchButton("Skip turn", { vm.perform(Action.Pass) }, modifier, small = true, color = Ink.PaperDeep)
+            SketchButton(if (vm.state.followUp != null) "End turn" else "Skip turn", { vm.perform(Action.Pass) }, modifier, small = true, color = Ink.PaperDeep)
     }
 }
 
@@ -567,7 +585,7 @@ private fun explanation(vm: GameViewModel): Pair<String, String> {
         s.phase == Phase.GAME_OVER -> "The battle is over." to "A King has fallen."
         (vm.aiThinking || d.player != vm.human) && top != null ->
             "The opponent is deciding whether to answer." to
-                "Next to resolve: ${s.players[top.controller].name}'s ${shortLabel(s, top, verbose = true)}. The opponent may add a Magic card or ⚡ quick ability of their own; " +
+                "Next to resolve: ${s.players[top.controller].name}'s ${shortLabel(s, top, verbose = true)}. The opponent may add a Magic card or ⚡ interrupt ability of their own; " +
                 "otherwise the chain resolves from the top down."
         vm.aiThinking || d.player != vm.human ->
             (if (s.phase == Phase.DEPLOY) "The opponent is placing a unit." else "The opponent is taking their turn.") to
@@ -581,11 +599,15 @@ private fun explanation(vm: GameViewModel): Pair<String, String> {
         d.kind == DecisionKind.RESPOND ->
             "Your chance to respond." to
                 (top?.let { "Next to resolve: ${s.players[it.controller].name}'s ${shortLabel(s, it, verbose = true)}. " } ?: "") +
-                "You may respond with a Magic card or a ⚡ quick ability — the newest answer resolves first. " +
+                "You may respond with a Magic card or a ⚡ interrupt ability — the newest answer resolves first. " +
                 "If you pass, the whole chain resolves from the top down, and actions that no longer make sense fizzle."
         s.blitzUsed -> "Blitz! Take one more action." to "Blitz lets you move once without ending your turn."
+        s.followUp != null -> "Attack, or end your turn." to
+            "${s.unit(s.followUp!!)?.tag ?: "Your unit"} moved and may still attack: tap a red-highlighted enemy. " +
+            "Quick spells are free as well. Tap End turn when you're done."
         else -> "Your turn: take one action." to
-            "Move a unit, attack, use an ability or play a card. Tap one of your units to see where it can move and what it can attack, " +
+            "Move a unit (a King or Champion may then attack too), attack, use an ability or play a card; Quick spells are free. " +
+            "Tap one of your units to see where it can move and what it can attack, " +
             "or pick a card from your hand. Your opponent may interrupt before your action resolves."
     }
 }

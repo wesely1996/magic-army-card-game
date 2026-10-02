@@ -57,4 +57,8 @@ enum class Keyword(val displayName: String, val description: String) {
     PETRIFY("Petrifying Gaze", "Units it attacks are stunned for 1 turn."),
     COMMANDER("Commander", "Other allies within 3 squares get +1 attack."),
     PACK_CALLER("Call the Pack", "At the start of your turn, summons a Wolf Pup token next to it (at most 2 pups at a time)."),
+    STRUCTURE("Structure", "Can't move or attack, and can't be pushed or swapped."),
+    TAUNT("Taunt", "Enemies next to it can only attack it — they must strike it or move away first."),
+    SENTRY("Sentry", "At the start of your turn, attacks the weakest enemy in range."),
+    MENDING("Mending Aura", "At the start of your turn, allies next to it heal 2."),
 }

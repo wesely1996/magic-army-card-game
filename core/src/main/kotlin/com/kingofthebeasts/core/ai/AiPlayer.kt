@@ -97,7 +97,7 @@ class AiPlayer(
 
     private fun chooseGreedy(s: GameState, p: Int, noise: Double): Action {
         val ranked = expand(s, includeCards = true)
-            .map { (a, sim) -> a to Evaluator.evaluate(sim, p) + rng.nextDouble() * noise }
+            .map { (a, sim) -> a to settled(sim, p) + rng.nextDouble() * noise }
             .sortedByDescending { it.second }
         if (ranked.isEmpty()) return Action.Pass
         // A winning move is never passed up, even by a beginner.
@@ -111,6 +111,17 @@ class AiPlayer(
             if (roll <= 0) return ranked[i].first
         }
         return ranked.first().first
+    }
+
+    /**
+     * The score of [sim] for [p], counting the attack a melee unit may still make after moving
+     * (otherwise a one-step look-ahead never sees the point of stepping up to an enemy).
+     */
+    private fun settled(sim: GameState, p: Int): Double {
+        val base = Evaluator.evaluate(sim, p)
+        if (sim.phase != Phase.BATTLE || sim.followUp == null || GameEngine.decision(sim).player != p) return base
+        val follow = expand(sim, includeCards = false).filter { it.first is Action.Attack }
+        return maxOf(base, follow.maxOfOrNull { Evaluator.evaluate(it.second, p) } ?: base)
     }
 
     // ---------------------------------------------------------------- medium

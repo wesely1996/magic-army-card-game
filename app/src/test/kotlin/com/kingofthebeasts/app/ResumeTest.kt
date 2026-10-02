@@ -23,7 +23,8 @@ class ResumeTest {
     @Test fun aBattleResumesWhereItWasLeft() {
         var saved: SavedBattle? = null
         val vm = GameViewModel(StarterDecks.all[0], StarterDecks.all[1], Difficulty.EASY, 42, onSave = { saved = it })
-        repeat(80) {
+        // Long enough to get well into the battle, short enough that a passive player's King still stands.
+        repeat(40) {
             if (vm.humanToAct) {
                 vm.perform(GameEngine.legalActions(vm.state).firstOrNull { it is Action.Deploy } ?: Action.Pass)
             }

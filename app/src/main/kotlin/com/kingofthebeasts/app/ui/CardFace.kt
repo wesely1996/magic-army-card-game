@@ -223,8 +223,12 @@ fun CardFace(
                 Text(
                     when {
                         def.isKing -> "♛ KING"
+                        !def.collectible -> "EVOLVED"
+                        def.unit?.isStructure == true -> "★ STRUCTURE"
                         def.unit?.isChampion == true -> "★★★ CHAMPION"
                         def.unit?.isElite == true -> "★★ ELITE"
+                        def.unit?.evolve != null -> "★ EVOLVES"
+                        def.swift -> "★".repeat(def.stars) + " QUICK"
                         else -> "★".repeat(def.stars)
                     },
                     style = TextStyle(fontFamily = HandFont, fontWeight = FontWeight.Bold, fontSize = unit * 0.7f, color = Ink.Line),

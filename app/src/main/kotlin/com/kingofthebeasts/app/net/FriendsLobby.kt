@@ -38,7 +38,7 @@ class FriendsLobby(private val context: Context, private val scope: CoroutineSco
 
     private val saves = OnlineSaveRepository(context)
     /** An unfinished online battle on this phone, if any. */
-    var saved by mutableStateOf(saves.load())
+    var saved by mutableStateOf(saves.load()?.takeIf { it.replays() })
         private set
 
     val browser = LanBrowser(context)

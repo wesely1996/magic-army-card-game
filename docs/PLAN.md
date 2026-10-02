@@ -22,9 +22,11 @@ Status: **MVP implemented.** This file records the agreed rules and the design d
 
 ## Rules as implemented
 - 8×8 board. Coin-flip winner deploys first and acts first in battle.
-- Deploy: alternate placing one unit, up to 5 each, King first, chosen from all unit cards in the deck.
+- Deploy: alternate placing one unit, up to 6 each, King first, chosen from all unit cards in the deck.
   Then shuffle and draw 5.
-- Battle: draw 1 per turn (hand limit 8), then one action: move, attack, ability, play card, or skip.
+- Battle: draw 1 per turn (hand limit 10), then one action: move, attack, ability, play card, or skip. Kings and
+  Champions (melee) may attack right after moving; every other unit moves or attacks. Quick spells don't
+  use the action. Online battles give each decision 20 seconds.
   Cards have no cost.
 - Movement: king-steps in 8 directions, blocked by units unless Flying. Range uses Chebyshev distance.
 - Battle-phase units: empty border square, ≥2 squares from every enemy (Ambush strategy relaxes this).

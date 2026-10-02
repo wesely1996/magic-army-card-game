@@ -349,10 +349,13 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
             "next 2 turns. Arrival: happens when the unit is played. Immovable: can't be pushed, swapped or replaced. " +
             "Elite (★★): takes 2 unit slots. Champion (★★★): takes 3.",
         "Deployment" to "A coin flip decides who starts. Players take turns placing one unit at a time in their first 3 rows, " +
-            "up to 5 units each. Your King must be the first unit you place. You choose from all unit cards in your deck. " +
+            "up to 6 units each. Your King must be the first unit you place. You choose from all unit cards in your deck. " +
             "Afterwards everyone shuffles and draws 5 cards.",
-        "Battle" to "On your turn draw a card, then take ONE action: move a unit, attack with a unit, use a unit's ability, " +
-            "or play a card. Units move up to their MOV in any direction (8 ways), and can't pass through other units unless they fly. " +
+        "Battle" to "On your turn draw a card (you can hold up to 10), then take ONE action: move a unit, attack with a unit, " +
+            "use a unit's ability, or play a card. Kings and Champions that fight in melee (range 1) may attack right after " +
+            "they move, in the same turn; every other unit moves or attacks. Quick spells don't use your action at all. " +
+            "Kings are tough (around 30 health) but mostly weak fighters: protect yours with a wall of units. " +
+            "Units move up to their MOV in any direction (8 ways), and can't pass through other units unless they fly. " +
             "They attack enemies within RNG squares (diagonals count). Boosts \"for 1 turn\" played on your own turn last " +
             "through your next turn, so the unit gets to use them.",
         "Exhaustion" to "From turn 120 on, each King loses health at the start of its owner's turn (1, rising by 1 every 20 turns) " +
@@ -360,7 +363,19 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
         "Reinforcements" to "During the battle, unit cards are played on an empty square at the edge of the board " +
             "that is at least 2 squares away from every enemy. Each side has 16 unit slots (22 with the Endless Horde): " +
             "Champions take 3 slots, Elite units 2, other units 1 and the King none. Summoned and enthralled units count too.",
-        "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ quick ability — " +
+        "Quick spells" to "Spells marked QUICK are a little weaker but free: playing one on your turn doesn't use up your action, " +
+            "so you can still move, attack or play another card. Like all Magic, they also work as interrupts.",
+        "Structures" to "Structures (★ STRUCTURE) are unit cards that never move or attack by themselves and can't be pushed. " +
+            "Sentry structures fire at the weakest enemy in range at the start of your turn. Taunt structures are sturdy: an enemy " +
+            "next to one can only attack the structure (or move away first). Mending Aura structures heal your units next to them by 2 each turn.",
+        "Evolution" to "Units marked EVOLVES grow stronger: after surviving a number of your turns, or after defeating enemies, " +
+            "they turn into their evolved form (some evolve twice). Evolving heals the unit fully and keeps its equipment. " +
+            "Evolved forms can't be put in decks.",
+        "Clearing the field" to "Every race has a spell that ends the Strategy field on the battlefield, whoever played it, " +
+            "and a spell that draws 2 cards.",
+        "Turn timer" to "In online battles each decision has 20 seconds. When your time runs out you pass (during deployment a " +
+            "unit is placed for you). Battles against the computer have no timer.",
+        "Interrupts" to "Every action can be answered. When your opponent acts, you may respond with a Magic card or a ⚡ interrupt ability — " +
             "and they may respond to that, and so on. Then everything resolves from the last response back to the first. " +
             "An action that no longer makes sense (a stunned unit's attack, a target that died) fizzles.",
         "Inspecting" to "Press and hold any card — in your hand, in the deck builder or a unit on the board — to open it large " +

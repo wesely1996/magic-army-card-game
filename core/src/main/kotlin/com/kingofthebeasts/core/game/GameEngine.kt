@@ -23,7 +23,7 @@ import kotlin.math.sign
  * for replays and online play.
  */
 object GameEngine {
-    const val MAX_DEPLOY = 5
+    const val MAX_DEPLOY = 6
     /**
      * Unit slots each side has on the board (reinforcements, summons, enthralled units). Elite units
      * take 2 slots, other units 1 and Kings none.
@@ -47,7 +47,7 @@ object GameEngine {
     /** Once Exhaustion sets in, Kings can no longer be healed. */
     fun exhausted(s: GameState): Boolean = s.turnNumber >= EXHAUSTION_TURN
     const val OPENING_HAND = 5
-    const val HAND_LIMIT = 8
+    const val HAND_LIMIT = 10
     const val TURN_LIMIT = 200
     /** Battle-phase unit cards must be played at least this far (in squares) from every enemy. */
     const val MIN_ENEMY_DISTANCE = 2
@@ -126,6 +126,14 @@ object GameEngine {
 
     private fun mainActions(s: GameState, p: Int, distinct: Boolean): List<Action> {
         val out = mutableListOf<Action>()
+        val hand = s.players[p].hand.let { if (distinct) it.distinctBy { c -> c.cardId } else it }
+        s.followUp?.let { id ->
+            // A melee unit just moved: it may still attack. Quick spells are free; anything else ends the turn.
+            s.unit(id)?.takeIf { it.stun == 0 }?.let { u -> attackTargets(s, u).forEach { out += Action.Attack(u.id, it.id) } }
+            for (c in hand) if (c.def.swift) cardTargets(s, p, c.def).forEach { out += Action.PlayCard(c.uid, it) }
+            out += Action.Pass
+            return out
+        }
         for (u in s.unitsOf(p)) {
             if (u.stun > 0) continue
             reachable(s, u).forEach { out += Action.Move(u.id, it) }
@@ -134,7 +142,6 @@ object GameEngine {
                 if (a.cooldown == 0) abilityTargets(s, u, i).forEach { out += Action.UseAbility(u.id, i, it) }
             }
         }
-        val hand = s.players[p].hand.let { if (distinct) it.distinctBy { c -> c.cardId } else it }
         for (c in hand) cardTargets(s, p, c.def).forEach { out += Action.PlayCard(c.uid, it) }
         out += Action.Pass
         return out
@@ -173,6 +180,7 @@ object GameEngine {
     }
 
     fun moveOf(s: GameState, u: UnitState): Int {
+        if (u.has(Keyword.STRUCTURE)) return 0
         var m = u.move + u.mods.sumOf { it.move }
         if (s.fieldActive(u.owner, FieldRule.TAILWIND)) m += 1
         if (s.fieldActive(u.owner, FieldRule.WAR_DRUMS)) m += 1
@@ -226,9 +234,20 @@ object GameEngine {
     }
 
     fun attackTargets(s: GameState, u: UnitState): List<UnitState> {
+        if (u.has(Keyword.STRUCTURE)) return emptyList()
         val r = rangeOf(s, u)
-        return s.units.filter { it.alive && it.owner != u.owner && it.pos.distanceTo(u.pos) <= r && canSee(s, u.owner, it, u) }
+        val inRange = s.units.filter { it.alive && it.owner != u.owner && it.pos.distanceTo(u.pos) <= r && canSee(s, u.owner, it, u) }
+        // Taunt: a unit standing next to an enemy taunter can only attack taunters.
+        val taunters = s.unitsOf(1 - u.owner).filter { it.has(Keyword.TAUNT) && it.pos.distanceTo(u.pos) == 1 }
+        return if (taunters.isEmpty()) inRange else inRange.filter { it in taunters }
     }
+
+    /**
+     * Kings and Champions may attack right after moving, if they fight in melee (range 1).
+     * Every other unit, and every ranged unit, moves or attacks in a turn — not both.
+     */
+    fun canAttackAfterMove(u: UnitState): Boolean =
+        u.range <= 1 && !u.has(Keyword.STRUCTURE) && (u.isKing || u.card.def.unit?.isChampion == true)
 
     fun abilityTargets(s: GameState, u: UnitState, index: Int): List<Target> {
         val ab = u.abilities[index].def
@@ -247,6 +266,7 @@ object GameEngine {
         if (t != null && t.isKing && onlyHarms(effects)) return false
         for (op in effects) when (op) {
             EffectOp.Replace -> if (t == null || t.isKing || t.has(Keyword.IMMOVABLE)) return false
+            EffectOp.ClearField -> if (s.fields.isEmpty()) return false
             EffectOp.RallyToKing -> if (t == null || rallySquare(s, t) == null) return false
             is EffectOp.Enthrall -> if (t == null || t.isKing || t.hp > op.maxHealth || !hasRoomForUnit(s, p, slotsOf(t.def))) return false
             EffectOp.SwapWithNearestAlly -> if (t == null || t.has(Keyword.IMMOVABLE) || nearestMovableAlly(s, p, t) == null) return false
@@ -307,7 +327,7 @@ object GameEngine {
     fun slotsOf(def: CardDef): Int = def.unit?.slots ?: 0
 
     /** Unit slots player [p]'s units currently take up. */
-    fun usedSlots(s: GameState, p: Int): Int = s.unitsOf(p).sumOf { slotsOf(it.def) }
+    fun usedSlots(s: GameState, p: Int): Int = s.unitsOf(p).sumOf { slotsOf(it.card.def) }
 
     /** Whether [p] has [slots] free unit slots. */
     fun hasRoomForUnit(s: GameState, p: Int, slots: Int = 1): Boolean = usedSlots(s, p) + slots <= unitCap(s, p)
@@ -382,7 +402,7 @@ object GameEngine {
             DecisionKind.DEPLOY -> applyDeploy(s, d.player, action)
             DecisionKind.MAIN -> {
                 if (action == Action.Pass) {
-                    s.log("${s.players[d.player].name}: skips the turn")
+                    s.log("${s.players[d.player].name}: ${if (s.followUp != null) "ends the turn" else "skips the turn"}")
                     endTurn(s)
                 } else {
                     declare(s, d.player, action)
@@ -480,19 +500,28 @@ object GameEngine {
                 resolveItem(s, item)
             }
             cleanupDeaths(s)
+            checkEvolutions(s)
             if (s.phase == Phase.GAME_OVER) {
                 s.stack.clear()
                 return
             }
         }
         val p = s.activePlayer
-        if (bottom.controller == p && bottom.action is Action.Move &&
-            s.fieldActive(p, FieldRule.BLITZ) && !s.blitzUsed
-        ) {
-            s.blitzUsed = true
-            s.log("Blitz: ${s.players[p].name} may act again")
-        } else {
-            endTurn(s)
+        val moved = (bottom.action as? Action.Move)?.takeIf { bottom.controller == p }?.let { s.unit(it.unitId) }
+        when {
+            bottom.controller == p && bottom.action is Action.Move &&
+                s.fieldActive(p, FieldRule.BLITZ) && !s.blitzUsed && s.followUp == null -> {
+                s.blitzUsed = true
+                s.log("Blitz: ${s.players[p].name} may act again")
+            }
+            moved != null && moved.owner == p && moved.stun == 0 && canAttackAfterMove(moved) &&
+                attackTargets(s, moved).isNotEmpty() -> {
+                s.followUp = moved.id
+                s.log("${moved.tag} may attack after moving")
+            }
+            // Quick spells don't use up the turn.
+            bottom.controller == p && bottom.card?.def?.swift == true && bottom.action is Action.PlayCard -> {}
+            else -> endTurn(s)
         }
     }
 
@@ -644,6 +673,11 @@ object GameEngine {
             is EffectOp.Damage -> t?.let { if (it.isKing) kingImmune(s, it) else dealDamage(s, it, op.amount) }
             is EffectOp.Heal -> t?.let { heal(s, it, op.amount) }
             is EffectOp.Buff -> t?.let { buff(s, it, op) }
+            EffectOp.ClearField -> s.fields.firstOrNull()?.let { f ->
+                s.fields.clear()
+                s.log("The field ${f.rule.displayName} fades away")
+                s.event { GameEvent.Announce(it, p, "${f.rule.displayName} fades away") }
+            }
             is EffectOp.Stun -> t?.let { stun(s, it, op.turns) }
             is EffectOp.Poison -> t?.let { if (it.isKing) kingImmune(s, it) else poison(s, it, op.damage, op.turns) }
             is EffectOp.Shield -> t?.let { u ->
@@ -831,6 +865,55 @@ object GameEngine {
         }
     }
 
+    /** Evolves every unit that has met its card's condition (possibly more than one stage). */
+    private fun checkEvolutions(s: GameState) {
+        if (s.phase == Phase.GAME_OVER) return
+        for (u in s.units.filter { it.alive }) {
+            var guard = 0
+            while (guard++ < 3) {
+                val evo = u.def.unit?.evolve ?: break
+                val ready = (evo.turns > 0 && u.turnsAlive >= evo.turns) || (evo.kills > 0 && u.kills >= evo.kills)
+                if (!ready) break
+                evolve(s, u, CardDatabase.get(evo.into))
+            }
+        }
+    }
+
+    private fun evolve(s: GameState, u: UnitState, next: CardDef) {
+        val old = u.def
+        val trait = s.players[u.owner].trait
+        val ob = baseUnit(old, trait)
+        val nb = baseUnit(next, trait)
+        // Keep everything gained on top of the old form (equipment, buffs), then step up to the new one.
+        u.form = next.id
+        u.attack += nb.attack - ob.attack
+        u.maxHp += nb.maxHp - ob.maxHp
+        u.move += nb.move - ob.move
+        u.range += nb.range - ob.range
+        u.hp = u.maxHp
+        u.keywords.removeAll(ob.keywords - nb.keywords)
+        u.keywords += nb.keywords
+        u.abilities.clear()
+        next.unit!!.abilities.forEach { u.abilities += AbilityState(it) }
+        u.turnsAlive = 0
+        u.kills = 0
+        s.log("${old.name} evolves into ${next.name}!")
+        s.event { GameEvent.Status(it, u.pos, "Evolved!") }
+        s.event { GameEvent.Arrived(it, u.id, u.pos, false) }
+    }
+
+    /** A card's starting stats in an army with [trait]. */
+    private fun baseUnit(def: CardDef, trait: RacialTrait?): UnitState {
+        val st = def.unit!!
+        val u = UnitState(
+            id = -1, card = CardInstance(-1, def.id), owner = 0, pos = Pos(0, 0),
+            maxHp = st.health, hp = st.health, attack = st.attack, move = st.move, range = st.range,
+            keywords = st.keywords.toMutableSet(), isKing = st.isKing,
+        )
+        applyTrait(trait, u)
+        return u
+    }
+
     private fun moveUnit(s: GameState, u: UnitState, to: Pos) {
         val from = u.pos
         u.pos = to
@@ -840,6 +923,7 @@ object GameEngine {
     private fun performAttack(s: GameState, a: UnitState, t: UnitState) {
         s.event { GameEvent.Attacked(it, a.id, a.pos, t.pos) }
         val dealt = dealDamage(s, t, attackDamage(s, a, t))
+        if (!t.alive) a.kills++
         if (t.alive) {
             if (a.has(Keyword.POISONOUS) && dealt > 0) poison(s, t, 1, 2)
             if (a.has(Keyword.PETRIFY)) stun(s, t, 1)
@@ -847,6 +931,7 @@ object GameEngine {
                 s.log("${t.tag} retaliates")
                 s.event { GameEvent.Attacked(it, t.id, t.pos, a.pos) }
                 dealDamage(s, a, attackDamage(s, t, a))
+                if (!a.alive) t.kills++
             }
         }
     }
@@ -963,6 +1048,7 @@ object GameEngine {
 
     private fun endTurn(s: GameState) {
         val p = s.activePlayer
+        s.followUp = null
         for (u in s.unitsOf(p)) {
             u.mods.forEach { it.turns-- }
             u.mods.removeAll { it.turns <= 0 }
@@ -1006,6 +1092,18 @@ object GameEngine {
             s.log("Tempest strikes ${t.tag}")
             dealDamage(s, t, 1)
         }
+        for (u in s.unitsOf(p).filter { it.has(Keyword.MENDING) && it.stun == 0 }) {
+            for (ally in s.unitsOf(p).filter { it.id != u.id && it.pos.distanceTo(u.pos) == 1 && it.hp < it.maxHp }) heal(s, ally, 2)
+        }
+        for (u in s.unitsOf(p).filter { it.has(Keyword.SENTRY) && it.stun == 0 }) {
+            val r = rangeOf(s, u)
+            val t = s.unitsOf(1 - p).filter { it.pos.distanceTo(u.pos) <= r && canSee(s, p, it, u) }
+                .minWithOrNull(compareBy({ it.hp }, { it.id })) ?: continue
+            s.log("${u.tag} fires at ${t.tag}")
+            performAttack(s, u, t)
+            cleanupDeaths(s)
+            if (s.phase == Phase.GAME_OVER) return
+        }
         for (u in s.unitsOf(p).filter { it.has(Keyword.PACK_CALLER) }) summonToken(s, u, "w_pup", limit = MAX_SUMMONED)
         for (u in s.unitsOf(p).filter { it.broodLeft > 0 }) {
             u.broodLeft--
@@ -1029,6 +1127,8 @@ object GameEngine {
         }
         cleanupDeaths(s)
         if (s.phase == Phase.GAME_OVER) return
+        for (u in s.unitsOf(p)) if (u.def.unit?.evolve != null) u.turnsAlive++
+        checkEvolutions(s)
         if (draw) {
             drawCard(s, p)
             if (s.fieldActive(p, FieldRule.GOLDEN_DAWN)) drawCard(s, p)

@@ -79,7 +79,7 @@ fun main(args: Array<String>) {
         appendLine("| Race | s (Elo) | δ measured | δ used (shrunk) | h (HP per unit) | Units | Total HP to change |")
         appendLine("|---|---|---|---|---|---|---|")
         for (r in races) {
-            val units = CardDatabase.all.count { it.race == r && it.unit != null && !it.isKing }
+            val units = CardDatabase.all.count { it.collectible && it.race == r && it.unit != null && !it.isKing }
             appendLine(
                 "| ${r.displayName} | %+.0f | %.1f | %.1f | %+.2f | %d | %+.1f |".format(
                     s.getValue(r), raw.getValue(r), delta.getValue(r), h.getValue(r), units, h.getValue(r) * units,

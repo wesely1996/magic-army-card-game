@@ -71,8 +71,13 @@ class UnitState(
     val isToken: Boolean = false,
     /** Brood: how many more Swarm Rats it will spawn at the start of its owner's turns. */
     var broodLeft: Int = 0,
+    /** The card it has evolved into, if any (the original [card] still counts for slots and piles). */
+    var form: String? = null,
+    /** Evolution progress: its owner's turns survived and enemies defeated since it arrived or last evolved. */
+    var turnsAlive: Int = 0,
+    var kills: Int = 0,
 ) {
-    val def: CardDef get() = card.def
+    val def: CardDef get() = form?.let { CardDatabase.get(it) } ?: card.def
     val name: String get() = def.name
 
     /** Name with the square it stands on, e.g. "Dire Wolf (G4)". */
@@ -87,7 +92,7 @@ class UnitState(
         mods.mapTo(mutableListOf()) { TimedMod(it.attack, it.move, it.range, it.turns) },
         stun, poisonDamage, poisonTurns, shield,
         abilities.mapTo(mutableListOf()) { AbilityState(it.def, it.cooldown) },
-        equipment.toMutableList(), isKing, isToken, broodLeft,
+        equipment.toMutableList(), isKing, isToken, broodLeft, form, turnsAlive, kills,
     )
 }
 
@@ -191,6 +196,8 @@ class GameState(
     val simulation: Boolean = false,
     /** False keeps decks in their given order when the battle starts (scripted tutorial). */
     val shuffleDecks: Boolean = true,
+    /** A melee unit that just moved and may still attack this turn. */
+    var followUp: Int? = null,
 ) {
     fun unit(id: Int): UnitState? = units.firstOrNull { it.id == id && it.alive }
     fun unitAt(p: Pos): UnitState? = units.firstOrNull { it.pos == p && it.alive }
@@ -225,5 +232,6 @@ class GameState(
         eventSeq = eventSeq,
         simulation = true,
         shuffleDecks = shuffleDecks,
+        followUp = followUp,
     )
 }

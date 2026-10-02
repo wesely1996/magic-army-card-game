@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kingofthebeasts.app.ui.theme.Ink
+import com.kingofthebeasts.core.data.CardDatabase
 import com.kingofthebeasts.core.deck.DeckRules
 import com.kingofthebeasts.core.game.GameEngine
 import com.kingofthebeasts.core.game.GameState
@@ -125,15 +126,33 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             Line("Immune", "takes no damage from Magic cards or abilities (attacks still hurt)")
             Line("Immovable", "can't be pushed, swapped or replaced by other cards and abilities")
             Line("No slot", "doesn't count toward the unit slots")
+            if (def.unit!!.range <= 1) Line("Charge", "can move and then attack in the same turn")
             Line("Racial trait: ${def.race.trait.displayName}", def.race.trait.description + " (for the army this King leads)")
         } else if (def.unit != null) {
             val st = def.unit!!
-            Line(
-                "★".repeat(def.stars) + " " + when { st.isChampion -> "Champion"; st.isElite -> "Elite"; else -> "Unit" },
-                "takes ${st.slots} unit slot(s); up to ${def.maxCopies} per deck",
-            )
+            if (!def.collectible) {
+                Line("Evolved form", "a unit becomes this by evolving; it can't be put in a deck")
+            } else {
+                Line(
+                    "★".repeat(def.stars) + " " + when {
+                        st.isStructure -> "Structure"
+                        st.isChampion -> "Champion"
+                        st.isElite -> "Elite"
+                        else -> "Unit"
+                    },
+                    "takes ${st.slots} unit slot(s); up to ${def.maxCopies} per deck",
+                )
+            }
+            st.evolve?.let { e ->
+                Line("Evolves", e.describe(CardDatabase.find(e.into)?.name ?: e.into) + " Evolving heals it fully and keeps its equipment.")
+            }
+            if (st.isStructure) Line("Structure", "can't move or attack; its Sentry, Taunt or Mending Aura works on its own")
+            else if (st.range >= 2) Line("Ranged", "moves or attacks in a turn, not both")
+            else if (st.isChampion) Line("Charge", "a Champion can move and then attack in the same turn")
+            else Line("Melee", "moves or attacks in a turn; only Champions and Kings can do both")
         } else if (def.type == CardType.MAGIC) {
             Line("★".repeat(def.stars) + " spell", "up to ${def.maxCopies} per deck")
+            if (def.swift) Line("Quick", "doesn't use up your action: play it on your turn and still act, or as an interrupt")
         } else if (def.type == CardType.STRATEGY) {
             Line("Field", "stays until any Strategy card replaces it; up to ${DeckRules.MAX_STRATEGY} Strategy cards per deck")
         }
@@ -189,7 +208,7 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
                     buildString {
                         append("Target: ").append(targetDescription(a.target))
                         append(" · Cooldown: ").append(a.cooldown).append(" turn(s)")
-                        if (a.quick) append(" · Quick: can interrupt the opponent")
+                        if (a.quick) append(" · ⚡ Interrupt: can also answer the opponent's actions")
                     },
                     style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
                     modifier = Modifier.padding(start = 10.dp),
@@ -202,7 +221,8 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             Text(def.rulesText, style = MaterialTheme.typography.bodyLarge)
             Text(
                 when (def.type) {
-                    CardType.MAGIC -> "⚡ Magic: play it on your turn, or as an interrupt when your opponent acts."
+                    CardType.MAGIC -> if (def.swift) "Quick Magic: play it on your turn without using your action, or as an interrupt."
+                    else "⚡ Magic: play it on your turn (it uses your action), or as an interrupt when your opponent acts."
                     CardType.STRATEGY -> "Strategy: changes the rules of the battlefield. You can have one active at a time; a new one replaces the old."
                     CardType.EQUIPMENT -> "Equipment: attaches to one of your units and stays for the rest of the battle."
                     CardType.UNIT -> ""
@@ -214,7 +234,7 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
             Text(
                 if (def.isKing) "Your King is deployed first. If it falls, you lose the battle."
                 else "Deploy it in your first 3 rows before the battle, or during the battle on an empty edge square at least 2 squares from every enemy. " +
-                    "You can have at most 10 units on the board.",
+                    "Units take up unit slots: 16 per side (22 with the Endless Horde trait).",
                 style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
             )
         }

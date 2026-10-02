@@ -23,7 +23,7 @@ object DeckGenerator {
         val king = CardDatabase.get(kingId)
         require(king.isKing && king.race in races) { "$kingId is not a King of $races" }
         val counts = linkedMapOf(kingId to 1)
-        val pool = CardDatabase.all.filter { it.race in races && !it.isKing }
+        val pool = CardDatabase.all.filter { it.race in races && !it.isKing && it.collectible }
 
         fun add(cards: List<CardDef>, target: Int) {
             var added = 0

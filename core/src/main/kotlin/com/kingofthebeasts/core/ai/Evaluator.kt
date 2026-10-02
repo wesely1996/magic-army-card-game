@@ -62,9 +62,12 @@ object Evaluator {
      * the others only a little.
      */
     private fun danger(s: GameState, side: Int): Double {
-        val attackers = s.unitsOf(1 - side).filter { it.stun == 0 }
+        // Structures only threaten with Sentry; ranged units can't move and attack in the same turn.
+        val attackers = s.unitsOf(1 - side).filter { it.stun == 0 && (!it.has(Keyword.STRUCTURE) || it.has(Keyword.SENTRY)) }
         if (attackers.isEmpty()) return 0.0
-        val zones = attackers.map { a -> a to (GameEngine.reachable(s, a) + a.pos) }
+        val zones = attackers.map { a ->
+            a to (if (GameEngine.canAttackAfterMove(a)) GameEngine.reachable(s, a) + a.pos else listOf(a.pos))
+        }
         val penalties = mutableListOf<Double>()
         for (t in s.unitsOf(side)) {
             var worst = 0

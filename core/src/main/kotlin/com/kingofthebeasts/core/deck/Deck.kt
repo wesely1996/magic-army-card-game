@@ -51,6 +51,7 @@ object DeckRules {
                 errors += "Unknown card: $id"
                 continue
             }
+            if (!def.collectible) errors += "${def.name} is an evolved form and can't be put in a deck."
             if (def.race !in deck.races) errors += "${def.name} is not from one of the deck's races."
             if (count > def.maxCopies) errors += "At most ${def.maxCopies} copies of ${def.name}."
             if (def.isKing) kings += count

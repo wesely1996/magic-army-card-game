@@ -67,6 +67,8 @@ sealed interface EffectOp {
     data object RallyToKing : EffectOp
     /** The enemy target swaps squares with the caster's movable unit nearest to it. */
     data object SwapWithNearestAlly : EffectOp
+    /** Ends the Strategy field on the battlefield, whoever played it. */
+    data object ClearField : EffectOp
 }
 
 /** Damage (now or over time) and summons make a spell exhausting: it is used once, then gone. */
@@ -92,9 +94,20 @@ data class AbilityDef(
     val target: TargetRule,
     val effects: List<EffectOp>,
     val cooldown: Int,
-    /** Quick abilities can be used to interrupt the opponent. */
+    /** Interrupt (⚡) abilities can also be used to answer the opponent's actions. */
     val quick: Boolean = false,
 )
+
+/**
+ * An evolving unit becomes [into] (a card that isn't put in decks) once it has survived [turns] of
+ * its owner's turns, or defeated [kills] enemy units with its attacks — whichever is set.
+ */
+data class Evolution(val into: String, val turns: Int = 0, val kills: Int = 0) {
+    fun describe(intoName: String): String = when {
+        kills > 0 -> "Evolves into $intoName after defeating $kills ${if (kills == 1) "enemy" else "enemies"}."
+        else -> "Evolves into $intoName after surviving $turns of your turns."
+    }
+}
 
 data class UnitStats(
     val attack: Int,
@@ -108,7 +121,9 @@ data class UnitStats(
     val arrival: List<EffectOp> = emptyList(),
     /** Unit slots it takes up: 3 for Champions, 2 for Elite units, 1 for the rest, 0 for Kings. */
     val slots: Int = if (isKing) 0 else 1,
+    val evolve: Evolution? = null,
 ) {
+    val isStructure: Boolean get() = Keyword.STRUCTURE in keywords
     val isElite: Boolean get() = slots == 2
     val isChampion: Boolean get() = slots >= 3
 }
@@ -126,6 +141,10 @@ data class CardDef(
     val effects: List<EffectOp> = emptyList(),
     /** Magic cards: 1★, 2★ or 3★. Stronger spells are rarer in a deck (3, 2 or 1 copies). */
     val rank: Int = 1,
+    /** Quick spells don't use up your action: play them on your turn (then act as usual) or as an interrupt. */
+    val swift: Boolean = false,
+    /** False for evolved forms: they only appear when a unit evolves, never in decks. */
+    val collectible: Boolean = true,
 ) {
     val isKing: Boolean get() = unit?.isKing == true
 
@@ -161,18 +180,21 @@ data class CardDef(
         get() = type == CardType.MAGIC && effects.none { it.exhausting }
 
     val text: String
-        get() = if (unit == null) rulesText else buildString {
+        get() = if (unit == null) (if (swift) "Quick: doesn't use your action. " else "") + rulesText else buildString {
             if (unit.isKing) append("King: takes no damage from Magic cards or abilities. ")
             if (unit.isElite) append("Elite: takes 2 unit slots. ")
             if (unit.isChampion) append("Champion: takes 3 unit slots. ")
             unit.keywords.forEach { append(it.displayName).append(": ").append(it.description).append(' ') }
             unit.abilities.forEach {
                 append(it.name)
-                append(if (it.quick) " (quick, " else " (")
+                append(if (it.quick) " (⚡ interrupt, " else " (")
                 append("cooldown ").append(it.cooldown).append("): ")
                 append(it.text).append(' ')
             }
-            if (rulesText.isNotEmpty()) append(rulesText)
+            if (rulesText.isNotEmpty()) append(rulesText).append(' ')
+            unit.evolve?.let { e ->
+                append(e.describe(com.kingofthebeasts.core.data.CardDatabase.find(e.into)?.name ?: e.into))
+            }
         }.trim()
 }
 

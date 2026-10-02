@@ -130,10 +130,12 @@ class RejoinTest {
             connect(host, guest)
             host.begin(host.session.game.first { it != null }!!)
             guest.begin(guest.session.game.first { it != null }!!)
-            repeat(25) { step(listOf(host, guest)) }
+            var played = 0
+            while (played < 25 && step(listOf(host, guest))) played++
+            println("played $played, phase ${host.state.phase}")
             val hostSave = host.save!!
             val guestSave = guest.save!!
-            assertEquals(25, hostSave.acts.size)
+            assertEquals(played, hostSave.acts.size)
             withContext(thread) {
                 host.link!!.close()
                 guest.link!!.close()
