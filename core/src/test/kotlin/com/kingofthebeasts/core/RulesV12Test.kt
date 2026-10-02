@@ -150,4 +150,18 @@ class RulesV12Test {
         val deck = com.kingofthebeasts.core.data.StarterDecks.all[0]
         assertTrue(DeckRules.validate(deck.withCount("w_whelp2", 1)).any { "evolved" in it })
     }
+
+    @Test
+    fun decksHoldAtMostThreeChampions() {
+        val champions = CardDatabase.all.filter { it.race == Race.WOLF || it.race == Race.LION }.filter { it.unit?.isChampion == true }
+        assertTrue(champions.size > DeckRules.MAX_CHAMPIONS)
+        var deck = com.kingofthebeasts.core.data.StarterDecks.all[0]
+        champions.forEach { deck = deck.withCount(it.id, 1) }
+        assertTrue(DeckRules.validate(deck).any { "Champions" in it })
+        repeat(30) { i ->
+            val d = com.kingofthebeasts.core.deck.DeckGenerator.generate(listOf(Race.WOLF, Race.LION, Race.HAWK), "w_king_alpha", kotlin.random.Random(i))
+            assertTrue(d.championCount <= DeckRules.MAX_CHAMPIONS)
+        }
+        com.kingofthebeasts.core.data.StarterDecks.all.forEach { assertTrue(it.championCount <= DeckRules.MAX_CHAMPIONS, it.name) }
+    }
 }

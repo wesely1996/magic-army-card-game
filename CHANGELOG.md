@@ -35,6 +35,8 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 **Balance**
 - Champions were trimmed now that they can charge (e.g. Sunmane Paragon 5/9, Fenrir 4/9 without Retaliate,
   Ironjaw Packlord 4/10); Sky Sovereign's swap now reaches 3 squares with a cooldown of 3.
+- **At most 3 Champions per deck** (like the 3-Strategy cap). Simulations showed each of the first three Champions
+  adds about 15 points of win rate and later ones much less, so three is where stacking stops paying.
 - Starter decks re-tuned: each now carries Champions of similar weight.
 - BALANCE_PLACEHOLDER
 

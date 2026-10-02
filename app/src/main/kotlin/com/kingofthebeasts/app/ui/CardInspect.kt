@@ -140,7 +140,8 @@ private fun RulesPanel(def: CardDef, unit: UnitState?, state: GameState?, modifi
                         st.isElite -> "Elite"
                         else -> "Unit"
                     },
-                    "takes ${st.slots} unit slot(s); up to ${def.maxCopies} per deck",
+                    "takes ${st.slots} unit slot(s); up to ${def.maxCopies} per deck" +
+                        if (st.isChampion) ", and at most ${DeckRules.MAX_CHAMPIONS} Champions in a deck" else "",
                 )
             }
             st.evolve?.let { e ->

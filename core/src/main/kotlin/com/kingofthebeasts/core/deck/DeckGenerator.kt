@@ -34,6 +34,9 @@ object DeckGenerator {
                     if (added >= target || counts.values.sum() - 1 >= DeckRules.DECK_SIZE) return
                     val have = counts[c.id] ?: 0
                     if (have >= c.maxCopies) continue
+                    if (c.unit?.isChampion == true &&
+                        counts.keys.count { CardDatabase.get(it).unit?.isChampion == true } >= DeckRules.MAX_CHAMPIONS
+                    ) continue
                     val take = minOf(if (pass == 0) 1 + rng.nextInt(2) else 1, c.maxCopies - have, target - added)
                     counts[c.id] = have + take
                     added += take

@@ -324,7 +324,7 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
         "Goal" to "Defeat the enemy King. If your King falls, you lose. New here? The Tutorial battle (top right) walks " +
             "you through a first battle step by step.",
         "Decks" to "Build a deck of 40 cards plus one King, from up to 3 of the 6 races. Copies per card follow its stars: " +
-            "★ cards up to 3, ★★ up to 2, ★★★ just 1. At most 3 Strategy cards.",
+            "★ cards up to 3, ★★ up to 2, ★★★ just 1. At most 3 Strategy cards and at most 3 Champions — so choose them well.",
         "Racial traits" to "The race of your King gives your whole army a trait. Wolf — Pack Tactics: all your units have Pack Hunter " +
             "and +1 movement. Bear — Thick Fur: +1 health, but units with 3+ movement get −1 movement. Hawk — Eagle Eyes: ranged " +
             "units get +1 range. Serpent — Venom Blood: all units are Poisonous, but units with 3+ attack get −1 attack. " +
