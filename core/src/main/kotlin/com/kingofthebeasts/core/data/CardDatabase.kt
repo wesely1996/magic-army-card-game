@@ -100,7 +100,7 @@ object CardDatabase {
         add(equipment("w_tracker", "Tracker's Collar", WOLF, "Pack Hunter and +1 movement.", GrantKeyword(PACK_HUNTER), Buff(move = 1)))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
         // 0.11: the Wolf Pack is the unit-focused race — a third Champion and three new Elites.
-        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 5, 9, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
+        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 4, 9, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
         add(unit("w_rimefang", "Rimefang Alpha", WOLF, 4, 7, 2, 1, emptySet(),
             ability("Frost Bite", "Stun an adjacent enemy for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 1), 3,
                 effects = listOf(Stun(1))), elite = true))
@@ -135,7 +135,7 @@ object CardDatabase {
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
-        add(king("b_king_warden", "Cave Warden", BEAR, 2, 33, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
+        add(king("b_king_warden", "Cave Warden", BEAR, 2, 36, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
         add(unit("b_cub", "Bear Cub", BEAR, 2, 2, 2, 1, setOf(REGENERATE)))
         add(unit("b_brawler", "Brown Brawler", BEAR, 3, 3, 1, 1, setOf(RETALIATE)))
@@ -157,7 +157,7 @@ object CardDatabase {
         add(unit("b_spirit", "Spirit Bear", BEAR, 2, 3, 2, 2, emptySet(),
             ability("Ancestral Ward", "Give an ally within 2 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 2), 3,
                 quick = true, effects = listOf(Shield(2)))))
-        add(unit("b_ancient", "Ancient Cave Bear", BEAR, 6, 14, 1, 1, setOf(ARMORED, IMMOVABLE, REGENERATE), champion = true))
+        add(unit("b_ancient", "Ancient Cave Bear", BEAR, 5, 13, 1, 1, setOf(ARMORED, IMMOVABLE, REGENERATE), champion = true))
         add(unit("b_quake", "Quakeback Bear", BEAR, 5, 12, 1, 1, setOf(ARMORED),
             ability("Ground Slam", "Deal 2 damage to every enemy next to it.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Damage(2)))),
@@ -212,7 +212,7 @@ object CardDatabase {
             ability("Change of Winds", "Swap places with an allied unit within 3 squares.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
-        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 27, 2, 2, setOf(FLYING, Keyword.TEMPEST),
+        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 24, 2, 2, setOf(FLYING, Keyword.TEMPEST),
             ability("Lightning Strike", "Deal 1 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 4, quick = true, effects = listOf(Damage(1), Stun(1))),
             flavor = "Thunder is just her wings."))
@@ -389,11 +389,11 @@ object CardDatabase {
         add(unit("l_stalker", "Savanna Stalker", LION, 3, 4, 3, 1, setOf(HIDDEN)))
         add(unit("l_cheetah", "Cheetah Outrider", LION, 3, 3, 5, 1, setOf(PACK_HUNTER)))
         add(unit("l_champion", "Pride Champion", LION, 5, 7, 2, 1, setOf(RETALIATE), elite = true))
-        add(unit("l_paragon", "Sunmane Paragon", LION, 6, 11, 2, 1, setOf(ARMORED, RETALIATE),
+        add(unit("l_paragon", "Sunmane Paragon", LION, 5, 11, 2, 1, setOf(ARMORED, RETALIATE),
             ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
             champion = true))
-        add(unit("l_chimera", "Sunfire Chimera", LION, 6, 10, 2, 1, setOf(RETALIATE),
+        add(unit("l_chimera", "Sunfire Chimera", LION, 5, 10, 2, 1, setOf(RETALIATE),
             ability("Fire Breath", "Deal 2 damage to an enemy within 2 and 1 damage to enemies next to it.",
                 TargetRule(TargetKind.ENEMY_UNIT, 2), 3,
                 effects = listOf(Damage(2), Area(1, Side.ENEMY, includeCenter = false, op = Damage(1)))),
@@ -445,7 +445,7 @@ object CardDatabase {
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
         // ---------------------------------------------------------------- VERMIN
-        add(king("v_king_rat", "Rat King", VERMIN, 2, 39, 2, 1, emptySet(),
+        add(king("v_king_rat", "Rat King", VERMIN, 3, 45, 2, 1, emptySet(),
             ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
@@ -472,7 +472,7 @@ object CardDatabase {
             ability("Blight Spark", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1))))))
-        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 6, 11, 1, 1, setOf(RETALIATE, REGENERATE),
+        add(unit("v_colossus", "Blightspawn Colossus", VERMIN, 5, 11, 1, 1, setOf(RETALIATE, REGENERATE),
             arrival = summons("v_rat", 2), text = "Arrival: two Swarm Rats appear next to it.", champion = true))
         add(unit("v_matriarch", "Warren Matriarch", VERMIN, 4, 12, 1, 1, setOf(BROOD, REGENERATE),
             arrival = summons("v_rat", 3), text = "Arrival: three Swarm Rats appear next to her.", champion = true))
