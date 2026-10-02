@@ -131,7 +131,7 @@ object CardDatabase {
         add(equipment("w_charm", "Fang Charm", WOLF, "+1 attack and +1 movement.", Buff(attack = 1, move = 1)))
 
         // ------------------------------------------------------------------ BEAR
-        add(king("b_king_elder", "Elder Bear", BEAR, 2, 33, 1, 1, setOf(Keyword.UNSTOPPABLE),
+        add(king("b_king_elder", "Elder Bear", BEAR, 2, 35, 1, 1, setOf(Keyword.UNSTOPPABLE),
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
@@ -208,7 +208,7 @@ object CardDatabase {
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 28, 3, 2, setOf(FLYING),
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 26, 3, 2, setOf(FLYING),
             ability("Change of Winds", "Swap places with an allied unit within 3 squares.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
