@@ -58,7 +58,7 @@ object CardDatabase {
         // ------------------------------------------------------------------ WOLF
         add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 26, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
-        add(king("w_king_moon", "Moon Howler", WOLF, 2, 22, 2, 1, setOf(Keyword.BLOODTHIRST),
+        add(king("w_king_moon", "Moon Howler", WOLF, 2, 20, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
@@ -100,7 +100,7 @@ object CardDatabase {
         add(equipment("w_tracker", "Tracker's Collar", WOLF, "Pack Hunter and +1 movement.", GrantKeyword(PACK_HUNTER), Buff(move = 1)))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
         // 0.11: the Wolf Pack is the unit-focused race — a third Champion and three new Elites.
-        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 4, 9, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
+        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 4, 9, 3, 1, setOf(Keyword.BLOODTHIRST), champion = true))
         add(unit("w_rimefang", "Rimefang Alpha", WOLF, 4, 7, 2, 1, emptySet(),
             ability("Frost Bite", "Stun an adjacent enemy for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 1), 3,
                 effects = listOf(Stun(1))), elite = true))
