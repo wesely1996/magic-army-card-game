@@ -3,6 +3,41 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.12.0 — Faster battles, structures, evolution and Quick spells
+
+**Rules**
+- **Kings and Champions can move and then attack in the same turn** (melee only). Every other unit, and every
+  ranged unit, still moves *or* attacks.
+- **Kings are protected rule engines:** much tougher (20–45 health) but mostly weak fighters (2 attack) whose
+  value is their abilities; only the Pride King and Alpha Wolf hit hard. Ranged Kings got a little extra
+  health since they can't charge.
+- **6 starting units** per side instead of 5, so there's a wall of bodies around each King.
+- **Hand limit 10** (was 8).
+- **Quick spells** (marked QUICK): a little weaker, but playing one on your turn doesn't use up your action;
+  they also work as interrupts. Interrupt abilities are now called ⚡ interrupt abilities.
+- **Online turn timer:** 20 seconds per decision in online battles; when it runs out you pass (or a unit is
+  placed for you). No timer against the computer.
+- Battles now last about 40 turns on average (they were about 87).
+
+**68 new cards (272 in all)**
+- **5 new spells per race**, each race in its own style: Wolf buffs and quick tricks, Bear protection, Hawk
+  direct damage (Static Spark, Strafing Run, Chain Lightning), Serpent status effects (Blinding Spit, Venom Wave),
+  Lion buffs and healing (Battle Cry, Inspire, Mane of Light), Vermin dirty tricks (Rat Bite, Warp Storm).
+  Every race has a **draw-2 spell** and a spell that **ends the Strategy field** on the battlefield.
+- **Evolving units (2 per race):** they turn into a stronger form after surviving some turns or defeating
+  enemies, some twice — e.g. Wolf Whelp → Young Wolf → Pack Leader, Hawk Hatchling → Fledgling Hawk → Sky Raptor,
+  Sewer Runt → Plague Rat → Rat Ogre. Evolving heals fully and keeps equipment. 18 evolved forms.
+- **Structures (1–2 per race):** never move or attack by themselves. Sentry towers fire at the weakest enemy in
+  range each turn (Hunters' Watchtower, Aerie Tower, Serpent Idol, Warpstone Spire); Taunt walls force adjacent
+  enemies to attack them (Stone Cairn, War Monument); Mending Aura totems heal adjacent allies (Healing Totem,
+  Sun Shrine).
+
+**Balance**
+- Champions were trimmed now that they can charge (e.g. Sunmane Paragon 5/9, Fenrir 4/9 without Retaliate,
+  Ironjaw Packlord 4/10); Sky Sovereign's swap now reaches 3 squares with a cooldown of 3.
+- Starter decks re-tuned: each now carries Champions of similar weight.
+- BALANCE_PLACEHOLDER
+
 ## 0.11.2 — Top-down 2D board
 
 - **Board view option:** a flat **top-down 2D** board with round unit tokens (art, team ring, attack and health),
