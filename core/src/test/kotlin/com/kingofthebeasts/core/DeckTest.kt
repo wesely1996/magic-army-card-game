@@ -39,7 +39,8 @@ class DeckTest {
         assertTrue(DeckRules.validate(base.withCount("l_king_queen", 1)).any { "King" in it })
         assertTrue(DeckRules.validate(base.withCount("b_cub", 1)).any { "not from" in it })
         assertTrue(DeckRules.validate(base.copy(races = Race.entries.take(4))).any { "at most 3" in it })
-        assertTrue(DeckRules.validate(base.withCount("w_pup", 2)).any { "exactly 40" in it })
+        val pups = base.cards["w_pup"] ?: 0
+        assertTrue(DeckRules.validate(base.withCount("w_pup", pups - 1)).any { "exactly 40" in it })
         assertTrue(DeckRules.validate(Deck("", emptyList(), emptyMap())).isNotEmpty())
     }
 
