@@ -56,9 +56,9 @@ object CardDatabase {
 
     private val base: List<CardDef> = buildList {
         // ------------------------------------------------------------------ WOLF
-        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 30, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
+        add(king("w_king_alpha", "Alpha Wolf", WOLF, 4, 26, 2, 1, setOf(PACK_HUNTER, Keyword.PACK_CALLER), null,
             flavor = "One howl, and the forest answers."))
-        add(king("w_king_moon", "Moon Howler", WOLF, 2, 28, 2, 1, setOf(Keyword.BLOODTHIRST),
+        add(king("w_king_moon", "Moon Howler", WOLF, 2, 22, 2, 1, setOf(Keyword.BLOODTHIRST),
             ability("Moon Call", "Give an ally within 3 a 2-point shield.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(Shield(2))),
             flavor = "Every fallen foe feeds the moon."))
@@ -78,9 +78,9 @@ object CardDatabase {
         add(unit("w_runner", "Howling Runner", WOLF, 3, 4, 4, 1, setOf(PACK_HUNTER)))
         add(unit("w_ghost", "Ghost Wolf", WOLF, 4, 4, 3, 1, setOf(HIDDEN)))
         add(unit("w_ravager", "Pack Ravager", WOLF, 5, 6, 2, 1, setOf(PACK_HUNTER, RETALIATE), elite = true))
-        add(unit("w_packlord", "Ironjaw Packlord", WOLF, 5, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
+        add(unit("w_packlord", "Ironjaw Packlord", WOLF, 4, 10, 3, 1, setOf(PACK_HUNTER, RETALIATE),
             arrival = summons("w_pup", 2), text = "Arrival: two Wolf Pups appear next to him.", champion = true))
-        add(unit("w_midnight", "Midnight Fang", WOLF, 5, 8, 3, 1, setOf(HIDDEN, BACKSTAB), champion = true))
+        add(unit("w_midnight", "Midnight Fang", WOLF, 4, 8, 3, 1, setOf(HIDDEN, BACKSTAB), champion = true))
         add(magic("w_frenzy", "Frenzy", WOLF, "Give an allied unit +2 attack for 1 turn.",
             TargetRule.FRIENDLY, Buff(attack = 2, turns = 1)))
         add(magic("w_bite", "Savage Bite", WOLF, "Deal 4 damage to an enemy unit.", TargetRule.ENEMY, Damage(4), rank = 3))
@@ -100,7 +100,7 @@ object CardDatabase {
         add(equipment("w_tracker", "Tracker's Collar", WOLF, "Pack Hunter and +1 movement.", GrantKeyword(PACK_HUNTER), Buff(move = 1)))
         add(strategy("w_hunt", "The Hunt", WOLF, FieldRule.BLITZ))
         // 0.11: the Wolf Pack is the unit-focused race — a third Champion and three new Elites.
-        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 6, 10, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
+        add(unit("w_fenrir", "Fenrir the Devourer", WOLF, 5, 9, 3, 1, setOf(Keyword.BLOODTHIRST, RETALIATE), champion = true))
         add(unit("w_rimefang", "Rimefang Alpha", WOLF, 4, 7, 2, 1, emptySet(),
             ability("Frost Bite", "Stun an adjacent enemy for 1 turn.", TargetRule(TargetKind.ENEMY_UNIT, 1), 3,
                 effects = listOf(Stun(1))), elite = true))
@@ -131,11 +131,11 @@ object CardDatabase {
         add(equipment("w_charm", "Fang Charm", WOLF, "+1 attack and +1 movement.", Buff(attack = 1, move = 1)))
 
         // ------------------------------------------------------------------ BEAR
-        add(king("b_king_elder", "Elder Bear", BEAR, 2, 28, 1, 1, setOf(Keyword.UNSTOPPABLE),
+        add(king("b_king_elder", "Elder Bear", BEAR, 2, 33, 1, 1, setOf(Keyword.UNSTOPPABLE),
             ability("Earthshaker Roar", "Stun all adjacent enemies for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(1, Side.ENEMY, includeCenter = false, op = Stun(1)))),
             flavor = "The mountain does not move for you."))
-        add(king("b_king_warden", "Cave Warden", BEAR, 2, 28, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
+        add(king("b_king_warden", "Cave Warden", BEAR, 2, 33, 1, 1, setOf(Keyword.GUARDIAN, REGENERATE), null,
             flavor = "Behind her, the den is safe."))
         add(unit("b_cub", "Bear Cub", BEAR, 2, 2, 2, 1, setOf(REGENERATE)))
         add(unit("b_brawler", "Brown Brawler", BEAR, 3, 3, 1, 1, setOf(RETALIATE)))
@@ -208,11 +208,11 @@ object CardDatabase {
         add(equipment("b_claws", "Iron Claws", BEAR, "+2 attack.", Buff(attack = 2)))
 
         // ------------------------------------------------------------------ HAWK
-        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 35, 3, 2, setOf(FLYING),
-            ability("Change of Winds", "Swap places with any allied unit.", TargetRule.FRIENDLY, 2,
+        add(king("h_king_sky", "Sky Sovereign", HAWK, 2, 28, 3, 2, setOf(FLYING),
+            ability("Change of Winds", "Swap places with an allied unit within 3 squares.", TargetRule(TargetKind.FRIENDLY_UNIT, 3), 3,
                 quick = true, effects = listOf(EffectOp.Swap)),
             flavor = "Where the wind blows, the Aerie follows."))
-        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 32, 2, 2, setOf(FLYING, Keyword.TEMPEST),
+        add(king("h_king_storm", "Storm Eagle", HAWK, 2, 27, 2, 2, setOf(FLYING, Keyword.TEMPEST),
             ability("Lightning Strike", "Deal 1 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 4, quick = true, effects = listOf(Damage(1), Stun(1))),
             flavor = "Thunder is just her wings."))
@@ -235,7 +235,7 @@ object CardDatabase {
             ability("Thunderclap", "Deal 2 damage to an enemy within 3 and stun it for 1 turn.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3, effects = listOf(Damage(2), Stun(1))),
             champion = true))
-        add(unit("h_griffin", "Storm Griffin", HAWK, 6, 10, 3, 1, setOf(FLYING, ARMORED), champion = true))
+        add(unit("h_griffin", "Storm Griffin", HAWK, 5, 9, 3, 1, setOf(FLYING, ARMORED), champion = true))
         add(magic("h_gust", "Gust", HAWK, "Interrupt only. Cancel the action you are responding to.",
             TargetRule.STACK, EffectOp.Counter, rank = 2))
         add(magic("h_tailwind", "Tailwind", HAWK, "An allied unit gets +2 movement and Flying for 1 turn.",
@@ -285,11 +285,11 @@ object CardDatabase {
         add(equipment("h_amulet", "Eagle Eye Amulet", HAWK, "+1 health and +1 range.", Buff(health = 1, range = 1)))
 
         // --------------------------------------------------------------- SERPENT
-        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 35, 2, 2, setOf(POISONOUS),
+        add(king("s_king_naga", "Naga Queen", SERPENT, 2, 37, 2, 2, setOf(POISONOUS),
             ability("Enthrall", "Take control of a non-King enemy within 2 that has 3 or less health.",
                 TargetRule(TargetKind.ENEMY_UNIT, 2), 3, effects = listOf(EffectOp.Enthrall(3))),
             flavor = "Look into her eyes. Now fight for her."))
-        add(king("s_king_basilisk", "Basilisk", SERPENT, 2, 31, 1, 1, setOf(Keyword.PETRIFY), null,
+        add(king("s_king_basilisk", "Basilisk", SERPENT, 2, 35, 1, 1, setOf(Keyword.PETRIFY), null,
             flavor = "Stone is patient. So is he."))
         add(unit("s_adder", "Adder", SERPENT, 2, 3, 2, 1, setOf(POISONOUS)))
         add(unit("s_viper", "Viper", SERPENT, 2, 4, 2, 1, setOf(POISONOUS)))
@@ -368,7 +368,7 @@ object CardDatabase {
         add(equipment("s_scales", "Emerald Scales", SERPENT, "+1 health and Armored.", Buff(health = 1), GrantKeyword(ARMORED)))
 
         // ------------------------------------------------------------------ LION
-        add(king("l_king_pride", "Pride King", LION, 5, 33, 2, 1, setOf(Keyword.COMMANDER), null,
+        add(king("l_king_pride", "Pride King", LION, 5, 34, 2, 1, setOf(Keyword.COMMANDER), null,
             flavor = "His roar is an order."))
         add(king("l_king_queen", "Lioness Queen", LION, 2, 31, 2, 1, setOf(PACK_HUNTER, ARMORED),
             ability("Pounce", "Leap next to an enemy within 4, ignoring units in the way, and attack it.",
@@ -389,7 +389,7 @@ object CardDatabase {
         add(unit("l_stalker", "Savanna Stalker", LION, 3, 4, 3, 1, setOf(HIDDEN)))
         add(unit("l_cheetah", "Cheetah Outrider", LION, 3, 3, 5, 1, setOf(PACK_HUNTER)))
         add(unit("l_champion", "Pride Champion", LION, 5, 7, 2, 1, setOf(RETALIATE), elite = true))
-        add(unit("l_paragon", "Sunmane Paragon", LION, 7, 12, 2, 1, setOf(ARMORED, RETALIATE),
+        add(unit("l_paragon", "Sunmane Paragon", LION, 6, 11, 2, 1, setOf(ARMORED, RETALIATE),
             ability("Golden Roar", "Allies within 2 get +1 attack for 1 turn.", TargetRule.SELF, 3,
                 effects = listOf(Area(2, Side.FRIENDLY, includeCenter = false, op = Buff(attack = 1, turns = 1)))),
             champion = true))
@@ -445,11 +445,11 @@ object CardDatabase {
         add(equipment("l_shield", "Pride Shield", LION, "Armored.", GrantKeyword(ARMORED)))
 
         // ---------------------------------------------------------------- VERMIN
-        add(king("v_king_rat", "Rat King", VERMIN, 2, 33, 2, 1, emptySet(),
+        add(king("v_king_rat", "Rat King", VERMIN, 2, 39, 2, 1, emptySet(),
             ability("Call the Mischief", "Two Swarm Rats appear next to him.", TargetRule.SELF, 3,
                 effects = summons(SWARM_RAT, 2)),
             flavor = "A crown of tangled tails. A court of thousands."))
-        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 31, 2, 2, setOf(HIDDEN),
+        add(king("v_king_seer", "Blight Seer", VERMIN, 2, 33, 2, 2, setOf(HIDDEN),
             ability("Blight Bolt", "Deal 2 damage to an enemy within 3 and 1 damage to every other unit next to it, friend or foe.",
                 TargetRule(TargetKind.ENEMY_UNIT, 3), 3,
                 effects = listOf(Damage(2), Area(1, Side.ALL, includeCenter = false, op = Damage(1)))),
