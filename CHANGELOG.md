@@ -38,7 +38,8 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
 - **At most 3 Champions per deck** (like the 3-Strategy cap). Simulations showed each of the first three Champions
   adds about 15 points of win rate and later ones much less, so three is where stacking stops paying.
 - Starter decks re-tuned: each now carries Champions of similar weight.
-- BALANCE_PLACEHOLDER
+- Balance after 4,000 simulated games: every race wins 49.0–52.5%, every King 46.8–54.7% and every starter deck
+  45.0–54.6% (target 44–55%).
 
 ## 0.11.2 — Top-down 2D board
 

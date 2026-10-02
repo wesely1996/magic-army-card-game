@@ -2,6 +2,23 @@
 
 Target set by the product owner: **every race and every King wins between 44% and 55% of its games.**
 
+### v0.12.0 (Kings and Champions charge, Quick spells, structures, evolutions, 6 deploys, at most 3 Champions)
+
+| | First simulation after the v0.12 changes | After the balance pass |
+|---|---|---|
+| Race win rates | 45.7% – 56.4% | **49.0% – 52.5%** |
+| King win rates | 32.7% – 77.2% | **46.8% – 54.7%** |
+| Draws | 0% | **0%** |
+| First player wins | 52.6% | 50.9% |
+| Starter decks (overall) | 25.3% – 73.1% | **45.0% – 54.6%** |
+
+Letting units move and attack in one turn first made games very short: Champions ran straight at the enemy King.
+The move-and-attack trait was narrowed to Kings and Champions (melee only), Kings became sturdy rule engines with
+weak attacks and much more health, and each side now deploys 6 units, so a charge meets a wall of bodies. A
+k-Champions-vs-2 experiment showed each of the first three Champions adding about 15 points of win rate and the
+fourth only about 7, so decks are capped at 3 Champions. Champions were trimmed (e.g. Sunmane Paragon 5/9,
+Fenrir 4/9 without Retaliate) and the four starter decks were re-tuned so each carries Champions of similar weight.
+
 ### v0.11.0 (30 new cards: Wolf units, Bear equipment, Hawk and Serpent magic, Lion Strategy, Vermin mix)
 
 | | After adding the cards |
