@@ -105,8 +105,8 @@ private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
     when (val step = lobby.step) {
         FriendsLobby.Step.Idle, is FriendsLobby.Step.Failed -> {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 10.dp)) {
-                ModeTab("🌍  Internet", internet) { internet = true }
-                ModeTab("📶  Same Wi-Fi / hotspot", !internet) { internet = false }
+                Choice("🌍  Internet", internet) { internet = true }
+                Choice("📶  Same Wi-Fi / hotspot", !internet) { internet = false }
             }
             if (internet) InternetPanel(lobby, name, deck) else {
                 Text("Play a friend on the same Wi-Fi", style = MaterialTheme.typography.titleLarge)
@@ -241,20 +241,6 @@ private fun InternetPanel(lobby: FriendsLobby, name: String, deck: Deck) {
 }
 
 @Composable
-private fun ModeTab(text: String, selected: Boolean, onClick: () -> Unit) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelLarge,
-        color = if (selected) Ink.Line else Ink.Faded,
-        modifier = Modifier
-            .then(if (selected) Modifier.watercolor(Ink.Gold, text.hashCode(), 1.3f) else Modifier.background(Ink.Paper.copy(alpha = 0.5f)))
-            .sketchBorder(if (selected) Ink.Line else Ink.Faded, seed = text.hashCode())
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-    )
-}
-
-@Composable
 private fun GameRow(game: FoundGame, onClick: () -> Unit) {
     Row(
         Modifier
@@ -271,8 +257,9 @@ private fun GameRow(game: FoundGame, onClick: () -> Unit) {
     }
 }
 
+/** A one-line text field in the sketchbook style, with [hint] shown while it is empty. */
 @Composable
-private fun TextBox(value: String, onChange: (String) -> Unit, hint: String, enabled: Boolean = true) {
+internal fun TextBox(value: String, onChange: (String) -> Unit, hint: String, enabled: Boolean = true) {
     Box(
         Modifier
             .fillMaxWidth()

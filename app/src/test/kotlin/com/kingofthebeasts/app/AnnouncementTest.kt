@@ -1,6 +1,6 @@
 package com.kingofthebeasts.app
 
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import com.kingofthebeasts.app.game.GameScreen
 import com.kingofthebeasts.app.game.GameViewModel

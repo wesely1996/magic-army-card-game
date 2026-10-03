@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import com.kingofthebeasts.app.audio.GameAudio
 import com.kingofthebeasts.app.net.Relay
 
@@ -61,42 +62,42 @@ object AppSettings {
     fun setMusic(v: Float) {
         musicVolume = v
         GameAudio.musicVolume = v
-        prefs?.edit()?.putFloat("musicVolume", v)?.apply()
+        prefs?.edit { putFloat("musicVolume", v) }
     }
 
     fun setSfx(v: Float) {
         sfxVolume = v
         GameAudio.sfxVolume = v
-        prefs?.edit()?.putFloat("sfxVolume", v)?.apply()
+        prefs?.edit { putFloat("sfxVolume", v) }
     }
 
     fun setSpeed(s: AnimationSpeed) {
         animationSpeed = s
-        prefs?.edit()?.putString("animationSpeed", s.name)?.apply()
+        prefs?.edit { putString("animationSpeed", s.name) }
     }
 
     fun setScreenAwake(on: Boolean) {
         keepScreenOn = on
-        prefs?.edit()?.putBoolean("keepScreenOn", on)?.apply()
+        prefs?.edit { putBoolean("keepScreenOn", on) }
     }
 
     fun chooseServer(url: String) {
         serverUrl = url
-        prefs?.edit()?.putString("serverUrl", url)?.apply()
+        prefs?.edit { putString("serverUrl", url) }
     }
 
     fun chooseBoardView(flat: Boolean) {
         boardFlat = flat
-        prefs?.edit()?.putBoolean("boardFlat", flat)?.apply()
+        prefs?.edit { putBoolean("boardFlat", flat) }
     }
 
     fun markTutorialOffered() {
         tutorialOffered = true
-        prefs?.edit()?.putBoolean("tutorialOffered", true)?.apply()
+        prefs?.edit { putBoolean("tutorialOffered", true) }
     }
 
     fun setName(name: String) {
         playerName = name
-        prefs?.edit()?.putString("playerName", name)?.apply()
+        prefs?.edit { putString("playerName", name) }
     }
 }

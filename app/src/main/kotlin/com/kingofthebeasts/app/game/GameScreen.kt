@@ -640,9 +640,9 @@ private fun ReconnectingBanner(friend: String, onLeaveForNow: () -> Unit, modifi
 @Composable
 private fun TutorialCoach(
     lesson: TutorialStep, index: Int, onGotIt: () -> Unit,
+    modifier: Modifier = Modifier,
     /** Something is selected on the board: fold the note so the squares are easy to see. */
     choosing: Boolean = false,
-    modifier: Modifier = Modifier,
 ) {
     // Each new lesson opens the note; Hide (or picking a card or unit) folds it into a small tab.
     var folded by remember(index) { mutableStateOf(false) }

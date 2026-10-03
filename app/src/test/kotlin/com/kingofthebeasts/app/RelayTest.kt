@@ -151,17 +151,18 @@ class RelayTest {
         val guestLobby = withContext(thread) { FriendsLobby(context, scope, "test") { relay.url } }
         withTimeout(60_000) {
             withContext(thread) { hostLobby.hostOnline("Ana", StarterDecks.all[1]) }
-            var code: String? = null
-            while (code == null) {
-                code = (hostLobby.step as? FriendsLobby.Step.HostingOnline)?.code
+            var hosting: FriendsLobby.Step.HostingOnline? = null
+            while (hosting == null) {
+                hosting = hostLobby.step as? FriendsLobby.Step.HostingOnline
                 delay(10)
             }
+            val code = hosting.code
             // A typo is turned away with an explanation…
             withContext(thread) { guestLobby.joinOnline("Ben", StarterDecks.all[2], "QQQQQ") }
             while (guestLobby.step !is FriendsLobby.Step.Failed) delay(10)
             assertTrue((guestLobby.step as FriendsLobby.Step.Failed).reason.contains("No game"))
             // …and the right code starts the battle.
-            withContext(thread) { guestLobby.joinOnline("Ben", StarterDecks.all[2], code!!) }
+            withContext(thread) { guestLobby.joinOnline("Ben", StarterDecks.all[2], code) }
             val host = hostLobby.session!!
             val guest = guestLobby.session!!
             host.game.first { it != null }
@@ -172,7 +173,7 @@ class RelayTest {
 
             // The guest's phone loses its connection: both wait, then find each other in the room again.
             val before = relay.connections
-            relay.drop(code!!, "guest")
+            relay.drop(code, "guest")
             while (relay.connections < before + 2) delay(10) // both came back to the room
             host.status.first { it == OnlineSession.Status.Playing }
             guest.status.first { it == OnlineSession.Status.Playing }

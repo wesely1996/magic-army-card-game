@@ -3,7 +3,6 @@ package com.kingofthebeasts.app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -103,22 +101,7 @@ private fun ServerSetting() {
         else "Leave empty to use the built-in server. Both friends need the same server.",
         style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
     )
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .background(Ink.Paper.copy(alpha = 0.7f))
-            .sketchBorder(seed = 4711)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        if (AppSettings.serverUrl.isEmpty()) {
-            Text(Relay.DEFAULT_URL.ifBlank { "Server address" }, style = MaterialTheme.typography.bodyMedium, color = Ink.Faded)
-        }
-        BasicTextField(
-            AppSettings.serverUrl, { AppSettings.chooseServer(it.trim().take(200)) },
-            textStyle = MaterialTheme.typography.bodyMedium, singleLine = true, modifier = Modifier.fillMaxWidth(),
-        )
-    }
+    TextBox(AppSettings.serverUrl, { AppSettings.chooseServer(it.trim().take(200)) }, Relay.DEFAULT_URL.ifBlank { "Server address" })
 }
 
 @Composable
@@ -145,8 +128,9 @@ private fun VolumeRow(label: String, value: Float, onChange: (Float) -> Unit, on
     }
 }
 
+/** One option of a choice row: highlighted when [selected]. */
 @Composable
-private fun Choice(text: String, selected: Boolean, onClick: () -> Unit) {
+internal fun Choice(text: String, selected: Boolean, onClick: () -> Unit) {
     Text(
         text,
         style = MaterialTheme.typography.labelLarge,

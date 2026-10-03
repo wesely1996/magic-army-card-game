@@ -1,0 +1,5 @@
+# Keep line endings consistent on every OS, so a Windows checkout doesn't show every file as changed.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+gradlew text eol=lf

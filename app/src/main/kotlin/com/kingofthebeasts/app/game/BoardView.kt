@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -200,9 +201,10 @@ fun BoardView(
     val state = vm.state
     val version = vm.version
     val context = LocalContext.current
+    val resources = LocalResources.current
     val boardTexture = ImageBitmap.imageResource(R.drawable.board_texture)
     val arts = remember { HashMap<String, ImageBitmap>() }
-    fun art(id: String) = arts.getOrPut(id) { ImageBitmap.imageResource(context.resources, CardArt.res(context, id)) }
+    fun art(id: String) = arts.getOrPut(id) { ImageBitmap.imageResource(resources, CardArt.res(context, id)) }
     val handFace = remember { ResourcesCompat.getFont(context, R.font.kalam_bold) ?: Typeface.DEFAULT_BOLD }
     val textPaint = remember { Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = handFace; textAlign = Paint.Align.CENTER } }
     val bitmapPaint = remember { Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG) }
