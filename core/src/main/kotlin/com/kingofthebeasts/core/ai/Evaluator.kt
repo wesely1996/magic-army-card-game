@@ -12,7 +12,11 @@ import kotlin.math.max
 object Evaluator {
     private const val WIN = 1_000_000.0
 
-    fun evaluate(s: GameState, me: Int): Double {
+    /**
+     * [defendSieges] adds the [siege] term (Pro and Master): the King's guard fights off an attacker
+     * that would otherwise bring him down. Beginner, and the balance simulator built on it, leave it out.
+     */
+    fun evaluate(s: GameState, me: Int, defendSieges: Boolean = false): Double {
         if (s.phase == Phase.GAME_OVER) return when {
             s.isDraw -> 0.0
             s.winner == me -> WIN
@@ -32,8 +36,10 @@ object Evaluator {
             val mover = s.activePlayer
             score -= danger(s, me) * (if (mover == opp) 1.0 else 0.35)
             score += danger(s, opp) * (if (mover == me) 1.0 else 0.35)
-            score -= siege(s, me) * SIEGE_WEIGHT
-            score += siege(s, opp) * SIEGE_WEIGHT
+            if (defendSieges) {
+                score -= siege(s, me) * SIEGE_WEIGHT
+                score += siege(s, opp) * SIEGE_WEIGHT
+            }
         }
 
         val oppKing = s.king(opp)

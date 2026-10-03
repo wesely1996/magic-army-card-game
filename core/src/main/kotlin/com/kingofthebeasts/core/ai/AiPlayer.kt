@@ -53,6 +53,9 @@ class AiPlayer(
 ) {
     private val rng = Random(seed)
 
+    /** Pro and Master also weigh a siege of their King (see [Evaluator.evaluate]); Beginner doesn't. */
+    private fun score(s: GameState, p: Int): Double = Evaluator.evaluate(s, p, defendSieges = difficulty != Difficulty.EASY)
+
     fun choose(s: GameState): Action {
         val d = GameEngine.decision(s)
         return when (d.kind) {
@@ -120,17 +123,17 @@ class AiPlayer(
      * (otherwise a one-step look-ahead never sees the point of stepping up to an enemy).
      */
     private fun settled(sim: GameState, p: Int): Double {
-        val base = Evaluator.evaluate(sim, p)
+        val base = score(sim, p)
         if (sim.phase != Phase.BATTLE || sim.followUp == null || GameEngine.decision(sim).player != p) return base
         val follow = expand(sim, includeCards = false).filter { it.first is Action.Attack }
-        return maxOf(base, follow.maxOfOrNull { Evaluator.evaluate(it.second, p) } ?: base)
+        return maxOf(base, follow.maxOfOrNull { score(it.second, p) } ?: base)
     }
 
     // ---------------------------------------------------------------- medium
 
     private fun chooseBySearch(s: GameState, me: Int): Action {
         val children = expand(s, includeCards = true)
-            .map { (a, c) -> Triple(a, c, Evaluator.evaluate(c, me)) }
+            .map { (a, c) -> Triple(a, c, score(c, me)) }
             .sortedByDescending { it.third }
         if (children.isEmpty()) return Action.Pass
         var best = children.first().first
@@ -147,10 +150,10 @@ class AiPlayer(
 
     /** Alpha-beta value of [s] for [me], looking [plies] more actions ahead. */
     private fun value(s: GameState, me: Int, plies: Int, alphaIn: Double, betaIn: Double): Double {
-        if (plies == 0 || s.phase != Phase.BATTLE) return Evaluator.evaluate(s, me)
+        if (plies == 0 || s.phase != Phase.BATTLE) return score(s, me)
         val maximizing = GameEngine.decision(s).player == me
-        val kids = expand(s, includeCards = maximizing).map { (_, c) -> c to Evaluator.evaluate(c, me) }
-        if (kids.isEmpty()) return Evaluator.evaluate(s, me)
+        val kids = expand(s, includeCards = maximizing).map { (_, c) -> c to score(c, me) }
+        if (kids.isEmpty()) return score(s, me)
         if (plies == 1) return if (maximizing) kids.maxOf { it.second } else kids.minOf { it.second }
 
         val ordered = (if (maximizing) kids.sortedByDescending { it.second } else kids.sortedBy { it.second }).take(INNER_BEAM)
@@ -184,7 +187,7 @@ class AiPlayer(
     private fun chooseByDeepening(s: GameState, me: Int): Action {
         val deadline = System.nanoTime() + thinkMs * 1_000_000
         var order = expand(s, includeCards = true)
-            .map { (a, c) -> Triple(a, c, Evaluator.evaluate(c, me)) }
+            .map { (a, c) -> Triple(a, c, score(c, me)) }
             .sortedByDescending { it.third }
         if (order.isEmpty()) return Action.Pass
         // A winning move needs no thought.
@@ -218,10 +221,10 @@ class AiPlayer(
     /** Like [value], but wider, with a deadline. */
     private fun deepValue(s: GameState, me: Int, plies: Int, alphaIn: Double, betaIn: Double, deadline: Long): Double {
         if (System.nanoTime() > deadline) throw OutOfTime()
-        if (plies == 0 || s.phase != Phase.BATTLE) return Evaluator.evaluate(s, me)
+        if (plies == 0 || s.phase != Phase.BATTLE) return score(s, me)
         val maximizing = GameEngine.decision(s).player == me
-        val kids = expand(s, includeCards = maximizing).map { (_, c) -> c to Evaluator.evaluate(c, me) }
-        if (kids.isEmpty()) return Evaluator.evaluate(s, me)
+        val kids = expand(s, includeCards = maximizing).map { (_, c) -> c to score(c, me) }
+        if (kids.isEmpty()) return score(s, me)
         if (plies == 1) return if (maximizing) kids.maxOf { it.second } else kids.minOf { it.second }
         val beam = if (plies >= 3) HARD_WIDE_BEAM else HARD_INNER_BEAM
         val ordered = (if (maximizing) kids.sortedByDescending { it.second } else kids.sortedBy { it.second }).take(beam)
@@ -247,7 +250,7 @@ class AiPlayer(
     private fun chooseResponse(s: GameState, p: Int): Action {
         val passSim = s.copyForSimulation()
         GameEngine.applyUnchecked(passSim, Action.Pass)
-        val passScore = Evaluator.evaluate(passSim, p)
+        val passScore = score(passSim, p)
         // Easy players often miss the chance to interrupt.
         if (difficulty == Difficulty.EASY && rng.nextDouble() < skipInterruptChance) return Action.Pass
         // Pro looks one action past the chain before judging an answer (and saving the card), Master two.
@@ -258,11 +261,11 @@ class AiPlayer(
             Difficulty.HARD -> 2
         }
         fun judge(sim: GameState): Double =
-            if (lookAhead == 0) Evaluator.evaluate(sim, p)
+            if (lookAhead == 0) score(sim, p)
             else try {
                 deepValue(sim, p, lookAhead, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, deadline)
             } catch (_: OutOfTime) {
-                Evaluator.evaluate(sim, p)
+                score(sim, p)
             }
         var best: Action = Action.Pass
         var bestScore = (if (lookAhead > 0) judge(passSim.also { passAll(it) }) else passScore) + 0.75

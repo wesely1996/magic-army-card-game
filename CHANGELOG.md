@@ -9,12 +9,13 @@ To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter 
   picture is the King you've played most. See your win rates against Beginner, Pro, Master and friends,
   your favourite race and King, results by race, and your **match history** (every finished battle with the
   result, both Kings, the length and the date). Giving up counts as a loss; a friend giving up as a win.
-- **AI defends its King:** it now weighs the damage an attacker next to its King will deal over the turns
-  it takes to bring down, so it fights off a siege instead of growing its army while its King is being
-  chewed up (Pro used to let a Champion maul its King; now it fights it). It still won't trade blows with a
-  Retaliate unit when that only hurts its King faster.
-- **Beginner no longer throws its King away:** it still picks among its top few moves, but never one that
-  loses the King when a safer move exists (e.g. walking into a Sentry tower's range with little health).
+- **Pro and Master defend their King:** when attackers in reach would bring the King down over the next few
+  turns, they weigh that whole siege, not just the next blow, so they fight the attacker off instead of
+  growing their army (Pro used to let a Champion maul its King; now it fights it). They still won't trade
+  blows with a Retaliate unit when that only hurts the King faster. Beginner, and the balance simulator built
+  on it, play as before, so the balance numbers are unchanged.
+- **Beginner's slips stay small:** it still picks among its top few moves, but never one far worse than its
+  best (such as one that loses its King when a safer move exists).
 - A simulation check confirms the win rule over many random battles: the winner always still has their King.
 - A **Rematch** (or a new battle) starts from the default board view, with the hand and drawer closed.
 - The end-of-battle message reads "Your King has fallen" / "You win!".
