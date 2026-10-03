@@ -67,6 +67,8 @@ object Evaluator {
      * each will take to kill: an attacker that would need three blows to bring down is three hits on
      * the King. [danger] only sees the next blow, which doesn't change while the King's guard chips
      * at an attacker, so without this the AI would rather grow its army than fight off a siege.
+     * It only counts when those blows would add up to the King's death; otherwise the usual
+     * [danger] term is enough, and the AI keeps playing its normal game.
      */
     private fun siege(s: GameState, side: Int): Double {
         val king = s.king(side) ?: return 0.0
@@ -87,7 +89,8 @@ object Evaluator {
             val turns = if (best <= 0) SIEGE_TURNS else minOf(SIEGE_TURNS, (e.hp + best - 1) / best)
             total += hit * turns
         }
-        return total
+        // Only a real siege counts: one that would bring the King down if nobody fought back.
+        return if (total >= king.hp) total else 0.0
     }
 
     /**
