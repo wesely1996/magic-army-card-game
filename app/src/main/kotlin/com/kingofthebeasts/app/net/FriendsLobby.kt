@@ -60,6 +60,8 @@ class FriendsLobby(
     private var job: Job? = null
     private var watch: Job? = null
     private var reconnect: Job? = null
+    /** Internet play: keeps this phone in the relay room (see [stayInRoom]). */
+    private var relay: Job? = null
 
     private fun keep(battle: OnlineSave?) {
         saves.save(battle)
@@ -130,21 +132,17 @@ class FriendsLobby(
     /** Opens a game at the relay server and waits for a friend to join with its code. */
     fun hostOnline(name: String, deck: Deck) {
         reset()
-        val url = relayUrl()
         val s = newSession(isHost = true, name, deck)
-        job = scope.launch {
+        relay = scope.launch {
             // A clash with a code someone else is using is very unlikely; just try another.
             repeat(5) {
                 val code = Relay.newCode()
-                step = Step.HostingOnline(code)
                 s.room = code
-                val link = runCatching { RelayLink.connect(url, code, host = true, fresh = true) }.getOrElse { e ->
-                    if (e is RelayRefused && e.code == RelayRefused.TAKEN) return@repeat
-                    return@launch failed(s, e)
+                try {
+                    stayInRoom(s, code, firstVisit = true)
+                    return@launch
+                } catch (_: CodeTaken) {
                 }
-                step = Step.Connected
-                s.attach(link)
-                return@launch
             }
             failed(s, RelayRefused(RelayRefused.TAKEN, "Couldn't open a game on the server. Try again."))
         }
@@ -153,16 +151,54 @@ class FriendsLobby(
     /** Joins a friend's internet game by its [code]. */
     fun joinOnline(name: String, deck: Deck, code: String) {
         reset()
-        step = Step.Connecting("game $code")
-        val url = relayUrl()
         val s = newSession(isHost = false, name, deck)
         s.room = code
-        job = scope.launch {
-            val link = runCatching { RelayLink.connect(url, code, host = false, fresh = true) }.getOrElse { e ->
-                return@launch failed(s, e)
+        relay = scope.launch { stayInRoom(s, code, firstVisit = true) }
+    }
+
+    private class CodeTaken : Exception()
+
+    /**
+     * Keeps this phone in relay room [code] for as long as the session lasts: connects, hands each new
+     * link to the session, and whenever a link closes (the friend dropped, or this phone lost its
+     * connection, e.g. in the background while sharing the code) goes back to the room. Only a first
+     * visit that the relay turns away, or a server that can't be reached at all, ends it.
+     */
+    private suspend fun stayInRoom(s: OnlineSession, code: String, firstVisit: Boolean) {
+        var fresh = firstVisit
+        var misses = 0
+        while (s.status.value !is OnlineSession.Status.Ended) {
+            if (s.game.value == null) step = if (s.isHost) Step.HostingOnline(code) else Step.Connecting("game $code")
+            var inRoom = false
+            val link = try {
+                RelayLink.connect(relayUrl(), code, s.isHost, fresh, onWaiting = { inRoom = true })
+            } catch (e: RelayRefused) {
+                when {
+                    !fresh || inRoom -> {
+                        // Already in the room once: just come back (no internet right now, or the server is busy).
+                        fresh = false
+                        delay(2000)
+                        continue
+                    }
+                    s.isHost && e.code == RelayRefused.TAKEN -> throw CodeTaken()
+                    // The host may be reconnecting just now; give them a moment.
+                    !s.isHost && e.code == RelayRefused.NO_GAME && misses++ < 3 -> {
+                        delay(2000)
+                        continue
+                    }
+                    else -> return failed(s, e)
+                }
             }
-            step = Step.Connected
+            fresh = false
+            link.onPeerBack = { scope.launch { s.greetAgain() } }
+            if (s.game.value == null) step = Step.Connected
             s.attach(link)
+            try {
+                link.awaitClosed()
+            } finally {
+                link.close()
+            }
+            delay(500)
         }
     }
 
@@ -184,8 +220,9 @@ class FriendsLobby(
         val save = saved ?: return
         reset()
         val deck = if (save.isHost) save.start.hostDeck else save.start.guestDeck
-        newSession(save.isHost, save.myName, deck, restore = save)
+        val s = newSession(save.isHost, save.myName, deck, restore = save)
         step = Step.Connected
+        save.room?.let { code -> relay = scope.launch { stayInRoom(s, code, firstVisit = false) } }
     }
 
     /** Gives up the saved battle (the friend can no longer rejoin it either). */
@@ -201,13 +238,8 @@ class FriendsLobby(
                 if (s.isHost) stopListening()
             }
             OnlineSession.Status.Reconnecting -> if (reconnect?.isActive != true) {
-                reconnect = scope.launch {
-                    when {
-                        s.room != null -> returnToRoom(s, s.room!!)
-                        s.isHost -> relisten(s)
-                        else -> knock(s)
-                    }
-                }
+                // Over the internet the relay loop already goes back to the room by itself.
+                if (s.room == null) reconnect = scope.launch { if (s.isHost) relisten(s) else knock(s) }
             }
             is OnlineSession.Status.Ended -> {
                 reconnect?.cancel()
@@ -248,20 +280,6 @@ class FriendsLobby(
         browser.stop()
     }
 
-    /** Over the internet: go back to the battle's room until the friend is there too. */
-    private suspend fun returnToRoom(s: OnlineSession, code: String) {
-        while (s.status.value == OnlineSession.Status.Reconnecting) {
-            val link = runCatching { RelayLink.connect(relayUrl(), code, s.isHost, fresh = false) }.getOrNull()
-            if (link == null) {
-                delay(3000) // no internet right now, or the server is busy
-                continue
-            }
-            s.attach(link)
-            // Give the hello a moment; if the friend turned us down or dropped again, go back.
-            delay(3000)
-        }
-    }
-
     /** Leave the battle but keep it saved, to rejoin later. */
     fun leaveForNow() {
         session?.leaveForNow()
@@ -272,6 +290,8 @@ class FriendsLobby(
     fun reset(keepSession: Boolean = false) {
         reconnect?.cancel()
         reconnect = null
+        relay?.cancel()
+        relay = null
         stopListening()
         browser.stop()
         if (!keepSession) {

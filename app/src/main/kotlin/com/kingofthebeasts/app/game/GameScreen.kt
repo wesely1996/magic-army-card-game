@@ -244,13 +244,6 @@ fun GameScreen(
                         Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
                     )
                 }
-                vm.lesson?.let { lesson ->
-                    TutorialCoach(
-                        lesson, vm.tutorialStep, onGotIt = vm::acknowledgeLesson,
-                        choosing = vm.selection != Selection.None,
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
-                    )
-                }
                 HandOverlay(
                     vm, actions,
                     expanded = handExpanded,
@@ -258,6 +251,14 @@ fun GameScreen(
                     onInspect = { detail = it to null },
                     modifier = Modifier.matchParentSize(),
                 )
+                // Drawn last so the lesson note sits above the hand: what you see of it is what you tap.
+                vm.lesson?.let { lesson ->
+                    TutorialCoach(
+                        lesson, vm.tutorialStep, onGotIt = vm::acknowledgeLesson,
+                        choosing = vm.selection != Selection.None,
+                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp, start = 150.dp, end = 12.dp),
+                    )
+                }
             }
             ActionRail(vm, actions, onOpen = { drawerOpen = true }, modifier = Modifier.align(Alignment.CenterEnd))
             AnimatedVisibility(drawerOpen, enter = fadeIn(), exit = fadeOut()) {

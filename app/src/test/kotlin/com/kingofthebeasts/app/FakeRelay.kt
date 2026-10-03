@@ -18,6 +18,10 @@ class FakeRelay : AutoCloseable {
     }
 
     private val rooms = mutableMapOf<String, Room>()
+    /** Connections the phone has lost but the relay still thinks are open: messages to them vanish. */
+    private val ghosts = mutableSetOf<WebSocket>()
+    /** Rooms and roles whose next connection never hears the other player (see [holdMessagesTo]). */
+    private val deafNext = mutableSetOf<Pair<String, String>>()
     private val lock = Any()
     private val server = MockWebServer()
 
@@ -62,6 +66,7 @@ class FakeRelay : AutoCloseable {
                 return@synchronized
             }
             room.sockets[role] = webSocket
+            if (deafNext.remove(code to role)) ghosts += webSocket
             mine?.close(4000, "Replaced by a new connection.")
             if (theirs != null) {
                 webSocket.send(PAIRED)
@@ -73,7 +78,7 @@ class FakeRelay : AutoCloseable {
 
         override fun onMessage(webSocket: WebSocket, text: String) = synchronized(lock) {
             val room = rooms[code] ?: return@synchronized
-            if (room.sockets[role] === webSocket) room.sockets[other]?.send(text)
+            if (room.sockets[role] === webSocket) room.sockets[other]?.takeIf { it !in ghosts }?.send(text)
         }
 
         override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
@@ -85,7 +90,8 @@ class FakeRelay : AutoCloseable {
 
         private fun gone(webSocket: WebSocket) = synchronized(lock) {
             val room = rooms[code] ?: return@synchronized
-            if (room.sockets[role] !== webSocket) return@synchronized // replaced, or refused
+            if (room.sockets[role] !== webSocket) return@synchronized // replaced or refused
+            if (webSocket in ghosts) return@synchronized // lost: the relay hasn't noticed
             room.sockets.remove(role)
             room.sockets[other]?.send(LEFT)
         }
@@ -97,6 +103,22 @@ class FakeRelay : AutoCloseable {
         val ws = room.sockets.remove(role) ?: error("nobody there")
         room.sockets[if (role == "host") "guest" else "host"]?.send(LEFT)
         ws.close(1001, "Network lost")
+    }
+
+    /**
+     * [role]'s phone loses its connection in room [code] without the relay noticing (as when Android
+     * cuts an app's network in the background): the phone sees its link close, while the relay keeps
+     * the dead connection as the player's until the phone comes back.
+     */
+    fun ghost(code: String, role: String) = synchronized(lock) {
+        val ws = rooms[code]?.sockets?.get(role) ?: error("nobody there")
+        ghosts += ws
+        ws.close(1001, "Network lost")
+    }
+
+    /** The next [role] to join room [code] is paired but never receives the other player's messages. */
+    fun holdMessagesTo(code: String, role: String) = synchronized(lock) {
+        deafNext += code to role
     }
 
     override fun close() {

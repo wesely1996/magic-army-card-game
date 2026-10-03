@@ -1,6 +1,9 @@
 package com.kingofthebeasts.app.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -135,8 +138,15 @@ private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
                 step.code,
                 style = MaterialTheme.typography.displayMedium,
                 color = Ink.You,
-                modifier = Modifier.padding(vertical = 6.dp),
+                modifier = Modifier
+                    .clickable {
+                        val clipboard = context.getSystemService(ClipboardManager::class.java)
+                        clipboard?.setPrimaryClip(ClipData.newPlainText("Game code", step.code))
+                        Toast.makeText(context, "Code copied", Toast.LENGTH_SHORT).show()
+                    }
+                    .padding(vertical = 6.dp),
             )
+            Text("Tap the code to copy it.", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
             Text(
                 "Tell your friend this code. They tap Internet → Join, type it in, and the battle starts. " +
                     "Keep this screen open until they do.",

@@ -192,4 +192,75 @@ class RelayTest {
             }
         }
     }
+
+    /**
+     * The host shares the code and its phone quietly drops the connection meanwhile; the friend joins
+     * (paired with the dead connection) and the host comes back: the battle must still start.
+     */
+    @Test
+    fun theHostLosingItsConnectionWhileWaitingStillGetsTheBattle() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        val hostLobby = withContext(thread) { FriendsLobby(context, scope, "test") { relay.url } }
+        val guestLobby = withContext(thread) { FriendsLobby(context, scope, "test") { relay.url } }
+        withTimeout(60_000) {
+            withContext(thread) { hostLobby.hostOnline("Ana", StarterDecks.all[1]) }
+            var hosting: FriendsLobby.Step.HostingOnline? = null
+            while (hosting == null || relay.connections < 1) {
+                hosting = hostLobby.step as? FriendsLobby.Step.HostingOnline
+                delay(10)
+            }
+            delay(200) // the host is waiting in the room
+            relay.ghost(hosting.code, "host")
+            withContext(thread) { guestLobby.joinOnline("Ben", StarterDecks.all[2], hosting.code) }
+            val host = hostLobby.session!!
+            val guest = guestLobby.session!!
+            host.game.first { it != null }
+            guest.game.first { it != null }
+            guest.status.first { it == OnlineSession.Status.Playing }
+            host.status.first { it == OnlineSession.Status.Playing }
+            delay(500)
+            assertEquals(OnlineSession.Status.Playing, host.status.value)
+            assertEquals(OnlineSession.Status.Playing, guest.status.value)
+            assertEquals(hosting.code, (hostLobby.step as? FriendsLobby.Step.HostingOnline)?.code ?: hosting.code)
+            assertEquals("Ben", host.peerName)
+            withContext(thread) {
+                hostLobby.reset()
+                guestLobby.reset()
+            }
+        }
+    }
+
+    /** Same, but it's the friend's connection that dies right after joining. */
+    @Test
+    fun theGuestLosingItsConnectionBeforeTheBattleStillGetsIt() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        val hostLobby = withContext(thread) { FriendsLobby(context, scope, "test") { relay.url } }
+        val guestLobby = withContext(thread) { FriendsLobby(context, scope, "test") { relay.url } }
+        withTimeout(60_000) {
+            withContext(thread) { hostLobby.hostOnline("Ana", StarterDecks.all[1]) }
+            var hosting: FriendsLobby.Step.HostingOnline? = null
+            while (hosting == null || relay.connections < 1) {
+                hosting = hostLobby.step as? FriendsLobby.Step.HostingOnline
+                delay(10)
+            }
+            delay(200)
+            // The host's hello goes to a guest connection that dies before reading it.
+            relay.holdMessagesTo(hosting.code, "guest")
+            withContext(thread) { guestLobby.joinOnline("Ben", StarterDecks.all[2], hosting.code) }
+            while (guestLobby.step != FriendsLobby.Step.Connected) delay(10)
+            delay(300)
+            relay.ghost(hosting.code, "guest")
+            hostLobby.session!!.game.first { it != null }
+            guestLobby.session!!.game.first { it != null }
+            guestLobby.session!!.status.first { it == OnlineSession.Status.Playing }
+            hostLobby.session!!.status.first { it == OnlineSession.Status.Playing }
+            delay(500) // nobody turns anybody away afterwards
+            assertEquals(OnlineSession.Status.Playing, hostLobby.session!!.status.value)
+            assertEquals(OnlineSession.Status.Playing, guestLobby.session!!.status.value)
+            withContext(thread) {
+                hostLobby.reset()
+                guestLobby.reset()
+            }
+        }
+    }
 }

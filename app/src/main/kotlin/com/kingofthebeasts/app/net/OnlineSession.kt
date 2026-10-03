@@ -171,12 +171,21 @@ class OnlineSession(
         }
     }
 
-    /** The link [l] went quiet or closed. Mid-battle that only means waiting for a new one. */
+    /**
+     * The link [l] went quiet or closed. Mid-battle that only means waiting for a new one; over the
+     * internet ([room] set) so does a drop before the first battle, since both phones go back to the room.
+     */
     private fun dropped(l: Link) {
         if (link !== l || statusFlow.value is Status.Ended) return
         link = null
-        if (gameFlow.value != null && !gameOver) statusFlow.value = Status.Reconnecting
+        val waiting = gameFlow.value == null && room != null
+        if (gameFlow.value != null && !gameOver || waiting) statusFlow.value = Status.Reconnecting
         else end("The connection to your friend was lost.")
+    }
+
+    /** Say hello again on the current link: the friend came back and missed the first one. */
+    fun greetAgain() {
+        if (link != null && statusFlow.value !is Status.Ended) send(hello())
     }
 
     internal fun send(m: NetMessage) {
@@ -220,6 +229,13 @@ class OnlineSession(
         if (g != null && !gameOver) {
             // A battle is going on: only the same friend, rejoining the same battle, may go on.
             val r = m.rejoin
+            if (r == null && isHost && log.isEmpty() && m.name == g.start.guestName) {
+                // The friend lost the connection before the start of the battle reached them: send it again.
+                peerName = m.name
+                send(g.start)
+                statusFlow.value = Status.Playing
+                return
+            }
             if (r == null || r.session != sessionId || r.game != g.start.game) {
                 return refuse("${m.name} isn't rejoining your battle with ${peerName ?: "your friend"}.", final = false)
             }
@@ -227,6 +243,11 @@ class OnlineSession(
             statusFlow.value = Status.Playing
             // Send everything they missed while the connection was down.
             for (act in log.drop(r.have)) send(act)
+            return
+        }
+        if (m.rejoin?.have == 0 && g == null && !isHost) {
+            // The host started the battle but the start never reached us; it is sent again on our hello.
+            peerName = m.name
             return
         }
         if (m.rejoin != null && (g == null || gameOver)) {

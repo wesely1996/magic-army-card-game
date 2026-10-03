@@ -54,23 +54,30 @@ class RelayRefused(val code: Int, message: String) : IOException(message) {
  * A [Link] through the relay. Connect with [RelayLink.connect], which returns once both players are
  * in the room. If the other player's connection closes the relay says so and this link closes too,
  * so the session waits for a new one exactly as it does when a Wi-Fi connection drops.
+ *
+ * A phone can lose its connection without the relay noticing at once (e.g. when the app goes to the
+ * background while the player shares the code). When that phone comes back the relay pairs the two
+ * again, and the phone that stayed sees a second "paired": [onPeerBack] then lets it say hello again,
+ * since its first hello went to the lost connection.
  */
 class RelayLink private constructor() : Link {
     private val input = Channel<String>(Channel.UNLIMITED)
     override val lines: ReceiveChannel<String> get() = input
     private val paired = CompletableDeferred<Unit>()
+    private val closed = CompletableDeferred<Unit>()
     private var socket: WebSocket? = null
     private var onWaiting: () -> Unit = {}
+    /** The other player reconnected to this room after a drop the relay hadn't noticed. */
+    var onPeerBack: () -> Unit = {}
 
     private val listener = object : WebSocketListener() {
         override fun onMessage(webSocket: WebSocket, text: String) {
             when (text) {
-                PAIRED -> paired.complete(Unit)
+                PAIRED -> if (!paired.complete(Unit)) onPeerBack()
                 WAITING -> onWaiting()
                 LEFT -> {
                     // The friend's connection dropped; they come back on a new link.
-                    input.close()
-                    webSocket.close(1000, null)
+                    close()
                 }
                 else -> input.trySend(text)
             }
@@ -93,7 +100,11 @@ class RelayLink private constructor() : Link {
     private fun ended(why: RelayRefused) {
         paired.completeExceptionally(why)
         input.close()
+        closed.complete(Unit)
     }
+
+    /** Waits until this link is closed, by either side or by the network. */
+    suspend fun awaitClosed() = closed.await()
 
     override fun send(line: String) {
         socket?.send(line)
@@ -102,6 +113,7 @@ class RelayLink private constructor() : Link {
     override fun close() {
         socket?.close(1000, null)
         input.close()
+        closed.complete(Unit)
     }
 
     companion object {
