@@ -5,7 +5,7 @@ plugins {
 }
 
 // Version code from the version name (1.2.3 -> 10203), so every new version installs as an update.
-val appVersion = (project.findProperty("versionName") as String?) ?: "0.12.0"
+val appVersion = (project.findProperty("versionName") as String?) ?: "0.13.0"
 fun versionCodeOf(name: String): Int {
     val (major, minor, patch) = (name.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     return major * 10_000 + minor * 100 + patch
@@ -102,9 +102,11 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.okhttp)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    testImplementation(libs.okhttp.mockwebserver)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

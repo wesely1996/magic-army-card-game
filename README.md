@@ -4,7 +4,7 @@ A 2.5D card–chess hybrid for Android. Build a 40-card deck from up to three an
 races, deploy your army on a chessboard, and battle to bring down the enemy King.
 The art is hand-drawn ink over watercolor washes.
 
-> Status: **playable MVP**. You play against the computer (Beginner, Pro or Master) or a friend on the same Wi-Fi.
+> Status: **playable MVP**. You play against the computer (Beginner, Pro or Master) or a friend, over the internet or on the same Wi-Fi.
 
 <p>
 <img src="docs/screenshots/battle.webp" width="420" alt="Battle: your hand in front of the board">
@@ -49,7 +49,7 @@ The art is hand-drawn ink over watercolor washes.
 | **Animations** | Every action plays out on the board: melee units lunge at their target, archers loose arrows, spells and abilities fly as glowing orbs and burst on impact (orange harms, green helps, violet controls), hit units shake and flash red, fallen units topple and fade, played cards fly in from their owner's side, new units drop onto the board, and Strategy cards wash the whole board in their colour. |
 | **Tutorial** | A guided first battle (offered on first launch, and under **Play** and **How to Play**). A coach note teaches one thing at a time — deploying, moving, answering an attack with a Magic card, the action queue, Magic, attacking, Strategy fields — and only the move being taught lights up, until you defeat the rival's King. **▲ Hide** folds the note into a small tab (it also folds by itself when you pick a card or unit); tap the tab to read it again. |
 | **Menu** | **Play** opens the play options: **Continue** (your battle in progress), **New game** (against the AI), **Tutorial** and **With friends** (online), with **Back** to the main menu. The **⚙** wheel in the top corner opens Settings. |
-| **With friends** | Online play on the same Wi-Fi, peer to peer (no server, no account). One player taps **Host a game**, the other **Join a game** and picks it from the list (or types the address the host shows). Both phones run the battle; only moves travel, and a checksum after every action makes sure both copies agree. Rematch after a battle. If the connection drops, the battle waits and reconnects by itself; **Leave for now** keeps it saved so you can both **Rejoin** it later from With friends (even after closing the app). **Forfeit** hands your friend the win. Both need the same app version. |
+| **With friends** | Online play, two ways. **Internet:** one player taps **Host a game** and gets a 5-letter code, the other types it under **Join**; works on Wi-Fi or mobile data through a tiny free relay server (no account). **Same Wi-Fi / hotspot:** peer to peer with no internet at all; one player taps **Host a game**, the other **Join a game** and picks it from the list (or types the address the host shows). This also works when one phone shares a hotspot and the other joins it. Both phones run the battle; only moves travel, and a checksum after every action makes sure both copies agree. Rematch after a battle. If the connection drops, the battle waits and reconnects by itself; **Leave for now** keeps it saved so you can both **Rejoin** it later from With friends (even after closing the app). **Forfeit** hands your friend the win. Both need the same app version. |
 | **Continue** | Battles are saved after every move. Leave a battle (or close the app) and **Play → Continue** picks it up; **Forfeit** ends it for good. |
 | **Sound** | Medieval background music (menu, battle, victory and defeat themes) and sound effects for every action: swords, arrows, hits, falls, spells, cards and turns. All CC0, see [CREDITS.md](CREDITS.md). |
 | **Settings** | Music and sound effect volume, animation speed (Slow / Normal / Fast, also paces the AI), and keeping the screen on during battles. Open it from the ⚙ wheel on the main menu or during a battle. |
@@ -76,10 +76,12 @@ docs/        Design notes and plan.
 
 * **Engine** (`core/.../game/GameEngine.kt`): deterministic and action-based. The same seed and the same
   actions always produce the same game, which is what online play and resuming build on.
-* **Online play** (`core/.../net/NetProtocol.kt`, `app/.../net`): JSON lines over a TCP socket between two
-  phones on the same Wi-Fi, found with Network Service Discovery. The host picks the seed; each side sends
-  its own actions with a checksum of the whole game state, and the other side checks the move is legal and
-  the checksums match. The transport is a small `Link` interface, so an internet connection can be added.
+* **Online play** (`core/.../net/NetProtocol.kt`, `app/.../net`): JSON lines between the two phones over a
+  small `Link` interface. On the same Wi-Fi it's a TCP socket, with games found by Network Service Discovery;
+  over the internet it's a WebSocket through the relay in `server/` (a Cloudflare Worker that pairs two
+  phones by room code and passes messages through; see [server/README.md](server/README.md)). The host picks
+  the seed; each side sends its own actions with a checksum of the whole game state, and the other side checks
+  the move is legal and the checksums match.
 * **AI** (`core/.../ai`): positions are scored on material, King safety, next-turn threats and board advance.
   *Beginner* picks the best-looking action one step ahead, with some noise. *Pro* runs a 2-ply
   search (its action → your reply → its action) over the most promising candidates at each level. It

@@ -107,6 +107,8 @@ class OnlineSession(
     /** Where the host was reached (guest side), kept in the save for reconnecting. */
     var hostAddress: String? = restore?.hostAddress
     var hostPort: Int = restore?.hostPort ?: 0
+    /** The relay room, when playing over the internet; kept in the save for reconnecting. */
+    var room: String? = restore?.room
 
     private var sessionId: Long = restore?.start?.session ?: if (isHost) Random.nextLong() else 0L
     /** Every action of the current game, both players', in order. */
@@ -286,7 +288,7 @@ class OnlineSession(
 
     private fun save() {
         val g = gameFlow.value ?: return
-        if (!gameOver) onSave(OnlineSave(isHost, g.start, log.toList(), hostAddress, hostPort))
+        if (!gameOver) onSave(OnlineSave(isHost, g.start, log.toList(), hostAddress, hostPort, room))
     }
 
     /** Ask for (or accept) another game with the same decks once this one is over. */

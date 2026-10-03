@@ -7,23 +7,37 @@ import androidx.compose.runtime.setValue
 import com.kingofthebeasts.app.decks.OnlineSaveRepository
 import com.kingofthebeasts.core.deck.Deck
 import com.kingofthebeasts.core.net.OnlineSave
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Finding a friend on the same Wi-Fi: host a game and wait, or browse the games nearby and join
- * one (or type its address). Once connected, [session] carries the games. If the connection drops
- * mid-battle the lobby gets it back: the host listens and announces the game again while the guest
- * keeps knocking on the host's last address (or finds it again by name). The battle is saved after
- * every action, so it can also be rejoined later with [rejoin].
+ * Finding a friend, on the same Wi-Fi or over the internet.
+ *
+ * On the same Wi-Fi (or one phone's hotspot): host a game and wait, or browse the games nearby and
+ * join one (or type its address). Over the internet: host a game to get a room code at the relay
+ * server, and the friend joins with that code. Once connected, [session] carries the games.
+ *
+ * If the connection drops mid-battle the lobby gets it back. On Wi-Fi the host listens and announces
+ * the game again while the guest keeps knocking on the host's last address (or finds it again by
+ * name); over the internet both go back to the same room. The battle is saved after every action,
+ * so it can also be rejoined later with [rejoin].
  */
-class FriendsLobby(private val context: Context, private val scope: CoroutineScope, private val appVersion: String) {
+class FriendsLobby(
+    private val context: Context,
+    private val scope: CoroutineScope,
+    private val appVersion: String,
+    /** The relay server for internet play; blank when none is set up. */
+    private val relayUrl: () -> String,
+) {
     sealed interface Step {
         data object Idle : Step
         /** Waiting for a friend; they can also join by one of [addresses]. */
         data class Hosting(val name: String, val addresses: List<String>, val port: Int) : Step
+        /** Hosting over the internet: waiting for a friend to join with [code]. */
+        data class HostingOnline(val code: String) : Step
         data object Browsing : Step
         data class Connecting(val to: String) : Step
         /** Connected (or reconnecting); the session takes it from here. */
@@ -113,6 +127,58 @@ class FriendsLobby(private val context: Context, private val scope: CoroutineSco
         }
     }
 
+    /** Opens a game at the relay server and waits for a friend to join with its code. */
+    fun hostOnline(name: String, deck: Deck) {
+        reset()
+        val url = relayUrl()
+        val s = newSession(isHost = true, name, deck)
+        job = scope.launch {
+            // A clash with a code someone else is using is very unlikely; just try another.
+            repeat(5) {
+                val code = Relay.newCode()
+                step = Step.HostingOnline(code)
+                s.room = code
+                val link = runCatching { RelayLink.connect(url, code, host = true, fresh = true) }.getOrElse { e ->
+                    if (e is RelayRefused && e.code == RelayRefused.TAKEN) return@repeat
+                    return@launch failed(s, e)
+                }
+                step = Step.Connected
+                s.attach(link)
+                return@launch
+            }
+            failed(s, RelayRefused(RelayRefused.TAKEN, "Couldn't open a game on the server. Try again."))
+        }
+    }
+
+    /** Joins a friend's internet game by its [code]. */
+    fun joinOnline(name: String, deck: Deck, code: String) {
+        reset()
+        step = Step.Connecting("game $code")
+        val url = relayUrl()
+        val s = newSession(isHost = false, name, deck)
+        s.room = code
+        job = scope.launch {
+            val link = runCatching { RelayLink.connect(url, code, host = false, fresh = true) }.getOrElse { e ->
+                return@launch failed(s, e)
+            }
+            step = Step.Connected
+            s.attach(link)
+        }
+    }
+
+    private fun failed(s: OnlineSession, e: Throwable) {
+        if (e is CancellationException) throw e
+        step = Step.Failed(
+            when ((e as? RelayRefused)?.code) {
+                RelayRefused.NO_GAME -> "No game with that code is waiting. Check the code with your friend; they need to keep the game open."
+                RelayRefused.TAKEN -> e.message ?: "That game already has two players."
+                else -> e.message ?: "Couldn't reach the game server. Check your internet connection."
+            },
+        )
+        if (session === s) session = null
+        watch?.cancel()
+    }
+
     /** Picks the saved battle back up: the host opens it again, the guest looks for the host. */
     fun rejoin() {
         val save = saved ?: return
@@ -135,7 +201,13 @@ class FriendsLobby(private val context: Context, private val scope: CoroutineSco
                 if (s.isHost) stopListening()
             }
             OnlineSession.Status.Reconnecting -> if (reconnect?.isActive != true) {
-                reconnect = scope.launch { if (s.isHost) relisten(s) else knock(s) }
+                reconnect = scope.launch {
+                    when {
+                        s.room != null -> returnToRoom(s, s.room!!)
+                        s.isHost -> relisten(s)
+                        else -> knock(s)
+                    }
+                }
             }
             is OnlineSession.Status.Ended -> {
                 reconnect?.cancel()
@@ -174,6 +246,20 @@ class FriendsLobby(private val context: Context, private val scope: CoroutineSco
             delay(2500)
         }
         browser.stop()
+    }
+
+    /** Over the internet: go back to the battle's room until the friend is there too. */
+    private suspend fun returnToRoom(s: OnlineSession, code: String) {
+        while (s.status.value == OnlineSession.Status.Reconnecting) {
+            val link = runCatching { RelayLink.connect(relayUrl(), code, s.isHost, fresh = false) }.getOrNull()
+            if (link == null) {
+                delay(3000) // no internet right now, or the server is busy
+                continue
+            }
+            s.attach(link)
+            // Give the hello a moment; if the friend turned us down or dropped again, go back.
+            delay(3000)
+        }
     }
 
     /** Leave the battle but keep it saved, to rejoin later. */

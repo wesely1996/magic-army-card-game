@@ -72,6 +72,8 @@ data class OnlineSave(
     /** Where the host was last reached (guest only), to reconnect. */
     val hostAddress: String? = null,
     val hostPort: Int = 0,
+    /** The relay room code, for a battle played over the internet. */
+    val room: String? = null,
 ) {
     val peerName: String get() = if (isHost) start.guestName else start.hostName
     val myName: String get() = if (isHost) start.hostName else start.guestName

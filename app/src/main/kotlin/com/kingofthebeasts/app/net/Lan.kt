@@ -14,13 +14,20 @@ import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 
+/** Network interfaces for mobile data (rmnet, ccmni, pdp…) and VPNs (tun, ppp…). */
+private val NOT_LOCAL = listOf("rmnet", "ccmni", "pdp", "v4-", "clat", "tun", "ppp", "ipsec", "dummy")
+
 /** A game someone is hosting on this Wi-Fi. */
 data class FoundGame(val name: String, val host: String, val port: Int)
 
-/** This phone's addresses on the local network, e.g. "192.168.1.23", for joining by hand. */
+/**
+ * This phone's addresses on the local network, e.g. "192.168.1.23", for joining by hand: Wi-Fi, and
+ * the hotspot when this phone shares one. Mobile data and VPN interfaces are left out, since a friend
+ * can't reach those directly.
+ */
 fun localAddresses(): List<String> = runCatching {
     NetworkInterface.getNetworkInterfaces().toList()
-        .filter { it.isUp && !it.isLoopback }
+        .filter { it.isUp && !it.isLoopback && !it.isVirtual && NOT_LOCAL.none { p -> it.name.startsWith(p) } }
         .flatMap { it.inetAddresses.toList() }
         .filterIsInstance<Inet4Address>()
         .filter { it.isSiteLocalAddress }

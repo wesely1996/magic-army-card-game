@@ -3,6 +3,7 @@ package com.kingofthebeasts.app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.kingofthebeasts.app.audio.GameAudio
 import com.kingofthebeasts.app.audio.Sfx
+import com.kingofthebeasts.app.net.Relay
 import com.kingofthebeasts.app.settings.AnimationSpeed
 import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.app.ui.theme.Ink
@@ -39,6 +42,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             Row(Modifier.weight(1f).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
                     SettingsPanel()
+                    ServerSetting()
                 }
                 Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
                     Credits()
@@ -85,6 +89,35 @@ fun SettingsPanel(modifier: Modifier = Modifier) {
             Choice("On", AppSettings.keepScreenOn) { AppSettings.setScreenAwake(true) }
             Choice("Off", !AppSettings.keepScreenOn) { AppSettings.setScreenAwake(false) }
         }
+    }
+}
+
+/** Which relay server internet play goes through; only needed to use a server of your own. */
+@Composable
+private fun ServerSetting() {
+    Spacer(Modifier.height(8.dp))
+    SectionTitle("Online")
+    Text("Game server", style = MaterialTheme.typography.labelLarge)
+    Text(
+        if (Relay.DEFAULT_URL.isBlank()) "Internet play needs a server address, e.g. https://kotb-relay.example.workers.dev"
+        else "Leave empty to use the built-in server. Both friends need the same server.",
+        style = MaterialTheme.typography.bodySmall, color = Ink.Faded,
+    )
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .background(Ink.Paper.copy(alpha = 0.7f))
+            .sketchBorder(seed = 4711)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        if (AppSettings.serverUrl.isEmpty()) {
+            Text(Relay.DEFAULT_URL.ifBlank { "Server address" }, style = MaterialTheme.typography.bodyMedium, color = Ink.Faded)
+        }
+        BasicTextField(
+            AppSettings.serverUrl, { AppSettings.chooseServer(it.trim().take(200)) },
+            textStyle = MaterialTheme.typography.bodyMedium, singleLine = true, modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

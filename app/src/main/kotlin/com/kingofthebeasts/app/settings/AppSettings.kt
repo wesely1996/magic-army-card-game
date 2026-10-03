@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.kingofthebeasts.app.audio.GameAudio
+import com.kingofthebeasts.app.net.Relay
 
 /** How fast battle animations (and the AI's moves) play. */
 enum class AnimationSpeed(val displayName: String, val factor: Float) {
@@ -33,6 +34,11 @@ object AppSettings {
     /** Shown to friends in online games. */
     var playerName by mutableStateOf("Player")
         private set
+    /** Another relay server for internet play, overriding the one built in (blank: the built-in one). */
+    var serverUrl by mutableStateOf("")
+        private set
+    /** The relay server internet play uses; blank if none is set up. */
+    val relayUrl: String get() = serverUrl.trim().ifBlank { Relay.DEFAULT_URL }
     /** Whether the tutorial has been offered (on first launch) or played. */
     var tutorialOffered by mutableStateOf(false)
         private set
@@ -47,6 +53,7 @@ object AppSettings {
         playerName = p.getString("playerName", null) ?: "Player"
         tutorialOffered = p.getBoolean("tutorialOffered", false)
         boardFlat = p.getBoolean("boardFlat", false)
+        serverUrl = p.getString("serverUrl", null) ?: ""
         GameAudio.musicVolume = musicVolume
         GameAudio.sfxVolume = sfxVolume
     }
@@ -71,6 +78,11 @@ object AppSettings {
     fun setScreenAwake(on: Boolean) {
         keepScreenOn = on
         prefs?.edit()?.putBoolean("keepScreenOn", on)?.apply()
+    }
+
+    fun chooseServer(url: String) {
+        serverUrl = url
+        prefs?.edit()?.putString("serverUrl", url)?.apply()
     }
 
     fun chooseBoardView(flat: Boolean) {

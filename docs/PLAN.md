@@ -77,10 +77,13 @@ race, King and starter deck between 44% and 55% wins, and new cards or rules are
 5. **0.12.0 — Faster battles and new card kinds.** *(done)* Kings and Champions move and attack in one turn,
    Quick spells, structures, evolving units, field cleansing and draw-2 spells, hand of 10, 6 starting units,
    tough rule-engine Kings, a 20-second online turn timer, 68 new cards; battles average about 40 turns.
-6. **0.13.0 — Online play over the internet.** An internet `Link` (e.g. a direct WebRTC connection set up
-   with invite codes) next to same-Wi-Fi play. Peer-to-peer play shares hidden information (hands, deck order)
-   between the two apps; truly hiding it would need a trusted server.
-7. **1.0.0 — Play Store readiness (final step).** A private upload/signing key kept out of the repository, an
+6. **0.13.0 — Online play over the internet.** *(done)* A relay server on Cloudflare's free plan pairs two phones
+   by a 5-letter room code and passes their moves through; same-Wi-Fi (and hotspot) play stays. Both apps still
+   run the battle, so hidden information (hands, deck order) is shared between them; truly hiding it would need
+   the server to run the game.
+7. **Card revamp (product owner's own designs).** Rework the existing cards and add new ones designed by the
+   product owner, then a full balance pass.
+8. **1.0.0 — Play Store readiness (final step).** A private upload/signing key kept out of the repository, an
    Android App Bundle build, store listing text and screenshots, a privacy policy (the app uses the network),
    content rating, and a last full balance and device test pass.
 
@@ -89,4 +92,4 @@ Ongoing, any time: custom painted card art (drop `art_<id>.webp` files in
 team colours, screen reader labels).
 
 Done: landscape 2.5D board and drawer (0.2), Vermin and racial traits (0.3), Champions and fields (0.4),
-animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8), rejoining dropped online games (0.9), Master AI (0.10), 30 new cards (0.11), faster battles and new card kinds (0.12).
+animations and resume (0.5), music, sound and settings (0.6), same-Wi-Fi online play (0.7), tutorial battle (0.8), rejoining dropped online games (0.9), Master AI (0.10), 30 new cards (0.11), faster battles and new card kinds (0.12), internet play (0.13).

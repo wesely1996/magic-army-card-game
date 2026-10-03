@@ -1,5 +1,6 @@
 package com.kingofthebeasts.app.ui
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,22 +25,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kingofthebeasts.app.net.DEFAULT_PORT
 import com.kingofthebeasts.app.net.FoundGame
 import com.kingofthebeasts.app.net.FriendsLobby
 import com.kingofthebeasts.app.net.OnlineSession
+import com.kingofthebeasts.app.net.Relay
 import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.app.ui.theme.Ink
 import com.kingofthebeasts.core.data.StarterDecks
 import com.kingofthebeasts.core.deck.Deck
 import com.kingofthebeasts.core.deck.DeckRules
 
-/** Play with a friend on the same Wi-Fi: pick a name and an army, then host or join. */
+/** Play with a friend, over the internet or on the same Wi-Fi: pick a name and an army, then host or join. */
 @Composable
 fun FriendsScreen(lobby: FriendsLobby, decks: List<Deck>, onBack: () -> Unit) {
     val playable = decks.filter { DeckRules.isValid(it) } + StarterDecks.all
@@ -75,6 +79,8 @@ fun FriendsScreen(lobby: FriendsLobby, decks: List<Deck>, onBack: () -> Unit) {
 @Composable
 private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
     val saved = lobby.saved
+    // Over the internet unless no server is set up; remembered while the screen is open.
+    var internet by rememberSaveable { mutableStateOf(AppSettings.relayUrl.isNotBlank()) }
     if (saved != null && lobby.session == null) {
         Column(
             Modifier
@@ -86,7 +92,8 @@ private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
         ) {
             Text("Unfinished battle with ${saved.peerName}", style = MaterialTheme.typography.titleMedium)
             Text(
-                "${saved.acts.size} moves played. Tap Rejoin on both phones (on the same Wi-Fi) to carry on.",
+                "${saved.acts.size} moves played. Tap Rejoin on both phones" +
+                    (if (saved.room != null) " to carry on." else " (on the same Wi-Fi) to carry on."),
                 style = MaterialTheme.typography.bodySmall,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 6.dp)) {
@@ -97,20 +104,52 @@ private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
     }
     when (val step = lobby.step) {
         FriendsLobby.Step.Idle, is FriendsLobby.Step.Failed -> {
-            Text("Play a friend on the same Wi-Fi", style = MaterialTheme.typography.titleLarge)
-            Text(
-                "One of you hosts a game, the other joins it. Both phones need to be on the same Wi-Fi " +
-                    "network and on the same version of the game.",
-                style = MaterialTheme.typography.bodyMedium, color = Ink.Faded,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 10.dp)) {
+                ModeTab("🌍  Internet", internet) { internet = true }
+                ModeTab("📶  Same Wi-Fi / hotspot", !internet) { internet = false }
+            }
+            if (internet) InternetPanel(lobby, name, deck) else {
+                Text("Play a friend on the same Wi-Fi", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "One of you hosts a game, the other joins it. Both phones need to be on the same Wi-Fi network " +
+                        "(or one phone's hotspot) and on the same version of the game. No internet needed.",
+                    style = MaterialTheme.typography.bodyMedium, color = Ink.Faded,
+                )
+            }
             if (step is FriendsLobby.Step.Failed) {
                 Spacer(Modifier.height(8.dp))
                 Text(step.reason, style = MaterialTheme.typography.bodyMedium, color = Ink.Enemy)
             }
+            if (!internet) {
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SketchButton("🏰  Host a game", { lobby.host(name, deck) }, Modifier.weight(1f), color = Ink.Deploy)
+                    SketchButton("🔎  Join a game", { lobby.browse() }, Modifier.weight(1f), color = Ink.You)
+                }
+            }
+        }
+        is FriendsLobby.Step.HostingOnline -> {
+            val context = LocalContext.current
+            Text("Your game code", style = MaterialTheme.typography.titleLarge)
+            Text(
+                step.code,
+                style = MaterialTheme.typography.displayMedium,
+                color = Ink.You,
+                modifier = Modifier.padding(vertical = 6.dp),
+            )
+            Text(
+                "Tell your friend this code. They tap Internet → Join, type it in, and the battle starts. " +
+                    "Keep this screen open until they do.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SketchButton("🏰  Host a game", { lobby.host(name, deck) }, Modifier.weight(1f), color = Ink.Deploy)
-                SketchButton("🔎  Join a game", { lobby.browse() }, Modifier.weight(1f), color = Ink.You)
+                SketchButton("📤  Share code", {
+                    val text = "Join my King of the Beasts battle: open With friends → Internet and enter the code ${step.code}"
+                    val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+                    runCatching { context.startActivity(Intent.createChooser(send, "Share the game code")) }
+                }, color = Ink.Deploy)
+                SketchButton("Cancel", { lobby.reset() }, color = Ink.PaperDeep)
             }
         }
         is FriendsLobby.Step.Hosting -> {
@@ -171,6 +210,48 @@ private fun LobbyPanel(lobby: FriendsLobby, name: String, deck: Deck) {
             }
         }
     }
+}
+
+/** Over the internet: host for a code, or join with one. */
+@Composable
+private fun InternetPanel(lobby: FriendsLobby, name: String, deck: Deck) {
+    Text("Play a friend over the internet", style = MaterialTheme.typography.titleLarge)
+    if (AppSettings.relayUrl.isBlank()) {
+        Text(
+            "Internet play needs a game server, and this version of the app doesn't have one set. " +
+                "Play on the same Wi-Fi for now, or set a server in Settings.",
+            style = MaterialTheme.typography.bodyMedium, color = Ink.Faded,
+        )
+        return
+    }
+    Text(
+        "One of you hosts and gets a code; the other types it in. Works anywhere, on Wi-Fi or mobile data. " +
+            "Both phones need the same version of the game.",
+        style = MaterialTheme.typography.bodyMedium, color = Ink.Faded,
+    )
+    Spacer(Modifier.height(16.dp))
+    SketchButton("🏰  Host a game", { lobby.hostOnline(name, deck) }, Modifier.fillMaxWidth(), color = Ink.Deploy)
+    Spacer(Modifier.height(14.dp))
+    Text("Or join with your friend's code", style = MaterialTheme.typography.titleSmall)
+    var code by rememberSaveable { mutableStateOf("") }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.weight(1f)) { TextBox(code, { code = Relay.clean(it) }, "e.g. K7M2Q") }
+        SketchButton("Join", { lobby.joinOnline(name, deck, code) }, small = true, color = Ink.You, enabled = Relay.isCode(code))
+    }
+}
+
+@Composable
+private fun ModeTab(text: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = if (selected) Ink.Line else Ink.Faded,
+        modifier = Modifier
+            .then(if (selected) Modifier.watercolor(Ink.Gold, text.hashCode(), 1.3f) else Modifier.background(Ink.Paper.copy(alpha = 0.5f)))
+            .sketchBorder(if (selected) Ink.Line else Ink.Faded, seed = text.hashCode())
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+    )
 }
 
 @Composable

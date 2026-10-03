@@ -78,7 +78,7 @@ private sealed interface Screen {
     ) : Screen
     data object Rules : Screen
     data object Settings : Screen
-    /** Finding a friend on the same Wi-Fi. */
+    /** Finding a friend, on the same Wi-Fi or over the internet. */
     data object Friends : Screen
     /** The current game of the online session. */
     data object Online : Screen
@@ -107,7 +107,7 @@ private fun App() {
     val appVersion = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     }
-    val lobby = remember { FriendsLobby(context.applicationContext, scope, appVersion) }
+    val lobby = remember { FriendsLobby(context.applicationContext, scope, appVersion) { AppSettings.relayUrl } }
     val session = lobby.session
     val onlineGame = session?.game?.collectAsState()?.value
     LaunchedEffect(onlineGame) {

@@ -3,6 +3,20 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.13.0 — Play over the internet
+
+- **Internet play:** With friends now has two tabs. **Internet**: one player taps Host a game and gets a 5-letter
+  code (Share code sends it to a friend), the other types the code under Join. Works on Wi-Fi or mobile data.
+- It runs through a tiny relay server (`server/`, a Cloudflare Worker on the free plan) that pairs the two
+  phones by code and passes their moves along; both phones still run the battle and check each other after
+  every action. No account needed.
+- Dropped connections and Rejoin work over the internet too: both phones go back to the same room by
+  themselves, or after a restart with Rejoin.
+- **Same Wi-Fi / hotspot** play is unchanged and needs no internet. It also works over one phone's hotspot;
+  the host's screen now leaves out mobile-data addresses that a friend couldn't reach.
+- Settings → Online → Game server can point the app at another relay server.
+- Same rules and cards as 0.12.0, so 0.12 and 0.13 phones can still play each other on the same Wi-Fi.
+
 ## 0.12.0 — Faster battles, structures, evolution and Quick spells
 
 **Rules**

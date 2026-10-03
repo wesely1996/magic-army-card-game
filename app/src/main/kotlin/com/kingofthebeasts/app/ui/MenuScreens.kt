@@ -127,7 +127,7 @@ fun MenuScreen(
                     SketchButton("🎓  Tutorial", onTutorial, wide, color = Ink.Gold)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("🤝  With friends", { onFriends?.invoke() }, wide, color = Ink.You, enabled = onFriends != null)
-                    Text(friendsLabel ?: if (onFriends == null) "Online play — coming soon" else "Online, on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
+                    Text(friendsLabel ?: if (onFriends == null) "Online play — coming soon" else "Over the internet or on the same Wi-Fi", style = MaterialTheme.typography.bodySmall, color = Ink.Faded)
                     Spacer(Modifier.height(14.dp))
                     SketchButton("←  Back", { onPlayMenu(false) }, wide, color = Ink.PaperDeep)
                 }
@@ -390,8 +390,11 @@ fun RulesScreen(onBack: () -> Unit, onTutorial: () -> Unit = {}) {
             "volume, animation speed, keeping the screen on, and the credits.",
         "Continue" to "Your battle is saved after every move. If you leave it (or close the app), Play → Continue " +
             "picks it up. Forfeit ends it for good, and starting a new game replaces it.",
-        "With friends" to "Play a friend on the same Wi-Fi. Pick your name and army, then one of you taps Host a game " +
-            "and the other Join a game: hosted games show up in a list, or join by the address the host's screen shows. " +
+        "With friends" to "Play a friend over the internet or on the same Wi-Fi. Pick your name and army. Internet: one " +
+            "of you taps Host a game and gets a 5-letter code, the other types the code under Join; it works on Wi-Fi or " +
+            "mobile data. Same Wi-Fi / hotspot: no internet needed; one taps Host a game and the other Join a game, where " +
+            "hosted games show up in a list, or join by the address the host's screen shows. This also works when one " +
+            "phone shares a hotspot and the other connects to it. " +
             "You both need the same version of the game. Each phone runs the battle and only moves are sent, checked " +
             "against each other after every action. If the connection drops the battle waits and reconnects by itself. " +
             "Leave for now keeps it saved: tap Rejoin on both phones under With friends to carry on, even after closing the app. " +
