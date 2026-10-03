@@ -102,7 +102,9 @@ class AiPlayer(
         if (ranked.isEmpty()) return Action.Pass
         // A winning move is never passed up, even by a beginner.
         if (ranked.first().second >= WIN_SCORE) return ranked.first().first
-        val n = minOf(easyTopChoices, ranked.size, EASY_PICK_WEIGHTS.size)
+        // Its slips are small ones: never a move that throws the King away when a better one exists.
+        val sane = ranked.count { it.second > ranked.first().second - BLUNDER_MARGIN }
+        val n = minOf(easyTopChoices, sane, EASY_PICK_WEIGHTS.size)
         if (n <= 1) return ranked.first().first
         val weights = EASY_PICK_WEIGHTS.take(n)
         var roll = rng.nextDouble() * weights.sum()
@@ -303,6 +305,8 @@ class AiPlayer(
         /** How likely Easy is to take its best, 2nd, 3rd, 4th and 5th best-looking action. */
         val EASY_PICK_WEIGHTS = listOf(0.50, 0.20, 0.13, 0.10, 0.07)
         const val WIN_SCORE = 900_000.0
+        /** Beginner never picks a move this much worse than its best: that's losing the King, not a slip. */
+        const val BLUNDER_MARGIN = 1_000.0
         const val HARD_MAX_PLIES = 7
         const val HARD_ROOT_BEAM = 14
         const val HARD_WIDE_BEAM = 8

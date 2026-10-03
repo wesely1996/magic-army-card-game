@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,6 +92,10 @@ fun MenuScreen(
     /** Offer the tutorial once, on first launch. */
     offerTutorial: Boolean = false,
     onTutorialOffered: () -> Unit = {},
+    /** The profile chip: the player's name and most played King. */
+    profileName: String = "",
+    profileKing: String? = null,
+    onProfile: () -> Unit = {},
 ) {
     var confirmNew by remember { mutableStateOf(false) }
     BackHandler(enabled = playMenu) { onPlayMenu(false) }
@@ -138,8 +143,25 @@ fun MenuScreen(
                 )
             }
         }
-        // The settings wheel sits in the top corner.
-        Box(Modifier.align(Alignment.TopEnd).systemBarsPadding().padding(12.dp)) {
+        // The settings wheel sits in the top corner, the profile next to it.
+        Row(
+            Modifier.align(Alignment.TopEnd).systemBarsPadding().padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Ink.Paper.copy(alpha = 0.7f))
+                    .sketchBorder(seed = 31)
+                    .clickable(onClick = onProfile)
+                    .padding(start = 4.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                KingAvatar(profileKing, 36.dp)
+                Text(profileName.ifBlank { "Profile" }, style = MaterialTheme.typography.labelLarge)
+            }
             SketchButton("⚙", onSettings, color = Ink.PaperDeep)
         }
         if (offerTutorial) {

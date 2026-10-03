@@ -32,6 +32,8 @@ object Evaluator {
             val mover = s.activePlayer
             score -= danger(s, me) * (if (mover == opp) 1.0 else 0.35)
             score += danger(s, opp) * (if (mover == me) 1.0 else 0.35)
+            score -= siege(s, me) * SIEGE_WEIGHT
+            score += siege(s, opp) * SIEGE_WEIGHT
         }
 
         val oppKing = s.king(opp)
@@ -54,6 +56,38 @@ object Evaluator {
         val st = def.unit ?: return 0.0
         return st.attack * 1.6 + st.health + st.move * 0.4 + (st.range - 1) * 1.2 +
             st.keywords.size * 0.8 + st.abilities.size * 1.2
+    }
+
+    /** How much a point of [siege] costs: a King's health is worth 4, counted at half weight. */
+    private const val SIEGE_WEIGHT = 2.0
+    private const val SIEGE_TURNS = 4
+
+    /**
+     * The damage [side]'s King stands to take from enemies already within reach of him, over the turns
+     * each will take to kill: an attacker that would need three blows to bring down is three hits on
+     * the King. [danger] only sees the next blow, which doesn't change while the King's guard chips
+     * at an attacker, so without this the AI would rather grow its army than fight off a siege.
+     */
+    private fun siege(s: GameState, side: Int): Double {
+        val king = s.king(side) ?: return 0.0
+        var total = 0.0
+        for (e in s.unitsOf(1 - side)) {
+            if (e.has(Keyword.STRUCTURE) && !e.has(Keyword.SENTRY)) continue
+            val reach = GameEngine.rangeOf(s, e) + if (GameEngine.canAttackAfterMove(e)) GameEngine.moveOf(s, e) else 0
+            if (e.pos.distanceTo(king.pos) > reach) continue
+            val hit = GameEngine.attackDamage(s, e, king)
+            if (hit <= 0) continue
+            // The hardest blow the King's side can strike at it now.
+            var best = 0
+            for (m in s.unitsOf(side)) {
+                if (m.has(Keyword.STRUCTURE) || m.stun > 0) continue
+                val r = GameEngine.rangeOf(s, m) + if (GameEngine.canAttackAfterMove(m)) GameEngine.moveOf(s, m) else 0
+                if (m.pos.distanceTo(e.pos) <= r) best = max(best, GameEngine.attackDamage(s, m, e))
+            }
+            val turns = if (best <= 0) SIEGE_TURNS else minOf(SIEGE_TURNS, (e.hp + best - 1) / best)
+            total += hit * turns
+        }
+        return total
     }
 
     /**

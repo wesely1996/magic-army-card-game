@@ -100,6 +100,10 @@ class OnlineSession(
     /** Who asked for another game after the current one. */
     data class RematchState(val mine: Boolean = false, val theirs: Boolean = false)
 
+    /** The friend gave up the battle in progress (left for good before it was decided). */
+    var friendForfeited = false
+        private set
+
     /** The friend's name, once known. */
     var peerName: String? = restore?.peerName
         private set
@@ -210,6 +214,7 @@ class OnlineSession(
                 maybeRematch()
             }
             NetMessage.Leave -> {
+                if (gameFlow.value != null && !gameOver) friendForfeited = true
                 onSave(null)
                 end("${peerName ?: "Your friend"} left.")
             }

@@ -1038,7 +1038,12 @@ object GameEngine {
                 else -> {
                     val w = if (k0) 0 else 1
                     s.winner = w
-                    s.log("${s.players[1 - w].name}'s King has fallen. ${s.players[w].name} wins!")
+                    val loser = s.players[1 - w].name
+                    val winner = s.players[w].name
+                    // The human plays as "You" against the AI: "Your King has fallen. Opponent wins!" / "You win!"
+                    val whose = if (loser == "You") "Your" else "$loser's"
+                    val wins = if (winner == "You") "You win!" else "$winner wins!"
+                    s.log("$whose King has fallen. $wins")
                 }
             }
         }

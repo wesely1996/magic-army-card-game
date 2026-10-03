@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -19,6 +20,7 @@ import androidx.compose.ui.platform.LocalView
 import com.kingofthebeasts.app.audio.GameAudio
 import com.kingofthebeasts.app.audio.Music
 import com.kingofthebeasts.app.settings.AppSettings
+import com.kingofthebeasts.app.settings.MatchHistory
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kingofthebeasts.app.decks.BattleSaveRepository
 import com.kingofthebeasts.app.decks.DeckRepository
@@ -34,6 +36,7 @@ import com.kingofthebeasts.app.ui.DeckViewScreen
 import com.kingofthebeasts.app.ui.MenuScreen
 import com.kingofthebeasts.app.ui.PlaySetupScreen
 import com.kingofthebeasts.app.ui.RulesScreen
+import com.kingofthebeasts.app.ui.ProfileScreen
 import com.kingofthebeasts.app.ui.SettingsScreen
 import com.kingofthebeasts.app.ui.theme.KingOfTheBeastsTheme
 import com.kingofthebeasts.core.ai.Difficulty
@@ -46,6 +49,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         AppSettings.load(this)
+        MatchHistory.load(this)
         GameAudio.init(this)
         setContent { KingOfTheBeastsTheme { App() } }
     }
@@ -78,6 +82,8 @@ private sealed interface Screen {
     ) : Screen
     data object Rules : Screen
     data object Settings : Screen
+    /** The player's name, picture, win rates and match history. */
+    data object Profile : Screen
     /** Finding a friend, on the same Wi-Fi or over the internet. */
     data object Friends : Screen
     /** The current game of the online session. */
@@ -170,6 +176,9 @@ private fun App() {
             onTutorial = ::startTutorial,
             offerTutorial = !AppSettings.tutorialOffered,
             onTutorialOffered = AppSettings::markTutorialOffered,
+            profileName = AppSettings.playerName,
+            profileKing = MatchHistory.stats.favoriteKing,
+            onProfile = { screen = Screen.Profile },
             resumeLabel = saved?.let { "Turn ${it.turn} vs ${it.opponent.name} (${Difficulty.valueOf(it.difficulty).displayName})" },
             onResume = {
                 saved?.let { b ->
@@ -202,17 +211,21 @@ private fun App() {
         Screen.Setup -> PlaySetupScreen(decks, onBack = { screen = Screen.Menu }, onStart = ::newBattle)
         is Screen.Battle -> {
             val vm: GameViewModel = viewModel(key = "battle-${s.seed}-${s.resume.size}") {
-                GameViewModel(s.player, s.opponent, s.difficulty, s.seed, s.resume, onSave = ::storeBattle)
+                GameViewModel(s.player, s.opponent, s.difficulty, s.seed, s.resume, onSave = ::storeBattle, onFinished = MatchHistory::add)
             }
-            GameScreen(
-                vm,
-                onExit = { screen = Screen.Menu },
-                onRematch = { newBattle(s.player, s.opponent, s.difficulty) },
-                onForfeit = {
-                    storeBattle(null)
-                    screen = Screen.Menu
-                },
-            )
+            // Keyed by battle, so a rematch starts with a fresh screen: default view, closed hand and drawer.
+            key(vm) {
+                GameScreen(
+                    vm,
+                    onExit = { screen = Screen.Menu },
+                    onRematch = { newBattle(s.player, s.opponent, s.difficulty) },
+                    onForfeit = {
+                        vm.recordResult(forfeitBy = vm.human)
+                        storeBattle(null)
+                        screen = Screen.Menu
+                    },
+                )
+            }
         }
         Screen.Rules -> RulesScreen(onBack = { screen = Screen.Menu }, onTutorial = ::startTutorial)
         is Screen.Tutorial -> {
@@ -222,9 +235,10 @@ private fun App() {
                     Difficulty.EASY, 0L, tutorial = true,
                 )
             }
-            GameScreen(vm, onExit = { screen = Screen.Menu }, onRematch = ::startTutorial)
+            key(vm) { GameScreen(vm, onExit = { screen = Screen.Menu }, onRematch = ::startTutorial) }
         }
         Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Menu })
+        Screen.Profile -> ProfileScreen(onBack = { screen = Screen.Menu })
         Screen.Friends -> FriendsScreen(lobby, decks, onBack = { screen = Screen.Menu })
         Screen.Online -> {
             val s = session
@@ -239,25 +253,35 @@ private fun App() {
                     GameViewModel(
                         g.start.hostDeck, g.start.guestDeck, Difficulty.EASY, g.start.seed, resume = g.replay,
                         remote = g, human = g.human, names = listOf(g.start.hostName, g.start.guestName),
+                        onFinished = MatchHistory::add,
                     )
                 }
-                GameScreen(
-                    vm,
-                    onExit = ::leaveOnline,
-                    onRematch = { s.requestRematch() },
-                    onForfeit = ::leaveOnline,
-                    online = OnlineInfo(
-                        ended = (status as? OnlineSession.Status.Ended)?.reason,
-                        rematchMine = rematch.mine,
-                        rematchTheirs = rematch.theirs,
-                        reconnecting = status == OnlineSession.Status.Reconnecting,
-                        onLeaveForNow = {
-                            lobby.leaveForNow()
-                            playMenu = true
-                            screen = Screen.Menu
+                // The friend gave up mid-battle: that's a win.
+                LaunchedEffect(status) {
+                    if (status is OnlineSession.Status.Ended && s.friendForfeited) vm.recordResult(forfeitBy = 1 - vm.human)
+                }
+                key(vm) {
+                    GameScreen(
+                        vm,
+                        onExit = ::leaveOnline,
+                        onRematch = { s.requestRematch() },
+                        onForfeit = {
+                            vm.recordResult(forfeitBy = vm.human)
+                            leaveOnline()
                         },
-                    ),
-                )
+                        online = OnlineInfo(
+                            ended = (status as? OnlineSession.Status.Ended)?.reason,
+                            rematchMine = rematch.mine,
+                            rematchTheirs = rematch.theirs,
+                            reconnecting = status == OnlineSession.Status.Reconnecting,
+                            onLeaveForNow = {
+                                lobby.leaveForNow()
+                                playMenu = true
+                                screen = Screen.Menu
+                            },
+                        ),
+                    )
+                }
             }
         }
     }

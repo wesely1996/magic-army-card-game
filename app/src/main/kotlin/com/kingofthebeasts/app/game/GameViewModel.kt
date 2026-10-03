@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.kingofthebeasts.app.net.RemoteSide
 import com.kingofthebeasts.app.settings.AppSettings
 import com.kingofthebeasts.core.net.NetMessage
+import com.kingofthebeasts.core.profile.MatchRecord
 import com.kingofthebeasts.core.net.checksum
 import com.kingofthebeasts.core.tutorial.Tutorial
 import com.kingofthebeasts.core.tutorial.TutorialStep
@@ -68,6 +69,8 @@ class GameViewModel(
     names: List<String> = listOf("You", "Opponent"),
     /** The guided tutorial battle: a fixed setup, a scripted rival and lessons that limit your moves. */
     val tutorial: Boolean = false,
+    /** Called once when the battle is decided (or given up), with the record for the match history. */
+    private val onFinished: (MatchRecord) -> Unit = {},
 ) : ViewModel() {
     val state: GameState = if (tutorial) Tutorial.newGame() else GameEngine.newGame(deck0, deck1, names, seed)
 
@@ -162,9 +165,31 @@ class GameViewModel(
     /** The battle as it stands, for [onSave]. */
     fun snapshot(): SavedBattle = SavedBattle(deck0, deck1, difficulty.name, seed, history.toList(), state.turnNumber)
 
+    private var resultRecorded = false
+
+    /**
+     * Hands the result to [onFinished], once: when the battle is over, or when a player gives up
+     * ([forfeitBy] is the engine player who did) before it is. The tutorial isn't recorded.
+     */
+    fun recordResult(forfeitBy: Int? = null) {
+        if (resultRecorded || tutorial) return
+        val over = state.phase == Phase.GAME_OVER
+        if (forfeitBy == null && !over || forfeitBy != null && over) return
+        resultRecorded = true
+        val mine = if (human == 0) deck0 else deck1
+        val theirs = if (human == 0) deck1 else deck0
+        onFinished(
+            MatchRecord.of(
+                state, human, mine, theirs, difficulty.takeIf { remote == null }, remote?.opponentName,
+                System.currentTimeMillis(), forfeitBy,
+            ),
+        )
+    }
+
     private fun record(action: Action) {
         history += ActionCodec.encode(action)
         updateLesson()
+        recordResult()
         if (state.phase == Phase.GAME_OVER) remote?.finished()
         // Online games (and the tutorial) can't be resumed: the friend's app would have moved on.
         if (remote == null && !tutorial) onSave(if (state.phase == Phase.GAME_OVER) null else snapshot())

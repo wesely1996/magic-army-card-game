@@ -3,6 +3,22 @@
 Versions are tagged `v<version>` on GitHub, and each one has a release with a signed APK.
 To cut a release: Actions tab → **Android CI/CD** → **Run workflow**, enter the version (e.g. `0.3.0`).
 
+## 0.14.0 — Profile and match history, smarter Kings' guards
+
+- **Profile:** tap your name and picture on the main menu. Your name is shared with online play; your
+  picture is the King you've played most. See your win rates against Beginner, Pro, Master and friends,
+  your favourite race and King, results by race, and your **match history** (every finished battle with the
+  result, both Kings, the length and the date). Giving up counts as a loss; a friend giving up as a win.
+- **AI defends its King:** it now weighs the damage an attacker next to its King will deal over the turns
+  it takes to bring down, so it fights off a siege instead of growing its army while its King is being
+  chewed up (Pro used to let a Champion maul its King; now it fights it). It still won't trade blows with a
+  Retaliate unit when that only hurts its King faster.
+- **Beginner no longer throws its King away:** it still picks among its top few moves, but never one that
+  loses the King when a safer move exists (e.g. walking into a Sentry tower's range with little health).
+- A simulation check confirms the win rule over many random battles: the winner always still has their King.
+- A **Rematch** (or a new battle) starts from the default board view, with the hand and drawer closed.
+- The end-of-battle message reads "Your King has fallen" / "You win!".
+
 ## 0.13.1 — Sturdier internet games
 
 - **Hosting no longer fails while you share the code.** If the phone loses its connection while waiting
