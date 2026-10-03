@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -13,7 +12,7 @@ fun versionCodeOf(name: String): Int {
 
 android {
     namespace = "com.kingofthebeasts.app"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.kingofthebeasts.app"
@@ -60,21 +59,9 @@ android {
         }
     }
 
-    // Name the APK after the game and version instead of app-debug.apk / app-release.apk.
-    applicationVariants.all {
-        val apkVersion = versionName
-        outputs.all {
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "KingOfTheBeasts-$apkVersion.apk"
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -87,6 +74,21 @@ android {
         abortOnError = true
         warningsAsErrors = false
         checkReleaseBuilds = false
+    }
+}
+
+kotlin {
+    compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
+}
+
+// Name the APK after the game and version instead of app-debug.apk / app-release.apk.
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            (output as? com.android.build.api.variant.impl.VariantOutputImpl)?.outputFileName?.set(
+                output.versionName.map { "KingOfTheBeasts-$it.apk" },
+            )
+        }
     }
 }
 
