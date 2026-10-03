@@ -19,7 +19,7 @@ import kotlin.random.Random
  */
 object Relay {
     /** The relay this build talks to; Settings can point the app at another one. */
-    const val DEFAULT_URL = ""
+    const val DEFAULT_URL = "https://kotb-relay.nikola-wesely-96.workers.dev"
 
     /** Letters and digits that can't be mistaken for each other (no 0/O, 1/I). */
     private const val ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"

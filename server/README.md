@@ -1,5 +1,7 @@
 # Online relay server
 
+Live at **<https://kotb-relay.nikola-wesely-96.workers.dev>** (built into the app as `Relay.DEFAULT_URL`).
+
 Internet play goes through this tiny server. Both phones connect to it with the same room code and it
 passes their messages back and forth. It runs no game logic and stores nothing: each phone runs the rules
 engine itself, and the two apps check each other after every move, exactly as on Wi-Fi.
@@ -34,7 +36,18 @@ npx wrangler dev      # http://127.0.0.1:8787
 The app's own tests can also play a whole battle through it:
 `RELAY_URL=http://127.0.0.1:8787 ./gradlew :app:testDebugUnitTest --tests '*RelayTest*'`.
 
-## Deploying (one-time setup)
+## Deploying
+
+From your computer, with Node.js 20+:
+
+```bash
+cd server
+npm ci
+npx wrangler login     # once; opens the browser
+npx wrangler deploy
+```
+
+### Or automatically from GitHub (one-time setup)
 
 1. Create a free account at <https://dash.cloudflare.com/sign-up>.
 2. In the dashboard open **Workers & Pages** once, so the account gets its `workers.dev` subdomain
